@@ -2,11 +2,11 @@
 
 \page crashfix_server Processing Error Reports with CrashFix Server
 
-<a class="el" href="http://crashfixsoftware.com">CrashFix Server</a> is a web-based crash 
+<a class="el" href="http://crashfix.sourceforge.net">CrashFix Server</a> is a web-based crash 
 report analysis software. CrashFix server allows to easily receive, store, 
 organize and analyze crash reports sent by your C++ application.
 It is the easiest way to store and process error reports sent by
-CrashRpt library.  CrashFix server can be downloaded from the <a class="el" href="http://crashfixsoftware.com">CrashFix Server Website</a>.
+CrashRpt library.  CrashFix server can be downloaded from the <a class="el" href="http://crashfix.sourceforge.net">CrashFix Server Website</a>.
 
 An example of CrashFix user interface is shown in the figure below:
 
@@ -55,7 +55,7 @@ information.
 
 For additional information on CrashFix features,
 please refer to 
-<a class="el" href="http://crashfixsoftware.com/index.php/site/page?view=documentation">CrashFix Documentation</a>.
+<a class="el" href="http://crashfix.sourceforge.net">CrashFix Documentation</a>.
 
 \section crashfix_integration Configuring CrashRpt to Send Error Reports to CrashFix Server
 
@@ -116,6 +116,5 @@ info.dwFlags |= CR_INST_HTTP_BINARY_ENCODING;
 \endcode
 
 See also:
-  - <a href="http://crashfixsoftware.com">CrashFix Server Website</a>
-  - <a href="http://crashfixsoftware.com/index.php/site/page?view=client_side_integration_tutorial">Client-Side Integration - a Tutorial</a>  
+  - <a href="http://crashfix.sourceforge.net">CrashFix Server Website</a>  
 */
