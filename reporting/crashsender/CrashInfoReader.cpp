@@ -546,6 +546,7 @@ int CCrashInfoReader::UnpackCrashDescription(CErrorReportInfo& eri)
     m_MinidumpType = m_pCrashDesc->m_MinidumpType;    
     UnpackString(m_pCrashDesc->m_dwRestartCmdLineOffs, m_sRestartCmdLine);
 	m_nRestartTimeout = m_pCrashDesc->m_nRestartTimeout;
+    m_nMaxReportsPerDay = m_pCrashDesc->m_nMaxReportsPerDay;
     UnpackString(m_pCrashDesc->m_dwUrlOffs, m_sUrl);
     UnpackString(m_pCrashDesc->m_dwEmailToOffs, m_sEmailTo);  
     m_nSmtpPort = m_pCrashDesc->m_nSmtpPort;
@@ -1517,4 +1518,46 @@ void CCrashInfoReader::SetPersistentUserEmail(LPCTSTR szEmail)
 {
 	// Save user's E-mail to INI file for later reuse.
 	Utility::SetINIString(m_sINIFile, _T("General"), _T("EmailFrom"), szEmail);
+}
+
+static CString GetSystemDateUTC()
+{
+    // Get current date 
+    CString sDate;
+    Utility::GetSystemTimeUTC(sDate);
+    sDate.GetBufferSetLength(10); // XXXX-XX-XX
+    return sDate;
+}
+
+int CCrashInfoReader::GetDailyReportCount()
+{
+    ATLASSERT(!m_sINIFile.IsEmpty());
+
+    int nReports = 0;
+
+    CString sDate = Utility::GetINIString(m_sINIFile, _T("General"), _T("DailyReportDate"));
+    if (!sDate.IsEmpty())
+    {
+        // Get current date
+        if (GetSystemDateUTC() == sDate)
+        {
+            nReports = _ttoi(Utility::GetINIString(m_sINIFile, _T("General"), _T("DailyReportCount")));
+        }
+    }
+
+    return nReports;
+}
+
+void CCrashInfoReader::SetDailyReportCount(int nReports)
+{
+    ATLASSERT(!m_sINIFile.IsEmpty());
+
+    // Get current date 
+    CString sDate = GetSystemDateUTC();
+
+    CString sReports;
+    sReports.Format(_T("%d"), nReports);
+
+    Utility::SetINIString(m_sINIFile, _T("General"), _T("DailyReportDate"), sDate);
+    Utility::SetINIString(m_sINIFile, _T("General"), _T("DailyReportCount"), sReports);
 }

@@ -108,7 +108,8 @@ public:
         __in_opt LPCTSTR lpcszCustomSenderIcon = NULL,
 		__in_opt LPCTSTR lpcszSmtpLogin = NULL,
 		__in_opt LPCTSTR lpcszSmtpPassword = NULL,
-		__in_opt int nRestartTimeout = 0);
+		__in_opt int nRestartTimeout = 0,
+		__in_opt int nMaxReportsPerDay = 0);
 
 	// Returns TRUE if object was initialized.
     BOOL IsInitialized();
@@ -275,6 +276,7 @@ public:
     MINIDUMP_TYPE m_MinidumpType;  // Minidump type.
     CString m_sRestartCmdLine;     // App restart command line.
 	int m_nRestartTimeout;         // Restart timeout.
+    int m_nMaxReportsPerDay;       // Maximum number of crash reports that will be sent per calendar day.
     CString m_sUrl;                // Url to use when sending error report over HTTP.  
     CString m_sEmailTo;            // E-mail recipient.
     int m_nSmtpPort;               // SMTP port.

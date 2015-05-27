@@ -98,7 +98,8 @@ int CCrashHandler::Init(
         LPCTSTR lpcszCustomSenderIcon,
 		LPCTSTR lpcszSmtpLogin,
 		LPCTSTR lpcszSmtpPassword,
-		int nRestartTimeout)
+		int nRestartTimeout,
+		int nMaxReportsPerDay)
 { 
 	// This method initializes configuration parameters, 
 	// creates shared memory buffer and saves the configuration parameters there,
@@ -198,6 +199,7 @@ int CCrashHandler::Init(
 	m_nRestartTimeout = nRestartTimeout;
 	if(m_nRestartTimeout<=0)
 		m_nRestartTimeout = 60; // use default 60 sec timeout
+	m_nMaxReportsPerDay = nMaxReportsPerDay;
 
     // Save E-mail recipient(s) address
     m_sEmailTo = lpcszTo;
@@ -557,6 +559,7 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
 	m_pTmpCrashDesc->m_dwProcessId = GetCurrentProcessId();
 	m_pTmpCrashDesc->m_bClientAppCrashed = FALSE;
 	m_pTmpCrashDesc->m_nRestartTimeout = m_nRestartTimeout;
+	m_pTmpCrashDesc->m_nMaxReportsPerDay = m_nMaxReportsPerDay;
 
     m_pTmpCrashDesc->m_dwAppNameOffs = PackString(m_sAppName);
     m_pTmpCrashDesc->m_dwAppVersionOffs = PackString(m_sAppVersion);

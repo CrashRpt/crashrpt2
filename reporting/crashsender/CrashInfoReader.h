@@ -265,6 +265,7 @@ public:
     BOOL        m_bAppRestart;          // Should we restart the crashed application?
     CString     m_sRestartCmdLine;      // Command line for crashed app restart.
 	int         m_nRestartTimeout;      // Restart timeout.
+    int         m_nMaxReportsPerDay;    // Maximum number of crash reports that will be sent per calendar day.
     UINT        m_uPriorities[3];       // Error report delivery priorities.
     CString     m_sPrivacyPolicyURL;    // Privacy policy URL.
     BOOL        m_bGenerateMinidump;    // Should we generate crash minidump file?
@@ -346,6 +347,12 @@ public:
 	// Removes several files by names.
 	BOOL RemoveFilesFromCrashReport(int nReport, std::vector<CString> FilesToRemove);
 	
+    // Gets the number of crash reports sent per calendar day.  
+    int GetDailyReportCount();
+
+    // Sets the number of crash reports sent per calendar day.  
+    void SetDailyReportCount(int nReports);
+
 private:
 
     // Retrieves some crash info from crash description XML.

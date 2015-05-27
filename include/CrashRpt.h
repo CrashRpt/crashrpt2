@@ -736,6 +736,7 @@ typedef struct tagCR_INSTALL_INFOW
 	LPCWSTR pszSmtpLogin;           //!< Login name used for SMTP authentication when sending error report as E-mail.
 	LPCWSTR pszSmtpPassword;        //!< Password used for SMTP authentication when sending error report as E-mail.	
 	int nRestartTimeout;            //!< Timeout for application restart.
+	int nMaxReportsPerDay;          //!< Maximum number of crash reports that will be sent per calendar day.
 }
 CR_INSTALL_INFOW;
 
@@ -770,6 +771,7 @@ typedef struct tagCR_INSTALL_INFOA
 	LPCSTR pszSmtpLogin;           //!< Login name used for SMTP authentication when sending error report as E-mail.
 	LPCSTR pszSmtpPassword;        //!< Password used for SMTP authentication when sending error report as E-mail.	
 	int nRestartTimeout;           //!< Timeout for application restart.
+	int nMaxReportsPerDay;         //!< Maximum number of crash reports that will be sent per calendar day.
 }
 CR_INSTALL_INFOA;
 
