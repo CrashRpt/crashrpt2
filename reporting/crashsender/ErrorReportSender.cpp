@@ -2084,7 +2084,19 @@ BOOL CErrorReportSender::SendReport()
         if(0==m_Assync.WaitForCompletion())
         {
             status = 0;
-            break;
+            
+			// If the report was sent through SMTP
+			if (id == CR_SMTP)
+			{
+				// Remove the ZIP and MD5 files from the attachment list
+				m_EmailMsg.RemoveAttachment(0);
+				m_EmailMsg.RemoveAttachment(0);
+
+				// Remove the recipient so that there will be no copies
+				m_EmailMsg.RemoveRecipient(0);
+			}
+			
+			break;
         }
     }
 
@@ -2340,6 +2352,7 @@ BOOL CErrorReportSender::SendOverSMTP()
 
     // Send mail assynchronously
     int res = m_SmtpClient.SendEmailAssync(&m_EmailMsg, &m_Assync); 
+
     return (res==0);
 }
 

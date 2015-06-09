@@ -84,6 +84,14 @@ CString CEmailMessage::GetRecipientAddress(int nRecipient)
 	return m_aTo[nRecipient];
 }
 
+void CEmailMessage::RemoveRecipient(int nRecipient) {
+	// Removes n-th recipient address
+	if (nRecipient >= (int)m_aTo.size() || nRecipient < 0) {
+		throw std::out_of_range("nRecipient out of range");
+	}
+	m_aTo.erase(m_aTo.begin() + nRecipient);
+}
+
 void CEmailMessage::AddAttachment(LPCTSTR szFileName)
 {
 	// Add file attachment.
@@ -100,6 +108,14 @@ CString CEmailMessage::GetAttachment(int nAttachment)
 {
 	// Return n-th attachment.
 	return m_aAttachments[nAttachment];
+}
+
+void CEmailMessage::RemoveAttachment(int nAttachment) {
+	// Removes n-th attachment.
+	if (nAttachment >= (int)m_aAttachments.size() || nAttachment < 0) {
+		throw std::out_of_range("nAttachment out of range");
+	}
+	m_aAttachments.erase(m_aAttachments.begin() + nAttachment);
 }
 
 CString CEmailMessage::GetText()
