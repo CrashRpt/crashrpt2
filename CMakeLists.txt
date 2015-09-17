@@ -96,9 +96,12 @@ endmacro()
 
 # Other CMakeLists are located in project subdirectories 
 
+option(CRASHRPT_BUILD_DEMOS "If set (default), the demos will be built" ON)
+if(CRASHRPT_BUILD_DEMOS)
 add_subdirectory("demos/ConsoleDemo")
 add_subdirectory("demos/WTLDemo")
 add_subdirectory("demos/MFCDemo")
+endif()
 
 add_subdirectory("reporting/crashrpt")
 add_subdirectory("reporting/crashsender")
