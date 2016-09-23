@@ -1270,8 +1270,10 @@ int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
 // Generates error report
 int CCrashHandler::GenerateErrorReport(
         PCR_EXCEPTION_INFO pExceptionInfo)
-{  
-    crSetErrorMsg(_T("Unspecified error."));
+{
+	ReInitializer re_initializer( * this ) ;
+
+	crSetErrorMsg(_T("Unspecified error."));
 
 	// Allocate memory in stack for storing exception pointers.
 	EXCEPTION_RECORD ExceptionRecord;
@@ -1338,11 +1340,7 @@ int CCrashHandler::GenerateErrorReport(
     if (m_lpfnCallback!=NULL && m_lpfnCallback(NULL)==FALSE)
     {
 		// User has canceled error report generation!
-
-		// Prepare for the next crash
-		PerCrashInit();
-
-        crSetErrorMsg(_T("The operation was cancelled by client."));
+		crSetErrorMsg(_T("The operation was cancelled by client."));
         return 2;
     }
 
@@ -1350,11 +1348,7 @@ int CCrashHandler::GenerateErrorReport(
 	if(CR_CB_CANCEL==CallBack(CR_CB_STAGE_PREPARE, pExceptionInfo))
 	{
 		// User has canceled error report generation!
-
-		// Prepare for the next crash
-		PerCrashInit();
-
-        crSetErrorMsg(_T("The operation was cancelled by client."));
+		crSetErrorMsg(_T("The operation was cancelled by client."));
         return 2;
     }	
 
@@ -1397,9 +1391,6 @@ int CCrashHandler::GenerateErrorReport(
 	// after crash.
 	if(m_bContinueExecution)
 	{
-		// Prepare for the next crash
-		PerCrashInit();
-
 		if(m_bAddVideo)
 		{
 			// Relaunch video recording loop for the next crash.
@@ -1779,7 +1770,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 	{
 		// Acquire lock to avoid other threads (if exist) to crash while we are 
 		// inside. 
-		pCrashHandler->CrashLock(TRUE);
+		CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1797,10 +1788,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);
-	}   
+    }   
 
     // Unreacheable code  
     return EXCEPTION_EXECUTE_HANDLER;
@@ -1821,7 +1809,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 	if (pCrashHandler != NULL) 
 	{
 		// Acquire lock to avoid other threads (if exist) to crash while we	are inside.
-		pCrashHandler->CrashLock(TRUE);
+		CCrashHandler::Locker const locker( * pCrashHandler ) ;
 		
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1839,10 +1827,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);
-	}
+    }
 
 	return 0;
 }
@@ -1858,8 +1843,8 @@ void __cdecl CCrashHandler::TerminateHandler()
     if(pCrashHandler!=NULL)
     {
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1878,9 +1863,6 @@ void __cdecl CCrashHandler::TerminateHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }    
 }
 
@@ -1895,8 +1877,8 @@ void __cdecl CCrashHandler::UnexpectedHandler()
     if(pCrashHandler!=NULL)
     {
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1915,9 +1897,6 @@ void __cdecl CCrashHandler::UnexpectedHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }    
 }
 
@@ -1933,8 +1912,8 @@ void __cdecl CCrashHandler::PureCallHandler()
     if(pCrashHandler!=NULL)
     {
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1953,9 +1932,6 @@ void __cdecl CCrashHandler::PureCallHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }  
 }
 #endif
@@ -1975,8 +1951,8 @@ void __cdecl CCrashHandler::SecurityHandler(int code, void *x)
     if(pCrashHandler!=NULL)
     {    
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -1994,9 +1970,6 @@ void __cdecl CCrashHandler::SecurityHandler(int code, void *x)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);
     }
 }
 #endif 
@@ -2020,8 +1993,8 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
     if(pCrashHandler!=NULL)
     {
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2044,9 +2017,6 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }   
 }
 #endif
@@ -2063,8 +2033,8 @@ int __cdecl CCrashHandler::NewHandler(size_t)
     if(pCrashHandler!=NULL)
     {     
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2084,9 +2054,6 @@ int __cdecl CCrashHandler::NewHandler(size_t)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);
     }
 
     // Unreacheable code
@@ -2105,8 +2072,8 @@ void CCrashHandler::SigabrtHandler(int)
     if(pCrashHandler!=NULL)
     {     
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2124,9 +2091,6 @@ void CCrashHandler::SigabrtHandler(int)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE); 
     }
 }
 
@@ -2141,8 +2105,8 @@ void CCrashHandler::SigfpeHandler(int /*code*/, int subcode)
     if(pCrashHandler!=NULL)
     {     
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2163,9 +2127,6 @@ void CCrashHandler::SigfpeHandler(int /*code*/, int subcode)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);
     }
 }
 
@@ -2180,8 +2141,8 @@ void CCrashHandler::SigillHandler(int)
     if(pCrashHandler!=NULL)
     {    
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2200,9 +2161,6 @@ void CCrashHandler::SigillHandler(int)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);    
     }
 }
 
@@ -2217,8 +2175,8 @@ void CCrashHandler::SigintHandler(int)
     if(pCrashHandler!=NULL)
     { 
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2237,9 +2195,6 @@ void CCrashHandler::SigintHandler(int)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }
 }
 
@@ -2253,8 +2208,8 @@ void CCrashHandler::SigsegvHandler(int)
     if(pCrashHandler!=NULL)
     {     
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2274,9 +2229,6 @@ void CCrashHandler::SigsegvHandler(int)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);   
     }
 }
 
@@ -2291,8 +2243,8 @@ void CCrashHandler::SigtermHandler(int)
     if(pCrashHandler!=NULL)
     {    
         // Acquire lock to avoid other threads (if exist) to crash while we are 
-        // inside. We do not unlock, because process is to be terminated.
-        pCrashHandler->CrashLock(TRUE);
+        // inside.
+        CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
@@ -2311,9 +2263,6 @@ void CCrashHandler::SigtermHandler(int)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-
-		// Free lock
-		pCrashHandler->CrashLock(FALSE);  
     }
 }
 
