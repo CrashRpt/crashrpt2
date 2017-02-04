@@ -80,7 +80,6 @@ BOOL CHttpRequestSender::InternalSend()
     std::map<CString, CHttpRequestFile>::iterator it2;
 
     // Calculate size of data to send
-    m_Assync->SetProgress(_T("Calculating size of data to send."), 0);
     bRet = CalcRequestSize(lPostSize);
     if(!bRet)
     {
@@ -484,7 +483,7 @@ BOOL CHttpRequestSender::WriteAttachmentPart(HINTERNET hRequest, CString sName)
 
     CString sFileName = it->second.m_sSrcFileName.GetBuffer(0);
     HANDLE hFile = CreateFile(sFileName, 
-        GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
     if(hFile==INVALID_HANDLE_VALUE)
     {    
         m_Assync->SetProgress(_T("Error opening attachment file."), 0);
@@ -617,25 +616,27 @@ BOOL CHttpRequestSender::CalcRequestSize(LONGLONG& lSize)
 {
     lSize = 0;
 
-    // Calculate summary size of all text fields included into request
-    std::map<CString, std::string>::iterator it;
-    for(it=m_Request.m_aTextFields.begin(); it!=m_Request.m_aTextFields.end(); it++)
+	// Calculate summary size of all text fields included into request
+    for(const auto& it : m_Request.m_aTextFields)
     {
-        LONGLONG lPartSize;
-        BOOL bCalc = CalcTextPartSize(it->first, lPartSize);        
-        if(!bCalc)
+        LONGLONG lPartSize = 0;
+        BOOL bCalc = CalcTextPartSize(it.first, lPartSize);        
+        if(!bCalc) {
+		    m_Assync->SetProgress(_T("CHttpRequestSender::CalcRequestSize - CalcTextPartSize() FAILED"), 0);
             return FALSE;
+		}
         lSize += lPartSize;
     }
 
     // Calculate summary size of all files included into report
-    std::map<CString, CHttpRequestFile>::iterator it2;
-    for(it2=m_Request.m_aIncludedFiles.begin(); it2!=m_Request.m_aIncludedFiles.end(); it2++)
+    for(const auto& it2 : m_Request.m_aIncludedFiles)
     {
-        LONGLONG lPartSize;
-        BOOL bCalc = CalcAttachmentPartSize(it2->first, lPartSize);        
-        if(!bCalc)
+        LONGLONG lPartSize = 0;
+        BOOL bCalc = CalcAttachmentPartSize(it2.first, lPartSize);        
+        if(!bCalc) {
+		    m_Assync->SetProgress(_T("CHttpRequestSender::CalcRequestSize - CalcAttachmentPartSize() FAILED"), 0);
             return FALSE;
+		}
         lSize += lPartSize;
     }
 
@@ -643,7 +644,7 @@ BOOL CHttpRequestSender::CalcRequestSize(LONGLONG& lSize)
     FormatTrailingBoundary(sTrailingBoundary);
     lSize += sTrailingBoundary.GetLength();
 
-    return TRUE;
+	return TRUE;
 }
 
 BOOL CHttpRequestSender::CalcTextPartSize(CString sName, LONGLONG& lSize)
@@ -687,7 +688,7 @@ BOOL CHttpRequestSender::CalcAttachmentPartSize(CString sName, LONGLONG& lSize)
 
     CString sFileName = it->second.m_sSrcFileName.GetBuffer(0);
     HANDLE hFile = CreateFile(sFileName, 
-        GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
     if(hFile==INVALID_HANDLE_VALUE)
     {    
         return FALSE; 

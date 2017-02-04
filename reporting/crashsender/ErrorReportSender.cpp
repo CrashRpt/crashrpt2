@@ -29,18 +29,17 @@ be found in the Authors.txt file in the root of the source tree.
 CErrorReportSender* CErrorReportSender::m_pInstance = NULL;
 
 // Constructor
-CErrorReportSender::CErrorReportSender()
+CErrorReportSender::CErrorReportSender() :
+	m_nStatus(0),
+	m_nCurReport(0),
+	m_hThread(NULL),
+	m_SendAttempt(0),
+	m_Action(COLLECT_CRASH_INFO),
+	m_bExport(FALSE),
+	m_MailClientConfirm(NOT_CONFIRMED_YET),	
+	m_bSendingNow(FALSE),  
+	m_bErrors(FALSE)
 {
-    // Init variables
-    m_nStatus = 0;
-    m_nCurReport = 0;
-    m_hThread = NULL;
-    m_SendAttempt = 0;
-    m_Action=COLLECT_CRASH_INFO;
-    m_bExport = FALSE;
-	m_MailClientConfirm = NOT_CONFIRMED_YET;	
-    m_bSendingNow = FALSE;        
-	m_bErrors = FALSE;
 }
 
 // Destructor
@@ -196,10 +195,14 @@ BOOL CErrorReportSender::InitLog()
     localtime_s(&timeinfo, &cur_time);
     _tcsftime(szDateTime, 64,  _T("%Y%m%d-%H%M%S"), &timeinfo);
 	
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	CString sLogFile;
 	sLogFile.Format(_T("%s\\CrashRpt-Log-%s-{%s}.txt"), 
 		sLogDir, szDateTime, 
-		m_CrashInfo.m_bSendRecentReports?_T("batch"):m_CrashInfo.GetReport(0)->GetCrashGUID());
+		m_CrashInfo.m_bSendRecentReports?_T("batch"):pReport->GetCrashGUID());
 	m_Assync.InitLogFile(sLogFile);
 	
 	m_sCrashLogFile = sLogFile;
@@ -259,12 +262,6 @@ int CErrorReportSender::GetStatus()
     return m_nStatus;
 }
 
-int CErrorReportSender::GetCurReport()
-{
-    // Returns the index of error report currently being sent
-    return m_nCurReport;
-}
-
 // This method performs crash files collection and/or
 // error report sending work in a worker thread.
 BOOL CErrorReportSender::DoWorkAssync(int nAction)
@@ -298,12 +295,15 @@ DWORD WINAPI CErrorReportSender::WorkerThread(LPVOID lpParam)
 // This method unblocks the parent process
 void CErrorReportSender::UnblockParentProcess()
 {
-    // Notify the parent process that we have finished with minidump,
-    // so the parent process is able to unblock and terminate itself.
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return;
 
+	// Notify the parent process that we have finished with minidump,
+    // so the parent process is able to unblock and terminate itself.
 	// Open the event the parent process had created for us
     CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s"), GetCrashInfo()->GetReport(0)->GetCrashGUID());
+    sEventName.Format(_T("Local\\CrashRptEvent_%s"), pReport->GetCrashGUID());
     HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
     if(hEvent!=NULL)
         SetEvent(hEvent); // Signal event
@@ -379,8 +379,12 @@ BOOL CErrorReportSender::DoWork(int Action)
             return FALSE;
         }
 
+		// Kaneva - Added
+		auto pReport = GetReport();
+		if (!pReport) return FALSE;
+
 		// Create crash description XML
-		CreateCrashDescriptionXML(*m_CrashInfo.GetReport(0));
+		CreateCrashDescriptionXML(*pReport);
 	
 		// Add a message to log
         m_Assync.SetProgress(_T("[confirm_send_report]"), 100, false);
@@ -394,8 +398,12 @@ BOOL CErrorReportSender::DoWork(int Action)
 
     if(Action&COMPRESS_REPORT) // We have to compress error report file into ZIP archive
     { 
+		// Kaneva - Added
+		auto pReport = GetReport();
+		if (!pReport) return FALSE;
+
         // Compress error report files
-        BOOL bCompress = CompressReportFiles(m_CrashInfo.GetReport(m_nCurReport));
+        BOOL bCompress = CompressReportFiles(pReport);
         if(!bCompress)
         {
             // Add a message to log
@@ -458,8 +466,12 @@ BOOL CErrorReportSender::Finalize()
     if((m_CrashInfo.m_bSendErrorReport && !m_CrashInfo.m_bQueueEnabled) ||
 		(m_CrashInfo.m_bAddVideo && !m_CrashInfo.m_bClientAppCrashed))
     {
+		// Kaneva - Added
+		auto pReport = GetReport();
+		if (!pReport) return FALSE;
+
         // Remove report files if queue disabled (or if client app not crashed).
-        Utility::RecycleFile(m_CrashInfo.GetReport(0)->GetErrorReportDirName(), true);    
+        Utility::RecycleFile(pReport->GetErrorReportDirName(), true);    
     }
 		
     if(!m_CrashInfo.m_bSendErrorReport && 
@@ -523,17 +535,27 @@ BOOL CErrorReportSender::TakeDesktopScreenshot()
     else // (dwFlags&CR_AS_VIRTUAL_SCREEN)!=0 // Capture the virtual screen
 		type = SCREENSHOT_TYPE_VIRTUAL_SCREEN;
     
-    // Take the screen shot
+   	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	// Take the screen shot
     BOOL bTakeScreenshot = sc.TakeDesktopScreenshot(		
-        m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName(), 
-		ssi, type, m_CrashInfo.m_dwProcessId, fmt, m_CrashInfo.m_nJpegQuality, bGrayscale);
+        pReport->GetErrorReportDirName(), 
+		ssi, 
+		type, 
+		m_CrashInfo.m_dwProcessId, 
+		fmt, 
+		m_CrashInfo.m_nJpegQuality, 
+		bGrayscale
+	);
     if(bTakeScreenshot==FALSE)
     {
         return FALSE;
     }
 
 	// Save screenshot info
-    m_CrashInfo.GetReport(0)->SetScreenshotInfo(ssi);
+    pReport->SetScreenshotInfo(ssi);
 
     // Prepare the list of screenshot files we will add to the error report
     std::vector<ERIFileItem> FilesToAdd;
@@ -549,7 +571,7 @@ BOOL CErrorReportSender::TakeDesktopScreenshot()
         fi.m_sDestFile = sDestFile;		
         fi.m_sDesc = Utility::GetINIString(m_CrashInfo.m_sLangFileName, _T("DetailDlg"), _T("DescScreenshot")); 		
 		fi.m_bAllowDelete = bAllowDelete;
-        m_CrashInfo.GetReport(0)->AddFileItem(&fi);
+        pReport->AddFileItem(&fi);
     }
 
     // Done
@@ -593,18 +615,21 @@ BOOL CErrorReportSender::OnMinidumpProgress(const PMINIDUMP_CALLBACK_INPUT Callb
             sMsg.Format(_T("Dumping info for module %s"), 
                 strconv.w2t(CallbackInput->Module.FullPath));
 
+			// Kaneva - Added
+			auto pReport = GetReport();
+			if (!pReport) return FALSE;
+
 			// Here we want to collect module information
-			CErrorReportInfo* eri = m_CrashInfo.GetReport(0);
-			if(eri->GetExceptionAddress()!=0)
+			if(pReport->GetExceptionAddress()!=0)
 			{
 				// Check if this is the module where exception has happened
-				ULONG64 dwExcAddr = eri->GetExceptionAddress();
+				ULONG64 dwExcAddr = pReport->GetExceptionAddress();
 				if(dwExcAddr>=CallbackInput->Module.BaseOfImage && 
 					dwExcAddr<=CallbackInput->Module.BaseOfImage+CallbackInput->Module.SizeOfImage)
 				{
 					// Save module information to the report
-					eri->SetExceptionModule(CallbackInput->Module.FullPath);
-					eri->SetExceptionModuleBase(CallbackInput->Module.BaseOfImage);
+					pReport->SetExceptionModule(CallbackInput->Module.FullPath);
+					pReport->SetExceptionModuleBase(CallbackInput->Module.BaseOfImage);
 
 					// Save module version info
 					VS_FIXEDFILEINFO* fi = &CallbackInput->Module.VersionInfo;
@@ -618,7 +643,7 @@ BOOL CErrorReportSender::OnMinidumpProgress(const PMINIDUMP_CALLBACK_INPUT Callb
 						CString sVer;
 						sVer.Format(_T("%u.%u.%u.%u"), 
 									dwVerMajor, dwVerMinor, dwPatchLevel, dwVerBuild);
-						eri->SetExceptionModuleVersion(sVer);  					
+						pReport->SetExceptionModuleVersion(sVer);  					
 					}
 				}
 			}
@@ -645,13 +670,16 @@ BOOL CErrorReportSender::OnMinidumpProgress(const PMINIDUMP_CALLBACK_INPUT Callb
 // This method creates the minidump of the process
 BOOL CErrorReportSender::CreateMiniDump()
 {   
-    BOOL bStatus = FALSE;
+   	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	BOOL bStatus = FALSE;
     HMODULE hDbgHelp = NULL;
     HANDLE hFile = NULL;
     MINIDUMP_EXCEPTION_INFORMATION mei;
     MINIDUMP_CALLBACK_INFORMATION mci;
-    CString sMinidumpFile = m_CrashInfo.GetReport(m_nCurReport)->
-        GetErrorReportDirName() + _T("\\crashdump.dmp");
+    CString sMinidumpFile = pReport->GetErrorReportDirName() + _T("\\crashdump.dmp");
     std::vector<ERIFileItem> files_to_add;
     ERIFileItem fi;
     CString sErrorMsg;
@@ -701,7 +729,7 @@ BOOL CErrorReportSender::CreateMiniDump()
     {
         DWORD dwError = GetLastError();
         CString sMsg;    
-        sMsg.Format(_T("Couldn't create minidump file: %s"), 
+        sMsg.Format(_T("CErrorReportSender::CreateMiniDump - Couldn't create minidump file: %s"), 
             Utility::FormatErrorMsg(dwError));
         m_Assync.SetProgress(sMsg, 0, false);
         sErrorMsg = sMsg;
@@ -709,23 +737,23 @@ BOOL CErrorReportSender::CreateMiniDump()
     }
 
     // Set valid dbghelp API version  
-    typedef LPAPI_VERSION (WINAPI* LPIMAGEHLPAPIVERSIONEX)(LPAPI_VERSION AppVersion);  
-    LPIMAGEHLPAPIVERSIONEX lpImagehlpApiVersionEx = 
-        (LPIMAGEHLPAPIVERSIONEX)GetProcAddress(hDbgHelp, "ImagehlpApiVersionEx");
-    ATLASSERT(lpImagehlpApiVersionEx!=NULL);
-    if(lpImagehlpApiVersionEx!=NULL)
-    {    
-        API_VERSION CompiledApiVer;
-        CompiledApiVer.MajorVersion = 6;
-        CompiledApiVer.MinorVersion = 1;
-        CompiledApiVer.Revision = 11;    
-        CompiledApiVer.Reserved = 0;
-        LPAPI_VERSION pActualApiVer = lpImagehlpApiVersionEx(&CompiledApiVer);    
-        pActualApiVer;
-        ATLASSERT(CompiledApiVer.MajorVersion==pActualApiVer->MajorVersion);
-        ATLASSERT(CompiledApiVer.MinorVersion==pActualApiVer->MinorVersion);
-        ATLASSERT(CompiledApiVer.Revision==pActualApiVer->Revision);    
-    }
+//    typedef LPAPI_VERSION (WINAPI* LPIMAGEHLPAPIVERSIONEX)(LPAPI_VERSION AppVersion);  
+//    LPIMAGEHLPAPIVERSIONEX lpImagehlpApiVersionEx = 
+//        (LPIMAGEHLPAPIVERSIONEX)GetProcAddress(hDbgHelp, "ImagehlpApiVersionEx");
+//    ATLASSERT(lpImagehlpApiVersionEx!=NULL);
+//    if(lpImagehlpApiVersionEx!=NULL)
+//    {    
+//        API_VERSION CompiledApiVer;
+//        CompiledApiVer.MajorVersion = 6;
+//        CompiledApiVer.MinorVersion = 1;
+//        CompiledApiVer.Revision = 11;    
+//        CompiledApiVer.Reserved = 0;
+//        LPAPI_VERSION pActualApiVer = lpImagehlpApiVersionEx(&CompiledApiVer);    
+//        pActualApiVer;
+//        ATLASSERT(CompiledApiVer.MajorVersion==pActualApiVer->MajorVersion);
+//        ATLASSERT(CompiledApiVer.MinorVersion==pActualApiVer->MinorVersion);
+//        ATLASSERT(CompiledApiVer.Revision==pActualApiVer->Revision);    
+//    }
 
     // Write minidump to the file
     mei.ThreadId = m_CrashInfo.m_dwThreadId;
@@ -803,7 +831,7 @@ cleanup:
     files_to_add.push_back(fi);
 
     // Add file to the list
-    m_CrashInfo.GetReport(0)->AddFileItem(&fi);
+    pReport->AddFileItem(&fi);
 	
     return bStatus;
 }
@@ -1106,7 +1134,8 @@ cleanup:
 
     if(!bStatus)
     {
-		eri.GetFileItemByName(fi.m_sDestFile)->m_sErrorStatus = sErrorMsg;
+		// Kaneva - Bug Fix - Use Source File Full Path
+		eri.GetFileItemByName(fi.m_sSrcFile)->m_sErrorStatus = sErrorMsg;
     }
 
     return bStatus;
@@ -1114,10 +1143,14 @@ cleanup:
 
 // This method collects user-specified files
 BOOL CErrorReportSender::CollectCrashFiles()
-{ 
+{
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	BOOL bStatus = FALSE;
     CString str;
-    CString sErrorReportDir = m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName();
+    CString sErrorReportDir = pReport->GetErrorReportDirName();
     CString sSrcFile;
     CString sDestFile;    
 	std::vector<ERIFileItem> file_list;
@@ -1127,9 +1160,9 @@ BOOL CErrorReportSender::CollectCrashFiles()
 	
 	// Walk through error report files
     int i;
-	for(i=0; i<m_CrashInfo.GetReport(m_nCurReport)->GetFileItemCount(); i++)
+	for(i=0; i<pReport->GetFileItemCount(); i++)
     {
-		ERIFileItem* pfi = m_CrashInfo.GetReport(m_nCurReport)->GetFileItemByIndex(i);
+		ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
 
 		// Check if operation has been cancelled by user
         if(m_Assync.IsCancelled())
@@ -1146,7 +1179,7 @@ BOOL CErrorReportSender::CollectCrashFiles()
 	// Add newly collected files to the list of file items
 	for(i=0; i<(int)file_list.size(); i++)
 	{
-		m_CrashInfo.GetReport(0)->AddFileItem(&file_list[i]);
+		pReport->AddFileItem(&file_list[i]);
 	}				
 
 	// Remove file items that are search patterns
@@ -1154,16 +1187,16 @@ BOOL CErrorReportSender::CollectCrashFiles()
 	do
 	{
 		bFound = FALSE;
-		for(i=0; i<m_CrashInfo.GetReport(m_nCurReport)->GetFileItemCount(); i++)
+		for(i=0; i<pReport->GetFileItemCount(); i++)
 		{
-			ERIFileItem* pfi = m_CrashInfo.GetReport(m_nCurReport)->GetFileItemByIndex(i);
+			ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
 				
 			// Check if the file name is a search template.		
 			BOOL bSearchPattern = Utility::IsFileSearchPattern(pfi->m_sSrcFile);
 			if(bSearchPattern)
 			{
 				// Delete this item
-				m_CrashInfo.GetReport(m_nCurReport)->DeleteFileItemByIndex(i);
+				pReport->DeleteFileItemByIndex(i);
 				bFound = TRUE;
 				break;
 			}
@@ -1171,25 +1204,31 @@ BOOL CErrorReportSender::CollectCrashFiles()
 	}
 	while(bFound);
 
-    // Create dump of registry keys
+	// Log Files
+	for(i=0; i<pReport->GetFileItemCount(); i++)
+	{
+		ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
+        str.Format(_T("File %d - '%s'"), i + 1, pfi->m_sSrcFile);
+        m_Assync.SetProgress(str, 0, false);    
+	}
 
-    CErrorReportInfo* eri = m_CrashInfo.GetReport(m_nCurReport);  
-	if(eri->GetRegKeyCount()!=0)
+    // Create dump of registry keys
+	if(pReport->GetRegKeyCount()!=0)
     {
         m_Assync.SetProgress(_T("Dumping registry keys..."), 0, false);    
     }
 
 	// Walk through our registry key list	
-    for(i=0; i<eri->GetRegKeyCount(); i++)
+    for(i=0; i<pReport->GetRegKeyCount(); i++)
     {
 		CString sKeyName;
 		ERIRegKey rki;
-		eri->GetRegKeyByIndex(i, sKeyName, rki);
+		pReport->GetRegKeyByIndex(i, sKeyName, rki);
 
         if(m_Assync.IsCancelled())
             goto cleanup;
 
-		CString sFilePath = eri->GetErrorReportDirName() + _T("\\") + rki.m_sDstFileName;
+		CString sFilePath = pReport->GetErrorReportDirName() + _T("\\") + rki.m_sDstFileName;
 
         str.Format(_T("Dumping registry key '%s' to file '%s' "), sKeyName, sFilePath);
         m_Assync.SetProgress(str, 0, false);    
@@ -1207,7 +1246,7 @@ BOOL CErrorReportSender::CollectCrashFiles()
         std::vector<ERIFileItem> file_list;
         file_list.push_back(fi);
         // Add file to the list of file items
-        m_CrashInfo.GetReport(0)->AddFileItem(&fi);
+        pReport->AddFileItem(&fi);
     }
 	    
     // Success
@@ -1223,6 +1262,10 @@ cleanup:
 
 BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	BOOL bStatus = false;
 	CString str;
 	HANDLE hSrcFile = INVALID_HANDLE_VALUE;
@@ -1234,10 +1277,11 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
 	BOOL bRead = FALSE;
 	BOOL bWrite = FALSE;
 	LPBYTE buffer[1024];
-	DWORD dwBytesRead = 0;
-	DWORD dwBytesWritten = 0;
 
-	CString sErrorReportDir = m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName();
+	CString sErrorReportDir = pReport->GetErrorReportDirName();
+
+    str.Format(_T("CErrorReportSender::CollectSingleFile - '%s'"), pfi->m_sSrcFile);
+    m_Assync.SetProgress(str, 0, false);
 
 	// Open source file with read/write sharing permissions.
     hSrcFile = CreateFile(pfi->m_sSrcFile, GENERIC_READ, 
@@ -1245,7 +1289,7 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
     if(hSrcFile==INVALID_HANDLE_VALUE)
     {
         pfi->m_sErrorStatus = Utility::FormatErrorMsg(GetLastError());
-        str.Format(_T("Error opening file %s."), pfi->m_sSrcFile);
+        str.Format(_T("CErrorReportSender::CollectSingleFile - Error opening file %s."), pfi->m_sSrcFile);
         m_Assync.SetProgress(str, 0, false);
 		goto cleanup;
     }
@@ -1253,9 +1297,6 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
 	// If we should make a copy of the file
     if(pfi->m_bMakeCopy)
     {
-        str.Format(_T("Copying file %s."), pfi->m_sSrcFile);
-        m_Assync.SetProgress(str, 0, false);		     
-
         bGetSize = GetFileSizeEx(hSrcFile, &lFileSize);
         if(!bGetSize)
         {
@@ -1269,12 +1310,15 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
 
         sDestFile = sErrorReportDir + _T("\\") + pfi->m_sDestFile;
 
+        str.Format(_T(" ... '%s' -> '%s'"), pfi->m_sSrcFile, sDestFile);
+        m_Assync.SetProgress(str, 0, false);		     
+
         hDestFile = CreateFile(sDestFile, GENERIC_WRITE, 
             FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
         if(hDestFile==INVALID_HANDLE_VALUE)
         {
             pfi->m_sErrorStatus = Utility::FormatErrorMsg(GetLastError());
-            str.Format(_T("Error creating file %s."), sDestFile);
+            str.Format(_T("CErrorReportSender::CollectSingleFile - Error creating file %s."), sDestFile);
             m_Assync.SetProgress(str, 0, false);
             CloseHandle(hSrcFile);
             hSrcFile = INVALID_HANDLE_VALUE;
@@ -1288,18 +1332,18 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
             if(m_Assync.IsCancelled())
                 goto cleanup;
 
+			DWORD dwBytesRead = 0;
             bRead = ReadFile(hSrcFile, buffer, 1024, &dwBytesRead, NULL);
             if(!bRead || dwBytesRead==0)
                 break;
 
+			DWORD dwBytesWritten = 0;
             bWrite = WriteFile(hDestFile, buffer, dwBytesRead, &dwBytesWritten, NULL);
             if(!bWrite || dwBytesRead!=dwBytesWritten)
                 break;
 
             lTotalWritten.QuadPart += dwBytesWritten;
-
             int nProgress = (int)(100.0f*lTotalWritten.QuadPart/lFileSize.QuadPart);
-
             m_Assync.SetProgress(nProgress, false);
         }
 
@@ -1329,7 +1373,7 @@ cleanup:
 BOOL CErrorReportSender::CollectFilesBySearchTemplate(ERIFileItem* pfi, std::vector<ERIFileItem>& file_list)
 {
 	CString sMsg;
-	sMsg.Format(_T("Looking for files using search template: %s"), pfi->m_sSrcFile);
+	sMsg.Format(_T("CErrorReportSender::CollectFilesBySearchTemplate - '%s'"), pfi->m_sSrcFile);
 	m_Assync.SetProgress(sMsg, 0);
 
 	// Look for files matching search pattern
@@ -1367,9 +1411,11 @@ BOOL CErrorReportSender::CollectFilesBySearchTemplate(ERIFileItem* pfi, std::vec
 				fi.m_sDesc = pfi->m_sDesc;
 				fi.m_bMakeCopy = pfi->m_bMakeCopy;
 				fi.m_bAllowDelete = pfi->m_bAllowDelete;								
-				file_list.push_back(fi);
 				
 				CollectSingleFile(&fi);
+
+				// Kaneva - Bug Fix - Moved After CollectSingleFile()
+				file_list.push_back(fi);
 
 				nFileCount++;								
 			}
@@ -1678,6 +1724,10 @@ int CErrorReportSender::CalcFileMD5Hash(CString sFileName, CString& sMD5Hash)
 	// Clear output
     sMD5Hash.Empty();
 
+	CString sMsg;
+	sMsg.Format(_T("Calculating MD5 '%s'"), sFileName);
+	m_Assync.SetProgress(sMsg, 0);
+
 	// Open file
 #if _MSC_VER<1400
     f = _tfopen(sFileName.GetBuffer(0), _T("rb"));
@@ -1716,6 +1766,10 @@ int CErrorReportSender::CalcFileMD5Hash(CString sFileName, CString& sMD5Hash)
         sMD5Hash += number;
     }
 
+	CString sMsg2;
+	sMsg2.Format(_T(" ... %s"), sMD5Hash);
+	m_Assync.SetProgress(sMsg2, 0);
+
 	// Done
     return 0;
 }
@@ -1743,23 +1797,27 @@ BOOL CErrorReportSender::RestartApp()
     PROCESS_INFORMATION pi;
     memset(&pi, 0, sizeof(PROCESS_INFORMATION));  
 
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	// Format command line
     CString sCmdLine;
     if(m_CrashInfo.m_sRestartCmdLine.IsEmpty())
     {
         // Format with double quotes to avoid first empty parameter
-        sCmdLine.Format(_T("\"%s\""), m_CrashInfo.GetReport(m_nCurReport)->GetImageName());
+        sCmdLine.Format(_T("\"%s\""), pReport->GetImageName());
     }
     else
     {
 		// Format with double quotes to avoid first empty parameters
-        sCmdLine.Format(_T("\"%s\" %s"), m_CrashInfo.GetReport(m_nCurReport)->GetImageName(), 
+        sCmdLine.Format(_T("\"%s\" %s"), pReport->GetImageName(), 
             m_CrashInfo.m_sRestartCmdLine.GetBuffer(0));
     }
 
 	// Create process using the command line prepared earlier
     BOOL bCreateProcess = CreateProcess(
-        m_CrashInfo.GetReport(m_nCurReport)->GetImageName(), 
+        pReport->GetImageName(), 
 		sCmdLine.GetBuffer(0), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
     
 	// The following is to avoid a handle leak
@@ -1799,7 +1857,6 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
     LONG64 lTotalSize = 0;
     LONG64 lTotalCompressed = 0;
     BYTE buff[1024];
-    DWORD dwBytesRead=0;
     HANDLE hFile = INVALID_HANDLE_VALUE;  
     std::map<CString, ERIFileItem>::iterator it;
     FILE* f = NULL;
@@ -1859,10 +1916,10 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
 
 		// Open file for reading
         hFile = CreateFile(sFileName, 
-            GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+            GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
         if(hFile==INVALID_HANDLE_VALUE)
         {
-            sMsg.Format(_T("Couldn't open file %s"), sFileName);
+            sMsg.Format(_T("CErrorReportSender::CompressReportFiles - Couldn't open file %s"), sFileName);
             m_Assync.SetProgress(sMsg, 0, false);
             continue;
         }
@@ -1905,6 +1962,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
                 goto cleanup;
 
 			// Read a portion of source file
+		    DWORD dwBytesRead=0;
             BOOL bRead = ReadFile(hFile, buff, 1024, &dwBytesRead, NULL);
             if(!bRead || dwBytesRead==0)
                 break;
@@ -1943,9 +2001,6 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
     // Save MD5 hash file
     if(!m_bExport)
     {
-        sMsg.Format(_T("Calculating MD5 hash for file %s"), m_sZipName);
-        m_Assync.SetProgress(sMsg, 0, false);
-
         int nCalcMD5 = CalcFileMD5Hash(m_sZipName, sMD5Hash);
         if(nCalcMD5!=0)
         {
@@ -2011,7 +2066,11 @@ cleanup:
 // This method sends the error report over the Internet
 BOOL CErrorReportSender::SendReport()
 {
-    int status = 1;
+ 	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	int status = 1;
 
 	InitLog();
 
@@ -2080,21 +2139,21 @@ BOOL CErrorReportSender::SendReport()
     {
 		// Success
         m_Assync.SetProgress(_T("[status_success]"), 0);
-        m_CrashInfo.GetReport(m_nCurReport)->SetDeliveryStatus(DELIVERED);
+        pReport->SetDeliveryStatus(DELIVERED);
         // Delete report files
-        Utility::RecycleFile(m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName(), true);    
+        Utility::RecycleFile(pReport->GetErrorReportDirName(), true);    
     }
     else
     {
 		// Some error occurred
-        m_CrashInfo.GetReport(m_nCurReport)->SetDeliveryStatus(FAILED);    
+        pReport->SetDeliveryStatus(FAILED);    
         m_Assync.SetProgress(_T("[status_failed]"), 0);    
 
         // Check if we should store files for later delivery or we should remove them
         if(!m_CrashInfo.m_bQueueEnabled)
         {
             // Delete report files
-            Utility::RecycleFile(m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName(), true);    
+            Utility::RecycleFile(pReport->GetErrorReportDirName(), true);    
         }
     }
 
@@ -2131,23 +2190,25 @@ BOOL CErrorReportSender::SendOverHTTP()
     CHttpRequest request;
     request.m_sUrl = m_CrashInfo.m_sUrl;  
 
-	CErrorReportInfo* eri = m_CrashInfo.GetReport(m_nCurReport);
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
 
 	// Fill in the request fields
 	CString sNum;
 	sNum.Format(_T("%d"), CRASHRPT_VER);
 	request.m_aTextFields[_T("crashrptver")] = strconv.t2utf8(sNum);
-    request.m_aTextFields[_T("appname")] = strconv.t2utf8(eri->GetAppName());
-    request.m_aTextFields[_T("appversion")] = strconv.t2utf8(eri->GetAppVersion());
-    request.m_aTextFields[_T("crashguid")] = strconv.t2utf8(eri->GetCrashGUID());
-    request.m_aTextFields[_T("emailfrom")] = strconv.t2utf8(eri->GetEmailFrom());
+    request.m_aTextFields[_T("appname")] = strconv.t2utf8(pReport->GetAppName());
+    request.m_aTextFields[_T("appversion")] = strconv.t2utf8(pReport->GetAppVersion());
+    request.m_aTextFields[_T("crashguid")] = strconv.t2utf8(pReport->GetCrashGUID());
+    request.m_aTextFields[_T("emailfrom")] = strconv.t2utf8(pReport->GetEmailFrom());
     request.m_aTextFields[_T("emailsubject")] = strconv.t2utf8(m_CrashInfo.m_sEmailSubject);
-    request.m_aTextFields[_T("description")] = strconv.t2utf8(eri->GetProblemDescription());
-	request.m_aTextFields[_T("exceptionmodule")] = strconv.t2utf8(eri->GetExceptionModule());
-	request.m_aTextFields[_T("exceptionmoduleversion")] = strconv.t2utf8(eri->GetExceptionModuleVersion());	
-	sNum.Format(_T("%I64u"), eri->GetExceptionModuleBase());
+    request.m_aTextFields[_T("description")] = strconv.t2utf8(pReport->GetProblemDescription());
+	request.m_aTextFields[_T("exceptionmodule")] = strconv.t2utf8(pReport->GetExceptionModule());
+	request.m_aTextFields[_T("exceptionmoduleversion")] = strconv.t2utf8(pReport->GetExceptionModuleVersion());	
+	sNum.Format(_T("%I64u"), pReport->GetExceptionModuleBase());
 	request.m_aTextFields[_T("exceptionmodulebase")] = strconv.t2utf8(sNum);
-	sNum.Format(_T("%I64u"), eri->GetExceptionAddress());
+	sNum.Format(_T("%I64u"), pReport->GetExceptionAddress());
 	request.m_aTextFields[_T("exceptionaddress")] = strconv.t2utf8(sNum);
 
 	// Add an MD5 hash of file attachment
@@ -2194,8 +2255,10 @@ int CErrorReportSender::Base64EncodeAttachment(CString sFileName,
 
     if(!f || fread(uchFileData, uFileSize, 1, f)!=1)
     {
+        m_Assync.SetProgress(_T("CErrorReportSender::Base64EncodeAttachment() - fread FAILED"), 0);
         delete [] uchFileData;
         uchFileData = NULL;
+	    fclose(f);
         return 2; // Coudln't read file data.
     }
 
@@ -2215,7 +2278,11 @@ int CErrorReportSender::Base64EncodeAttachment(CString sFileName,
 // This method formats the E-mail message text
 CString CErrorReportSender::FormatEmailText()
 {
-    CString sFileTitle = m_sZipName;
+    // Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return "";
+
+	CString sFileTitle = m_sZipName;
     sFileTitle.Replace('/', '\\');
     int pos = sFileTitle.ReverseFind('\\');
     if(pos>=0)
@@ -2224,18 +2291,18 @@ CString CErrorReportSender::FormatEmailText()
     CString sText;
 
     sText += _T("This is the error report from ") + m_CrashInfo.m_sAppName + 
-        _T(" ") + m_CrashInfo.GetReport(m_nCurReport)->GetAppVersion()+_T(".\n\n");
+        _T(" ") + pReport->GetAppVersion()+_T(".\n\n");
 
-    if(!m_CrashInfo.GetReport(m_nCurReport)->GetEmailFrom().IsEmpty())
+    if(!pReport->GetEmailFrom().IsEmpty())
     {
-        sText += _T("This error report was sent by ") + m_CrashInfo.GetReport(m_nCurReport)->GetEmailFrom() + _T(".\n");
+        sText += _T("This error report was sent by ") + pReport->GetEmailFrom() + _T(".\n");
         sText += _T("If you need additional info about the problem, you may want to contact this user again.\n\n");
     }     
 
-    if(!m_CrashInfo.GetReport(m_nCurReport)->GetProblemDescription().IsEmpty())
+    if(!pReport->GetProblemDescription().IsEmpty())
     {
         sText += _T("The user has provided the following problem description:\n<<< ") + 
-            m_CrashInfo.GetReport(m_nCurReport)->GetProblemDescription() + _T(" >>>\n\n");    
+            pReport->GetProblemDescription() + _T(" >>>\n\n");    
     }
 
     sText += _T("You may find detailed information about the error in files attached to this message:\n\n");
@@ -2252,6 +2319,10 @@ CString CErrorReportSender::FormatEmailText()
 // This method sends the report over SMTP 
 BOOL CErrorReportSender::SendOverSMTP()
 {  
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	strconv_t strconv;
 
 	// Check our config - should we send the report over SMTP or not?
@@ -2270,7 +2341,7 @@ BOOL CErrorReportSender::SendOverSMTP()
 
 	// Fill in email fields
     // If the sender is not defined, use the first e-mail address from the recipient list.
-	if (m_CrashInfo.GetReport(m_nCurReport)->GetEmailFrom().IsEmpty()) 
+	if (pReport->GetEmailFrom().IsEmpty()) 
 	{
 		// Force a copy of the string. Simple assignment just references the data of g_CrashInfo.m_sEmailTo. 
 		// The copy string will be modified by strtok.
@@ -2281,7 +2352,7 @@ BOOL CErrorReportSender::SendOverSMTP()
 		m_EmailMsg.SetSenderAddress((to == 0 || *to == 0) ? m_CrashInfo.m_sEmailTo : to);
 	} 
 	else
-		m_EmailMsg.SetSenderAddress(m_CrashInfo.GetReport(m_nCurReport)->GetEmailFrom());
+		m_EmailMsg.SetSenderAddress(pReport->GetEmailFrom());
 	m_EmailMsg.AddRecipients(m_CrashInfo.m_sEmailTo);    
 	m_EmailMsg.SetSubject(m_CrashInfo.m_sEmailSubject);
 
@@ -2329,7 +2400,11 @@ BOOL CErrorReportSender::SendOverSMTP()
 // This method sends the report over Simple MAPI
 BOOL CErrorReportSender::SendOverSMAPI()
 {  
-    strconv_t strconv;
+    // Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	strconv_t strconv;
 
 	// Check our config - should we send the report over Simple MAPI or not?
     if(m_CrashInfo.m_uPriorities[CR_SMAPI]==CR_NEGATIVE_PRIORITY)
@@ -2397,7 +2472,7 @@ BOOL CErrorReportSender::SendOverSMAPI()
     m_Assync.SetProgress(msg, 10);
 
 	// Fill in email fields
-    m_MapiSender.SetFrom(m_CrashInfo.GetReport(m_nCurReport)->GetEmailFrom());
+    m_MapiSender.SetFrom(pReport->GetEmailFrom());
 	
 	// The copy string will be modified by strtok.
 	CString copy		 = m_CrashInfo.m_sEmailTo;
@@ -2501,8 +2576,8 @@ BOOL CErrorReportSender::SendNextReport(int nReport)
 	CErrorReportInfo* eri = NULL;
 	if(nReport != -1)
 	{
-		eri = m_CrashInfo.GetReport(nReport);
-		if(!eri->IsSelected() || eri->GetDeliveryStatus()!=PENDING)
+		eri = GetReport(nReport);
+		if(eri && (!eri->IsSelected() || eri->GetDeliveryStatus()!=PENDING))
 			eri = NULL;
 	}
 
@@ -2512,13 +2587,18 @@ BOOL CErrorReportSender::SendNextReport(int nReport)
 		int i;
 		for(i=0; i<m_CrashInfo.GetReportCount(); i++)
 		{
-			if(!m_CrashInfo.GetReport(i)->IsSelected())
+			// Kaneva - Added
+			auto pReport = GetReport(i);
+			if (!pReport)
+				continue;
+
+			if(!pReport->IsSelected())
 				continue; // Skip this (not selected item)
 			            
-			if(m_CrashInfo.GetReport(i)->GetDeliveryStatus()==PENDING)
+			if(pReport->GetDeliveryStatus()==PENDING)
 			{
 				nReport = i;
-				eri = m_CrashInfo.GetReport(i);
+				eri = pReport;
 				break;
 			}
 		}
@@ -2531,34 +2611,38 @@ BOOL CErrorReportSender::SendNextReport(int nReport)
 	}
 
 	// Save current report index			
-	m_nCurReport = nReport;
+	SetCurReportIndex(nReport);
 
-	eri->SetDeliveryStatus(INPROGRESS);
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	pReport->SetDeliveryStatus(INPROGRESS);
 
 	// Notify GUI about current item change
 	if(IsWindow(m_hWndNotify))
-		::PostMessage(m_hWndNotify, WM_ITEM_STATUS_CHANGED, (WPARAM)m_nCurReport, (LPARAM)eri->GetDeliveryStatus());	
+		::PostMessage(m_hWndNotify, WM_ITEM_STATUS_CHANGED, (WPARAM)GetCurReportIndex(), (LPARAM)pReport->GetDeliveryStatus());	
 						
     // Add a message to log
 	CString sMsg;
 	sMsg.Format(_T(">>> Performing actions with error report: '%s'"), 
-					m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName());
+					pReport->GetErrorReportDirName());
 	m_Assync.SetProgress(sMsg, 0, false);
 
 	// Send report
     if(!DoWork(COMPRESS_REPORT|SEND_REPORT))
 	{
 		m_bErrors = TRUE;
-		eri->SetDeliveryStatus(FAILED);
+		pReport->SetDeliveryStatus(FAILED);
 	}
 	else
 	{
-		eri->SetDeliveryStatus(DELIVERED);
+		pReport->SetDeliveryStatus(DELIVERED);
 	}
 
 	// Notify GUI about current item change
 	if(IsWindow(m_hWndNotify))
-		::PostMessage(m_hWndNotify, WM_ITEM_STATUS_CHANGED, (WPARAM)m_nCurReport, (LPARAM)eri->GetDeliveryStatus());
+		::PostMessage(m_hWndNotify, WM_ITEM_STATUS_CHANGED, (WPARAM)GetCurReportIndex(), (LPARAM)eri->GetDeliveryStatus());
 
 	// Return TRUE to indicate next report can be sent
     return TRUE;
@@ -2631,6 +2715,10 @@ int CErrorReportSender::TerminateAllCrashSenderProcesses()
 
 BOOL CErrorReportSender::RecordVideo()
 {	
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	// The following method enters the video recording loop
 	// and returns when the parent process signals the event.
 
@@ -2669,7 +2757,7 @@ BOOL CErrorReportSender::RecordVideo()
 
 	// Open the event we will use for synchronization with the parent process
 	CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), GetCrashInfo()->GetReport(0)->GetCrashGUID());
+    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), pReport->GetCrashGUID());
     HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
 	if(hEvent==NULL)
 	{
@@ -2680,7 +2768,7 @@ BOOL CErrorReportSender::RecordVideo()
 	}
     
 	// Init video recorder object
-	if(!m_VideoRec.Init(m_CrashInfo.GetReport(0)->GetErrorReportDirName(),
+	if(!m_VideoRec.Init(pReport->GetErrorReportDirName(),
 				type, m_CrashInfo.m_dwProcessId, m_CrashInfo.m_nVideoDuration,
 				m_CrashInfo.m_nVideoFrameInterval,
 				quality, &m_CrashInfo.m_DesiredFrameSize))
@@ -2729,6 +2817,10 @@ BOOL CErrorReportSender::RecordVideo()
 
 BOOL CErrorReportSender::EncodeVideo()
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	// Add a message to log
     m_Assync.SetProgress(_T("[encoding_video]"), 0);    
 
@@ -2760,7 +2852,7 @@ BOOL CErrorReportSender::EncodeVideo()
 	fi.m_sDestFile = Utility::GetFileName(fi.m_sSrcFile);
     fi.m_sDesc = Utility::GetINIString(m_CrashInfo.m_sLangFileName, _T("DetailDlg"), _T("DescVideo"));  
 	fi.m_bAllowDelete = bAllowDelete;
-    m_CrashInfo.GetReport(0)->AddFileItem(&fi);
+    pReport->AddFileItem(&fi);
 
 	// Add a message to log
     m_Assync.SetProgress(_T("Finished encoding video."), 100, false);    

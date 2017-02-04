@@ -20,6 +20,9 @@ be found in the Authors.txt file in the root of the source tree.
 #include "ProgressDlg.h"
 #include "SequenceLayout.h"
 
+#include "CrashInfoReader.h"
+#include "ErrorReportSender.h"
+
 // This message is sent by the system to the Error Report dialog when user clicks the tray icon
 #define WM_TRAYICON (WM_USER+128)
 
@@ -111,4 +114,14 @@ public:
 	
 	// This method creates or destroys the tray icon.
     int CreateTrayIcon(bool bCreate, HWND hWndParent);	
+
+	// Kaneva - Added
+	CErrorReportInfo* GetReport() { 
+		auto pSender = CErrorReportSender::GetInstance();
+		if (!pSender) return NULL;
+		auto pCI = pSender->GetCrashInfo();
+		if (!pCI) return NULL;
+		return pCI->GetReport(0); 
+	}
+
 };

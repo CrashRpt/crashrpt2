@@ -31,7 +31,7 @@ BOOL ERIFileItem::GetFileInfo(HICON& hIcon, CString& sTypeName, LONGLONG& lSize)
 	    
 	// Open file for reading
     hFile = CreateFile(m_sSrcFile, 
-            GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+            GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
     if(hFile==INVALID_HANDLE_VALUE)
 		return FALSE; // Error - file may not exist
 
@@ -227,23 +227,28 @@ CString CErrorReportInfo::GetMemUsage()
 
 ERIFileItem* CErrorReportInfo::GetFileItemByIndex(int nItem)
 {
-	if(nItem<0 || nItem>=(int)m_FileItems.size())
+	if(nItem<0 || nItem>=GetFileItemCount())
 		return NULL; // No such item
 
 	// Look for n-th item
-	std::map<CString, ERIFileItem>::iterator p = m_FileItems.begin();
-	for (int i = 0; i < nItem; i++, p++);
-	return &p->second;
+	int cnt = 0;
+	for (auto& fi : m_FileItems) {
+		if (cnt == nItem)
+			return &(fi.second);
+		++cnt;
+	}
+	return NULL;
 }
 
-ERIFileItem* CErrorReportInfo::GetFileItemByName(LPCTSTR szDestFileName)
+ERIFileItem* CErrorReportInfo::GetFileItemByName(LPCTSTR szName)
 {
-	return &m_FileItems[szDestFileName];
+	return &m_FileItems[szName];
 }
 
 void CErrorReportInfo::AddFileItem(ERIFileItem* pfi)
 {
-	m_FileItems[pfi->m_sDestFile] = *pfi;
+	// Kaneva - Bug Fix - Use Source File Full Path
+	m_FileItems[pfi->m_sSrcFile] = *pfi;
 }
 
 BOOL CErrorReportInfo::DeleteFileItemByIndex(int nItem)
@@ -332,7 +337,7 @@ LONG64 CErrorReportInfo::CalcUncompressedReportSize()
         CString sFileName = pfi->m_sSrcFile.GetBuffer(0);
 		// Open file for reading
         hFile = CreateFile(sFileName, 
-            GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+            GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
         if(hFile==INVALID_HANDLE_VALUE)
         {            
             continue;
@@ -590,7 +595,8 @@ int CCrashInfoReader::UnpackCrashDescription(CErrorReportInfo& eri)
             fi.m_bMakeCopy = pFileItem->m_bMakeCopy;
 			fi.m_bAllowDelete = pFileItem->m_bAllowDelete;
 
-            eri.m_FileItems[fi.m_sDestFile] = fi;
+			// Kaneva - Bug Fix - Use Source File Full Path
+            eri.m_FileItems[fi.m_sSrcFile] = fi;
 
             m_SharedMem.DestroyView((LPBYTE)pFileItem);
         }
@@ -849,7 +855,8 @@ int CCrashInfoReader::ParseFileList(TiXmlHandle& hRoot, CErrorReportInfo& eri)
             else
                 item.m_bMakeCopy = FALSE;
 
-            eri.m_FileItems[sDestFile] = item;
+			// Kaneva - Bug Fix - Use Source File Full Path
+            eri.m_FileItems[item.m_sSrcFile] = item;
         }
 
         fi = fi.ToElement()->NextSibling("FileItem");
@@ -1022,7 +1029,8 @@ int CCrashInfoReader::ParseCrashDescription(CString sFileName, BOOL bParseFileIt
                 if(dwAttrs!=INVALID_FILE_ATTRIBUTES &&
                     (dwAttrs&FILE_ATTRIBUTE_DIRECTORY)==0)
                 {
-                    eri.m_FileItems[sDestFile] = item;
+					// Kaneva - Bug Fix - Use Source File Full Path
+                    eri.m_FileItems[item.m_sSrcFile] = item;
                 }
             }
 
@@ -1208,7 +1216,9 @@ BOOL CCrashInfoReader::AddFilesToCrashReport(int nReport, std::vector<ERIFileIte
     unsigned i;
     for(i=0; i<FilesToAdd.size(); i++)
     { 
-        if(m_Reports[0].m_FileItems.find(FilesToAdd[i].m_sDestFile)!=m_Reports[0].m_FileItems.end())
+		// Kaneva - Bug Fix - Use Source File Full Path
+        auto it = m_Reports[0].m_FileItems.find(FilesToAdd[i].m_sSrcFile);
+		if(it != m_Reports[0].m_FileItems.end())
             continue; // Such file item already exists, skip
 
         TiXmlHandle hFileItem = new TiXmlElement("FileItem");
@@ -1218,13 +1228,16 @@ BOOL CCrashInfoReader::AddFilesToCrashReport(int nReport, std::vector<ERIFileIte
 			hFileItem.ToElement()->SetAttribute("optional", "1");
         hFileItems.ToElement()->LinkEndChild(hFileItem.ToNode());              
 
-        m_Reports[nReport].m_FileItems[FilesToAdd[i].m_sDestFile] = FilesToAdd[i];
+		// Kaneva - Bug Fix - Use Source File Full Path
+        m_Reports[nReport].m_FileItems[FilesToAdd[i].m_sSrcFile] = FilesToAdd[i];
 
 		if(FilesToAdd[i].m_bMakeCopy)
 		{
 			CString sDestPath = m_Reports[nReport].m_sErrorReportDirName + _T("\\") + FilesToAdd[i].m_sDestFile;
 			CopyFile(FilesToAdd[i].m_sSrcFile, sDestPath, TRUE);
-			m_Reports[nReport].m_FileItems[FilesToAdd[i].m_sDestFile].m_sSrcFile = sDestPath;
+		
+			// Kaneva - Bug Fix - Use Source File Full Path
+   			m_Reports[nReport].m_FileItems[FilesToAdd[i].m_sSrcFile].m_sSrcFile = sDestPath;
 		}
     }
 
@@ -1287,8 +1300,7 @@ BOOL CCrashInfoReader::RemoveFilesFromCrashReport(int nReport, std::vector<CStri
     unsigned i;
     for(i=0; i<FilesToRemove.size(); i++)
     { 
-		std::map<CString, ERIFileItem>::iterator it = 
-			m_Reports[nReport].m_FileItems.find(FilesToRemove[i]);
+		auto it = m_Reports[nReport].m_FileItems.find(FilesToRemove[i]);
 		if(it==m_Reports[nReport].m_FileItems.end())
             continue; // Such file item name does not exist, skip
 		
@@ -1412,20 +1424,20 @@ LONG64 CCrashInfoReader::GetUncompressedReportSize(CErrorReportInfo& eri)
 	// Calculate summary size of all files included into crash report
 
     LONG64 lTotalSize = 0;
-    std::map<CString, ERIFileItem>::iterator it;
     HANDLE hFile = INVALID_HANDLE_VALUE;  
     CString sMsg;
     BOOL bGetSize = FALSE;
     LARGE_INTEGER lFileSize;
 
 	// Walk through all files in the crash report
-    for(it=eri.m_FileItems.begin(); it!=eri.m_FileItems.end(); it++)
+    for(const auto& it : eri.m_FileItems)
     {   
 		// Get file name
-        CString sFileName = it->second.m_sSrcFile.GetBuffer(0);
+        CString sFileName = it.second.m_sSrcFile;
+
 		// Check file exists
         hFile = CreateFile(sFileName, 
-            GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
+            GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
         if(hFile==INVALID_HANDLE_VALUE)
             continue; // File does not exist
 

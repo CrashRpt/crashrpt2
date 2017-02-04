@@ -14,6 +14,9 @@ be found in the Authors.txt file in the root of the source tree.
 #include "MailMsg.h"
 #include "FilePreviewCtrl.h"
 
+#include "CrashInfoReader.h"
+#include "ErrorReportSender.h"
+
 #define WM_REPORTSIZECHANGED (WM_APP+400)
 
 class CDetailDlg : 
@@ -83,7 +86,19 @@ public:
     CFilePreviewCtrl m_filePreview; 
     PreviewMode m_previewMode;    // Current preview mode
     TextEncoding m_textEncoding;  // Current text encoding
-    int m_nCurReport;             // Index of the error report currently being displayed
+    
+	int m_nCurReport;             // Index of the error report currently being displayed
+
+	// Kaneva - Added
+	int GetCurReportIndex() const { return m_nCurReport; }
+	void SetCurReportIndex(int id) { m_nCurReport = id; }
+	CErrorReportInfo* GetReport(int index = -1) { 
+		auto pSender = CErrorReportSender::GetInstance();
+		if (!pSender) return NULL;
+		auto pCI = pSender->GetCrashInfo();
+		if (!pCI) return NULL;
+		return (index < 0) ? pCI->GetReport(GetCurReportIndex()) : pCI->GetReport(index); 
+	}
 
 };
 

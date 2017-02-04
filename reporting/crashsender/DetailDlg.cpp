@@ -91,19 +91,21 @@ LRESULT CDetailDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void CDetailDlg::FillFileItemList()
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return;
+
 	// Walk through files included into error report
 	// Insert items to the list        
 	
 	m_iconList.RemoveAll();
 	m_list.DeleteAllItems();
 
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-
-	int nCount = pSender->GetCrashInfo()->GetReport(m_nCurReport)->GetFileItemCount();
+	int nCount = pReport->GetFileItemCount();
     int i;	
     for (i = 0; i<nCount; i++)
     {     
-		ERIFileItem* pfi = pSender->GetCrashInfo()->GetReport(m_nCurReport)->GetFileItemByIndex(i);
+		ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
 		CString sDestFile = pfi->m_sDestFile;
         CString sSrcFile = pfi->m_sSrcFile;
         CString sFileDesc = pfi->m_sDesc;
@@ -156,15 +158,16 @@ LRESULT CDetailDlg::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 
 LRESULT CDetailDlg::OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
 	// This method is called when user double-clicks an item in the list control.
 	// We need to open the file with an appropriate program.
 
     LPNMLISTVIEW lpItem           = (LPNMLISTVIEW)pnmh; 
     int iItem                     = lpItem->iItem;
     DWORD_PTR dwRet               = 0;
-
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
 
 	// Check if double-clicked on empty space.
     if (iItem < 0)
@@ -174,8 +177,8 @@ LRESULT CDetailDlg::OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 	}
 
 	// Look for n-th item
-	ERIFileItem* pFileItem = pCrashInfo->GetReport(m_nCurReport)->GetFileItemByIndex(iItem);
-	if(pFileItem==NULL)
+	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(iItem);
+	if(!pFileItem)
 		return 0;
     
 	// Get file name
@@ -191,15 +194,16 @@ LRESULT CDetailDlg::OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 void CDetailDlg::SelectItem(int iItem)
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return;
+
 	// This method is called when user selects an item.
 	// We need to open the item for preview.
 
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
-
     // Look for n-th item
-	ERIFileItem* pFileItem = pCrashInfo->GetReport(m_nCurReport)->GetFileItemByIndex(iItem);
-	if(pFileItem==NULL)
+	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(iItem);
+	if(!pFileItem)
 		return;
     
 	// Update preview control
@@ -217,15 +221,20 @@ LRESULT CDetailDlg::OnOK(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, B
 
 LRESULT CDetailDlg::OnExport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
+	if (!pSender)
+		return FALSE;
+
 	// This method is called when user clicks the "Export" button. 
 	// We should export crash report contents as a ZIP archive to
 	// user-specified folder.
 
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
-
 	// Format file name for the output ZIP archive.
-    CString sFileName = pCrashInfo->GetReport(m_nCurReport)->GetCrashGUID() + _T(".zip");
+    CString sFileName = pReport->GetCrashGUID() + _T(".zip");
 
 	// Display "Save File" dialog.
     CFileDialog dlg(FALSE, _T("*.zip"), sFileName,
@@ -374,7 +383,17 @@ LRESULT CDetailDlg::OnTextEncodingChanged(WORD /*wNotifyCode*/, WORD wID, HWND /
 
 LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	auto pSender = CErrorReportSender::GetInstance();
+	if (!pSender)
+		return FALSE;
+
+	auto pCI = pSender->GetCrashInfo();
+	if (!pCI)
+		return FALSE;
 
 	CPoint pt;
     GetCursorPos(&pt);
@@ -418,7 +437,7 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 		// Find file item in error report
 		int nItem = (int)m_list.GetItemData(i);
-		ERIFileItem* pfi = pSender->GetCrashInfo()->GetReport(m_nCurReport)->GetFileItemByIndex(nItem);
+		ERIFileItem* pfi = pReport->GetFileItemByIndex(nItem);
 		if(!pfi->m_bAllowDelete)
 			bAllowDelete = FALSE;
 	}
@@ -426,7 +445,7 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 	submenu.EnableMenuItem(ID_MENU7_OPEN, (nSelected==1)?MF_ENABLED:MF_DISABLED);
 	submenu.EnableMenuItem(ID_MENU7_DELETESELECTEDFILE, (nSelected>0 && bAllowDelete)?MF_ENABLED:MF_DISABLED);	
 
-	if(!pSender->GetCrashInfo()->m_bAllowAttachMoreFiles)
+	if(!pCI->m_bAllowAttachMoreFiles)
 	{
 		submenu.DeleteMenu(ID_MENU7_ATTACHMOREFILES, MF_BYCOMMAND);	
 	}
@@ -437,8 +456,9 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {	
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
 
 	// Get count of selected list items
 	int nItem = -1;
@@ -458,7 +478,7 @@ LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 		return 0; // Should be exactly one item selected
 
 	// Look for n-th item
-	ERIFileItem* pFileItem = pCrashInfo->GetReport(m_nCurReport)->GetFileItemByIndex(nItem);
+	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(nItem);
 	if(pFileItem==NULL)
 		return 0;
     
@@ -476,7 +496,17 @@ LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 LRESULT CDetailDlg::OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
+	// Kaneva - Added
+	CErrorReportInfo* pReport = GetReport();
+	if (!pReport) return FALSE;
+
+	auto pSender = CErrorReportSender::GetInstance();
+	if (!pSender)
+		return FALSE;
+
+	auto pCI = pSender->GetCrashInfo();
+	if (!pCI)
+		return FALSE;
 
 	// Walk through selected list items
 	std::vector<CString> asFilesToRemove;
@@ -489,11 +519,12 @@ LRESULT CDetailDlg::OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
 		// Determine appropriate file item
 		int nItem = (int)m_list.GetItemData(i);		
-		ERIFileItem* pfi = pSender->GetCrashInfo()->GetReport(m_nCurReport)->GetFileItemByIndex(nItem);
+		ERIFileItem* pfi = pReport->GetFileItemByIndex(nItem);
 		if(pfi)
 		{
+			// Kaneva - Bug Fix - Use Source File Full Path
 			// Add this file to remove list
-			asFilesToRemove.push_back(pfi->m_sDestFile);
+			asFilesToRemove.push_back(pfi->m_sSrcFile);
 		}
 	}
 
@@ -501,7 +532,7 @@ LRESULT CDetailDlg::OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	m_filePreview.SetFile(NULL);
 
 	// Delete selected files from error report
-	pSender->GetCrashInfo()->RemoveFilesFromCrashReport(m_nCurReport, asFilesToRemove);
+	pCI->RemoveFilesFromCrashReport(GetCurReportIndex(), asFilesToRemove);
 
 	// Update file items list
 	FillFileItemList();
@@ -509,7 +540,7 @@ LRESULT CDetailDlg::OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	// Force parent to recalculate report size
 	HWND hWndParent = GetParent();
 	if(::IsWindow(hWndParent))
-		::SendMessage(hWndParent, WM_REPORTSIZECHANGED, m_nCurReport, 0);
+		::SendMessage(hWndParent, WM_REPORTSIZECHANGED, GetCurReportIndex(), 0);
 
 	return 0;
 }
@@ -585,9 +616,15 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 		}
 
 		// Add files to crash report
-		CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-		CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
-		pCrashInfo->AddFilesToCrashReport(m_nCurReport, aFiles);
+		auto pSender = CErrorReportSender::GetInstance();
+		if (!pSender)
+			return FALSE;
+
+		auto pCI = pSender->GetCrashInfo();
+		if (!pCI)
+			return FALSE;
+		
+		pCI->AddFilesToCrashReport(GetCurReportIndex(), aFiles);
 
 		// Update file items list
 		FillFileItemList();
@@ -595,7 +632,7 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 		// Force parent to recalculate report size
 		HWND hWndParent = GetParent();
 		if(::IsWindow(hWndParent))
-			::SendMessage(hWndParent, WM_REPORTSIZECHANGED, m_nCurReport, 0);
+			::SendMessage(hWndParent, WM_REPORTSIZECHANGED, GetCurReportIndex(), 0);
 	}
 	
 	return 0;
