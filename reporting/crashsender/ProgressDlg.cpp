@@ -135,13 +135,13 @@ void CProgressDlg::Start(BOOL bCollectInfo, BOOL bMakeVisible)
     if(bCollectInfo)
     {
         CString sCaption;
-		sCaption.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption2")), pSender->GetCrashInfo()->m_sAppName);
+		sCaption.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption2")), (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
         SetWindowText(sCaption);    
     }
     else
     {
         CString sCaption;
-		sCaption.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption")), pSender->GetCrashInfo()->m_sAppName);
+		sCaption.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption")), (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
         SetWindowText(sCaption);    
     }
 
@@ -235,7 +235,7 @@ LRESULT CProgressDlg::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, B
                 m_ActionOnClose = DONT_CLOSE;
                 CString sCaption;
 				sCaption.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaptionExport")), 
-					pSender->GetCrashInfo()->m_sAppName);
+					(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
                 SetWindowText(sCaption);    
 
 				m_statText.SetWindowText(pSender->GetLangStr(_T("ProgressDlg"), _T("CompressingFiles")));        
@@ -351,11 +351,11 @@ LRESULT CProgressDlg::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, B
                 CString sMailClientName;        
                 CMailMsg::DetectMailClient(sMailClientName);
                 CString msg;
-				msg.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("ConfirmLaunchEmailClient")), sMailClientName);
+				msg.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("ConfirmLaunchEmailClient")), (LPCTSTR) sMailClientName);
 
 				CString sCaption = pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption"));
                 CString sTitle;
-				sTitle.Format(sCaption, pSender->GetCrashInfo()->m_sAppName);
+				sTitle.Format(sCaption, (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
                 INT_PTR result = MessageBox(msg, 
                     sTitle,
                     MB_OKCANCEL|MB_ICONQUESTION|dwFlags);

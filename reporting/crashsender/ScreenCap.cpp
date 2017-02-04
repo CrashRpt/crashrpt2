@@ -209,24 +209,24 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
     if(psc->m_fmt==SCREENSHOT_FORMAT_PNG)
     {
         // Init PNG writer
-        sFileName.Format(_T("%s\\screenshot%d.png"), psc->m_sSaveDirName, psc->m_nIdStartFrom++);
-        BOOL bInit = psc->PngInit(nWidth, nHeight, psc->m_bGrayscale, sFileName);
+        sFileName.Format(_T("%s\\screenshot%d.png"), (LPCTSTR) psc->m_sSaveDirName, psc->m_nIdStartFrom++);
+        BOOL bInit = psc->PngInit(nWidth, nHeight, psc->m_bGrayscale, (LPCTSTR) sFileName);
         if(!bInit)
             goto cleanup;
     }
     else if(psc->m_fmt==SCREENSHOT_FORMAT_JPG)
     {
         // Init JPG writer
-        sFileName.Format(_T("%s\\screenshot%d.jpg"), psc->m_sSaveDirName, psc->m_nIdStartFrom++);
-        BOOL bInit = psc->JpegInit(nWidth, nHeight, psc->m_bGrayscale, psc->m_nJpegQuality, sFileName);
+        sFileName.Format(_T("%s\\screenshot%d.jpg"), (LPCTSTR) psc->m_sSaveDirName, psc->m_nIdStartFrom++);
+        BOOL bInit = psc->JpegInit(nWidth, nHeight, psc->m_bGrayscale, psc->m_nJpegQuality, (LPCTSTR) sFileName);
         if(!bInit)
             goto cleanup;
     }
     else if(psc->m_fmt==SCREENSHOT_FORMAT_BMP)
     {
 		// Init BMP header
-		sFileName.Format(_T("%s\\screenshot%d.bmp"), psc->m_sSaveDirName, psc->m_nIdStartFrom++);
-        BOOL bInit = psc->BmpInit(nWidth, nHeight, psc->m_bGrayscale, sFileName);
+		sFileName.Format(_T("%s\\screenshot%d.bmp"), (LPCTSTR) psc->m_sSaveDirName, psc->m_nIdStartFrom++);
+        BOOL bInit = psc->BmpInit(nWidth, nHeight, psc->m_bGrayscale, (LPCTSTR) sFileName);
         if(!bInit)
             goto cleanup;		
     }

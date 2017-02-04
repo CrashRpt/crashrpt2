@@ -26,3 +26,7 @@ add_executable(ConsoleDemo ${source_files} ${header_files})
 target_link_libraries(ConsoleDemo CrashRpt)
 
 set_target_properties(ConsoleDemo PROPERTIES DEBUG_POSTFIX d )
+
+INSTALL(TARGETS ConsoleDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
+						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})

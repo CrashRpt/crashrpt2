@@ -254,7 +254,7 @@ int CSmtpClient::ResolveSmtpServerName(LPCTSTR szEmailAddress, std::map<WORD, CS
 
 	// Add a message to log
     CString sStatusMsg;
-    sStatusMsg.Format(_T("Quering MX record of domain %s"), sServer);
+    sStatusMsg.Format(_T("Quering MX record of domain %s"), (LPCTSTR) sServer);
     m_scn->SetProgress(sStatusMsg, 2);
 
 	// Resolve the domain name(s) of the SMTP servers associated with
@@ -341,14 +341,14 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         if(CheckAttachmentOK(sFileName)!=0)
         {
 			// Some attachment file does not present
-            sStatusMsg.Format(_T("Attachment not found: %s"), sFileName);
+            sStatusMsg.Format(_T("Attachment not found: %s"), (LPCTSTR) sFileName);
             m_scn->SetProgress(sStatusMsg, 1);
             return 2; // critical error
         }
     }
 
 	// Add a message to log
-    sStatusMsg.Format(_T("Getting address info of %s port %s"), sSmtpServer, CString(sServiceName));
+    sStatusMsg.Format(_T("Getting address info of %s port %s"), (LPCTSTR) sSmtpServer, (LPCTSTR) CString(sServiceName));
     m_scn->SetProgress(sStatusMsg, 1);
 	
 	// Prepare to open socket
@@ -382,7 +382,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         }
 
 		// Add a message to log
-        sStatusMsg.Format(_T("Connecting to SMTP server %s port %s"), sSmtpServer, CString(sServiceName));
+        sStatusMsg.Format(_T("Connecting to SMTP server %s port %s"), (LPCTSTR) sSmtpServer, (LPCTSTR) CString(sServiceName));
         m_scn->SetProgress(sStatusMsg, 1);
 
 		// Connect socket
@@ -525,7 +525,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
     m_scn->SetProgress(sStatusMsg, 1);
 
 	// Send MAIL FROM
-	sMsg.Format(_T("MAIL FROM:<%s>\r\n"), msg->GetSenderAddress());	
+	sMsg.Format(_T("MAIL FROM:<%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());	
     res=SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
 	if (res!=250)
 	{
@@ -537,9 +537,9 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 	// Process multiple e-mail recipients.		
 	for(i=0; i<msg->GetRecipientCount(); i++)
 	{
-		sMsg.Format(i==0 ? _T("To: <%s>\r\n") : _T("Cc: <%s>\r\n"), msg->GetRecipientAddress(i));
+		sMsg.Format(i==0 ? _T("To: <%s>\r\n") : _T("Cc: <%s>\r\n"), (LPCTSTR) msg->GetRecipientAddress(i));
 		sBodyTo += sMsg;
-		sMsg.Format(_T("RCPT TO:<%s>\r\n"), msg->GetRecipientAddress(i));
+		sMsg.Format(_T("RCPT TO:<%s>\r\n"), (LPCTSTR) msg->GetRecipientAddress(i));
 		res=SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
 		if(res!=250)
 		{
@@ -584,11 +584,11 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
     str.Format(_T("Date: %s %c%02d%02d\r\n"), strconv.a2t(szDateTime), diff_hours>=0?'+':'-', diff_hours, diff_mins);
     sMsg = str;
 	// Send From header
-	str.Format(_T("From: <%s>\r\n"), msg->GetSenderAddress());
+	str.Format(_T("From: <%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());
     sMsg  += str;
     sMsg += sBodyTo;
 	// Send subject
-	str.Format(_T("Subject: %s\r\n"), msg->GetSubject());
+	str.Format(_T("Subject: %s\r\n"), (LPCTSTR) msg->GetSubject());
     sMsg += str;
 	// Send MIME-Version header
     sMsg += "MIME-Version: 1.0\r\n";
@@ -641,7 +641,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         int nEncode=Base64EncodeAttachment(sFileName, sEncodedFileData);
         if(nEncode!=0)
         {
-            sStatusMsg.Format(_T("Error BASE64-encoding attachment %s"), sFileName);
+            sStatusMsg.Format(_T("Error BASE64-encoding attachment %s"), (LPCTSTR) sFileName);
             m_scn->SetProgress(sStatusMsg, 1);
             goto exit;
         }

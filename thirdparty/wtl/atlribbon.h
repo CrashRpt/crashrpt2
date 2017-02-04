@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.10
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLRIBBON_H__
 #define __ATLRIBBON_H__
@@ -35,8 +32,8 @@
 #endif
 
 #if (_ATL_VER < 0x0700)
-	#include <shlwapi.h>
-	#pragma comment(lib, "shlwapi.lib")
+  #include <shlwapi.h>
+  #pragma comment(lib, "shlwapi.lib")
 #endif
 
 #include <atlmisc.h>    // for RecentDocumentList classes
@@ -45,9 +42,10 @@
 #include <atlctrlw.h>   // for CCommandBarCtrl
 
 #if !defined(_WTL_USE_CSTRING) && !defined(__ATLSTR_H__)
-  #pragma warning(disable : 4530)   // unwind semantics not enabled
+  #pragma warning(push)
+  #pragma warning(disable: 4530)   // unwind semantics not enabled
   #include <string>
-  #pragma warning(default : 4530)
+  #pragma warning(pop)
 #endif
 
 #include <dwmapi.h>
@@ -183,9 +181,10 @@ public:
 	BOOL UISetText(int nID, UINT uIdResource, BOOL bForceUpdate = FALSE)
 	{
 		CTempBuffer<WCHAR> sText(RIBBONUI_MAX_TEXT);
-		return AtlLoadString(uIdResource, sText, RIBBONUI_MAX_TEXT) ? 
-			UISetText(nID, sText, bForceUpdate) :
-			E_FAIL;
+		int nRet = AtlLoadString(uIdResource, sText, RIBBONUI_MAX_TEXT);
+		if(nRet > 0)
+			UISetText(nID, sText, bForceUpdate);
+		return (nRet > 0) ? TRUE : FALSE;
 	}
 
 	LPCTSTR UIGetText(int nID)
@@ -198,7 +197,9 @@ public:
 		{
 			static WCHAR sText[RIBBONUI_MAX_TEXT] = { 0 };
 			wcscpy_s(sText, sUI);
-			*wcschr(sText, L'\t') = L' ';
+			WCHAR* pch = wcschr(sText, L'\t');
+			if (pch != NULL)
+				*pch = L' ';
 			return sText;
 		}
 		else
@@ -374,20 +375,20 @@ struct CharFormat : CHARFORMAT2
 	// Default constructor
 	CharFormat()
 	{
-		cbSize = sizeof CHARFORMAT2;
+		cbSize = sizeof(CHARFORMAT2);
 		Reset();
 	}
 
 	// Copy constructor
 	CharFormat(const CharFormat& cf)
 	{
-		CopyMemory(this, &cf, sizeof CHARFORMAT2);
+		::CopyMemory(this, &cf, sizeof(CHARFORMAT2));
 	}
 
 	// Assign operator
 	CharFormat& operator =(const CharFormat& cf)
 	{
-		CopyMemory(this, &cf, sizeof CHARFORMAT2);
+		::CopyMemory(this, &cf, sizeof(CHARFORMAT2));
 		return (*this);
 	}
 
@@ -473,9 +474,9 @@ private:
 	{
 		if (SUCCEEDED(pStore->GetValue(UI_PKEY_FontProperties_Size, &propvar)))
 		{
-			DECIMAL decSize;
+			DECIMAL decSize = { 0 };
 			UIPropertyToDecimal(UI_PKEY_FontProperties_Size, propvar, &decSize);
-			DOUBLE dSize;
+			DOUBLE dSize = 0;
 			VarR8FromDec(&decSize, &dSize);
 			if (dSize > 0)
 			{
@@ -519,7 +520,7 @@ private:
 	template <DWORD t_dwMask, REFPROPERTYKEY key>
 	void Getk_Color(IPropertyStore* pStore)
 	{
-		UINT32 color;
+		UINT32 color = 0;
 		if (SUCCEEDED(pStore->GetValue(key, &propvar)))
 		{
 			UIPropertyToUInt32(key, propvar, &color);
@@ -549,17 +550,17 @@ private:
 	// Put functions
 	void PutMaskEffect(WORD dwMaskVal, WORD dwEffectVal, REFPROPERTYKEY key, IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		UI_FONTPROPERTIES uProp = UI_FONTPROPERTIES_NOTAVAILABLE;
 		if ((dwMask & dwMaskVal) != 0)
 			uProp = dwEffects & dwEffectVal ? UI_FONTPROPERTIES_SET : UI_FONTPROPERTIES_NOTSET;
-		SetPropertyVal(key, uProp, &propvar);
-		pStore->SetValue(key, propvar);
+		SetPropertyVal(key, uProp, &var);
+		pStore->SetValue(key, var);
 	}
 
 	void PutVerticalPos(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		UI_FONTVERTICALPOSITION uProp = UI_FONTVERTICALPOSITION_NOTAVAILABLE;
 
 		if ((dwMask & CFE_SUBSCRIPT) != 0)
@@ -577,21 +578,21 @@ private:
 				uProp = UI_FONTVERTICALPOSITION_SUBSCRIPT;
 		}
 
-		SetPropertyVal(UI_PKEY_FontProperties_VerticalPositioning, uProp, &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_VerticalPositioning, propvar);
+		SetPropertyVal(UI_PKEY_FontProperties_VerticalPositioning, uProp, &var);
+		pStore->SetValue(UI_PKEY_FontProperties_VerticalPositioning, var);
 	}
 
 	void PutFace(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		SetPropertyVal(UI_PKEY_FontProperties_Family, 
-			dwMask & CFM_FACE ? szFaceName : L"", &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_Family, propvar);
+			dwMask & CFM_FACE ? szFaceName : L"", &var);
+		pStore->SetValue(UI_PKEY_FontProperties_Family, var);
 	}
 
 	void PutSize(IPropertyStore* pStore)
 	{
-		PROPVARIANT propvar;
+		PROPVARIANT var;
 		DECIMAL decVal;
 
 		if ((dwMask & CFM_SIZE) != 0)
@@ -599,13 +600,14 @@ private:
 		else
 			VarDecFromI4(0, &decVal);
 
-		SetPropertyVal(UI_PKEY_FontProperties_Size, &decVal, &propvar);
-		pStore->SetValue(UI_PKEY_FontProperties_Size, propvar);
+		SetPropertyVal(UI_PKEY_FontProperties_Size, &decVal, &var);
+		pStore->SetValue(UI_PKEY_FontProperties_Size, var);
 	}
 
 	void PutColor(IPropertyStore* pStore)
 	{
 		if ((dwMask & CFM_COLOR) != 0)
+		{
 			if ((dwEffects & CFE_AUTOCOLOR) == 0)
 			{
 				SetPropertyVal(UI_PKEY_FontProperties_ForegroundColorType, UI_SWATCHCOLORTYPE_RGB, &propvar);
@@ -619,6 +621,7 @@ private:
 				SetPropertyVal(UI_PKEY_FontProperties_ForegroundColorType, UI_SWATCHCOLORTYPE_AUTOMATIC, &propvar);
 				pStore->SetValue(UI_PKEY_FontProperties_ForegroundColorType, propvar);
 			}
+		}
 	}
 
 	void PutBackColor(IPropertyStore* pStore)
@@ -810,6 +813,10 @@ public:
 
 // ItemProperty class: ribbon callback for each item in a collection
 //
+
+#pragma warning(push)
+#pragma warning(disable: 4512)   // assignment operator could not be generated
+
 template <class TCollection>
 class ItemProperty : public IUISimplePropertySet
 {
@@ -851,6 +858,8 @@ public:
 	}
 };
 
+#pragma warning(pop)
+
 
 // CollectionImplBase: base class for all RibbonUI collections
 //
@@ -887,11 +896,11 @@ public:
 
 	CollectionImpl() : m_size(t_items)
 	{
-		FillMemory(m_auItemCat, sizeof m_auItemCat, 0xff); // UI_COLLECTION_INVALIDINDEX
+		::FillMemory(m_auItemCat, sizeof(m_auItemCat), 0xff); // UI_COLLECTION_INVALIDINDEX
 	}
 
 	UINT32 m_auItemCat[t_items];
-	Text m_asCatName[max(t_categories, 1)];
+	Text m_asCatName[__max(t_categories, 1)];
 	size_t m_size;
 
 // Operations
@@ -1014,7 +1023,7 @@ public:
 				ATL::CComQIPtr<IUICollection> pIUICategory(ppropvarCurrentValue->punkVal);
 				ATLASSERT(pIUICategory.p);
 				hr = pIUICategory->Clear();
-				for (UINT i = t_items; i < t_items + t_categories; i++)
+				for (UINT i = t_items; i < (t_items + t_categories); i++)
 				{
 					if FAILED(hr = pIUICategory->Add(m_apItems[i]))
 						break;
@@ -1123,7 +1132,7 @@ public:
 	
 	ItemCollectionImpl()
 	{
-		ZeroMemory(m_aBitmap, sizeof m_aBitmap);
+		::ZeroMemory(m_aBitmap, sizeof(m_aBitmap));
 	}
 
 	CBitmap m_aBitmap[t_items];
@@ -1205,8 +1214,8 @@ public:
 
 	CommandCollectionImpl()
 	{
-		ZeroMemory(m_auCmd, sizeof m_auCmd);
-		ZeroMemory(m_aCmdType, sizeof m_aCmdType);
+		::ZeroMemory(m_auCmd, sizeof(m_auCmd));
+		::ZeroMemory(m_aCmdType, sizeof(m_aCmdType));
 	}
 
 	UINT32 m_auCmd[t_items];
@@ -1951,12 +1960,12 @@ public:
 
 	HRESULT QueryValue(REFPROPERTYKEY key, LONG* plVal)
 	{
-		return GetWndRibbon().OnRibbonQuerySpinnerValue(GetID(), key, plVal);
+		return GetWndRibbon().OnRibbonQuerySpinnerValue(GetID(), key, plVal) ? S_OK : S_FALSE;
 	}
 
 	HRESULT QueryValue(REFPROPERTYKEY key, DOUBLE* pdVal)
 	{
-		return GetWndRibbon().OnRibbonQueryFloatSpinnerValue(GetID(), key, pdVal);
+		return GetWndRibbon().OnRibbonQueryFloatSpinnerValue(GetID(), key, pdVal) ? S_OK : S_FALSE;
 	}
 
 	HRESULT OnGetValue(REFPROPERTYKEY key, PROPVARIANT* ppv)
@@ -2085,10 +2094,10 @@ public:
 			if (RunTimeHelper::IsRibbonUIAvailable())
 				hr = m_pIUIFramework.CoCreateInstance(CLSID_UIRibbonFramework);
 			else
-				ATLTRACE(L"Ribbon UI not available\n");
+				ATLTRACE2(atlTraceUI, 0, _T("Ribbon UI not available\n"));
 
 		if FAILED(hr)
-			ATLTRACE(L"Ribbon construction failed\n");
+			ATLTRACE2(atlTraceUI, 0, _T("Ribbon construction failed\n"));
 
 		ATLASSERT(SUCCEEDED(hr));
 	}
@@ -2856,7 +2865,7 @@ public:
 		{
 			if(k_(*key) != k_BooleanValue)
 			{
-				ATLTRACE(L"Control ID %d is not handled\n", nCmdID);
+				ATLTRACE2(atlTraceUI, 0, _T("Control ID %d is not handled\n"), nCmdID);
 				return E_NOTIMPL;
 			}
 			BOOL bChecked = FALSE;
@@ -3013,13 +3022,14 @@ template <class T>
 __declspec(selectany) T* CRibbonImpl<T>::pWndRibbon;
 
 // Control map element
-#pragma warning (disable : 4510 610) // missing default constructor
+#pragma warning(push)
+#pragma warning(disable: 4510 610 4512)   // missing default constructor, can't be instatiated, assignment operator could not be generated
 typedef struct
 {
 	UINT uID;
 	ICtrl& ctrl;
 } _ribbonCtrl;
-#pragma warning (default : 4510 610) // missing default constructor
+#pragma warning(pop)
 
 }; // namespace RibbonUI
 
@@ -3029,12 +3039,12 @@ typedef struct
 
 // Control map macros
 #define BEGIN_RIBBON_CONTROL_MAP(theClass) \
-	RibbonUI::ICtrl& GetRibbonCtrl(UINT id) \
+	WTL::RibbonUI::ICtrl& GetRibbonCtrl(UINT id) \
 	{ \
-		RibbonUI::_ribbonCtrl _ctrls[] = \
+		WTL::RibbonUI::_ribbonCtrl _ctrls[] = \
 		{
 
-#define RIBBON_CONTROL(member) {member.GetID(), static_cast<RibbonUI::ICtrl&>(member)},
+#define RIBBON_CONTROL(member) {member.GetID(), static_cast<WTL::RibbonUI::ICtrl&>(member)},
 
 #define END_RIBBON_CONTROL_MAP() \
 		{0, *this} \

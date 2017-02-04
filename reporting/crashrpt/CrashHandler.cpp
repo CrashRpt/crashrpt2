@@ -244,8 +244,8 @@ int CCrashHandler::Init(
     if(m_sEmailSubject.IsEmpty())
     {
         // Generate the default subject
-        m_sEmailSubject.Format(_T("%s %s Error Report"), m_sAppName, 
-            m_sAppVersion.IsEmpty()?_T("[unknown_ver]"):m_sAppVersion);
+        m_sEmailSubject.Format(_T("%s %s Error Report"), (LPCTSTR)m_sAppName,
+            m_sAppVersion.IsEmpty()?_T("[unknown_ver]"): (LPCTSTR)m_sAppVersion);
     }
 
     // Save Email text.
@@ -383,7 +383,7 @@ int CCrashHandler::Init(
         DWORD dwCSIDL = CSIDL_LOCAL_APPDATA;
         Utility::GetSpecialFolder(dwCSIDL, sLocalAppDataFolder);
         m_sUnsentCrashReportsFolder.Format(_T("%s\\CrashRpt\\UnsentCrashReports\\%s_%s"), 
-            sLocalAppDataFolder, m_sAppName, m_sAppVersion);
+			(LPCTSTR)sLocalAppDataFolder, (LPCTSTR)m_sAppName, (LPCTSTR)m_sAppVersion);
     }
     else
     {    
@@ -473,10 +473,10 @@ int CCrashHandler::Init(
 		if(pfnSetProcessUserModeExceptionPolicy!=NULL && 
 			pfnGetProcessUserModeExceptionPolicy!=NULL)
 		{
-			DWORD dwFlags = 0;
-			if(pfnGetProcessUserModeExceptionPolicy(&dwFlags))
+			DWORD _dwFlags = 0;
+			if(pfnGetProcessUserModeExceptionPolicy(&_dwFlags))
 			{
-				pfnSetProcessUserModeExceptionPolicy(dwFlags & ~PROCESS_CALLBACK_FILTER_ENABLED); 
+				pfnSetProcessUserModeExceptionPolicy(_dwFlags & ~PROCESS_CALLBACK_FILTER_ENABLED); 
 			}
 		}
 
@@ -512,7 +512,7 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
 
     CString sSharedMemName;
     if(bTempMem)
-        sSharedMemName.Format(_T("%s-tmp"), m_sCrashGUID);    
+        sSharedMemName.Format(_T("%s-tmp"), (LPCTSTR)m_sCrashGUID);
     else 
         sSharedMemName = m_sCrashGUID;
 
@@ -1246,7 +1246,7 @@ int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
 	
 	// Create sync event (we will use it for synchronizing with CrashSender.exe).
 	CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), m_sCrashGUID);
+    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), (LPCTSTR)m_sCrashGUID);
     m_hEvent2 = CreateEvent(NULL, FALSE, FALSE, sEventName);
     if(m_hEvent2==NULL)
     {
@@ -1420,7 +1420,7 @@ int CCrashHandler::GenerateErrorReport(
         // Failed to launch crash sender process.
         // Try notifying user about crash using message box.
         CString szCaption;
-        szCaption.Format(_T("%s has stopped working"), Utility::getAppName());
+        szCaption.Format(_T("%s has stopped working"), (LPCTSTR)Utility::getAppName());
         CString szMessage;
         szMessage.Format(_T("Error launching CrashSender.exe"));
         MessageBox(NULL, szMessage, szCaption, MB_OK|MB_ICONERROR);    
@@ -1665,7 +1665,7 @@ int CCrashHandler::PerCrashInit()
 	if(m_hEvent!=NULL)
 		CloseHandle(m_hEvent); // Free old event
     CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s"), m_sCrashGUID);
+    sEventName.Format(_T("Local\\CrashRptEvent_%s"), (LPCTSTR)m_sCrashGUID);
     m_hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
     
 	// Format error report dir name for the next crash report.

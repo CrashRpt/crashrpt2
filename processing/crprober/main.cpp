@@ -348,10 +348,10 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
         if(bInputMD5FromDir)
         {
             sMD5DirName = szInputMD5;
-            int pos = sMD5DirName.rfind('\\');
-            if(pos<0) // There is no back slash in path
+            size_t pos = sMD5DirName.rfind('\\');
+            if(pos< tstring::npos) // There is no back slash in path
                 sMD5DirName = _T(""); 
-            else if(pos!=(int)sMD5DirName.length()-1) // Append the back slash to dir name
+            else if(pos!=sMD5DirName.length()-1) // Append the back slash to dir name
                 sMD5DirName = sMD5DirName.substr(0, pos+1);
         }
     }
@@ -833,8 +833,8 @@ int output_document(CrpHandle hReport, FILE* f)
 
                 if(!sSourceFile.empty())
                 {
-                    int pos = sSourceFile.rfind('\\');
-                    if(pos>=0)
+                    size_t pos = sSourceFile.rfind('\\');
+                    if(pos != tstring::npos)
                         sSourceFile = sSourceFile.substr(pos+1);
                     str += _T(" [ ");
                     str += sSourceFile;

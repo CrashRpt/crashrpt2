@@ -90,7 +90,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
     m_chkRestart = GetDlgItem(IDC_RESTART);
     CString sCaption;
-    sCaption.Format(pSender->GetLangStr(_T("MainDlg"), _T("RestartApp")), pSender->GetCrashInfo()->m_sAppName);
+    sCaption.Format(pSender->GetLangStr(_T("MainDlg"), _T("RestartApp")), (LPCTSTR)pSender->GetCrashInfo()->m_sAppName);
     m_chkRestart.SetWindowText(sCaption);
     m_chkRestart.SetCheck(BST_CHECKED);
     m_chkRestart.ShowWindow(pSender->GetCrashInfo()->m_bAppRestart?SW_SHOW:SW_HIDE);
@@ -245,7 +245,7 @@ LRESULT CErrorReportDlg::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPa
 
 	// Draw header text over background
     CString sHeading;
-    sHeading.Format(pSender->GetLangStr(_T("MainDlg"), _T("HeaderText")), pSender->GetCrashInfo()->m_sAppName);
+    sHeading.Format(pSender->GetLangStr(_T("MainDlg"), _T("HeaderText")), (LPCTSTR)pSender->GetCrashInfo()->m_sAppName);
     dc.SelectFont(m_HeadingFont);
     dc.DrawTextEx(sHeading.GetBuffer(0), sHeading.GetLength(), &rcHeading, 
         DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS);  
@@ -355,7 +355,7 @@ LRESULT CErrorReportDlg::OnCompleteCollectCrashInfo(UINT /*uMsg*/, WPARAM /*wPar
 		
 		// Format the text for dialog subheader.
         CString sSubHeader;
-		sSubHeader.Format(pSender->GetLangStr(_T("MainDlg"), _T("SubHeaderText")), sTotalSize);
+		sSubHeader.Format(pSender->GetLangStr(_T("MainDlg"), _T("SubHeaderText")), (LPCTSTR) sTotalSize);
 		
 		// Update the subheader text
         m_statSubHeader.SetWindowText(sSubHeader);
@@ -576,7 +576,7 @@ LRESULT CErrorReportDlg::OnReportSizeChanged(UINT /*uMsg*/, WPARAM /*wParam*/, L
 		
 	// Format the text for dialog subheader.
     CString sSubHeader;
-	sSubHeader.Format(pSender->GetLangStr(_T("MainDlg"), _T("SubHeaderText")), sTotalSize);
+	sSubHeader.Format(pSender->GetLangStr(_T("MainDlg"), _T("SubHeaderText")), (LPCTSTR) sTotalSize);
 		
 	// Update the subheader text
     m_statSubHeader.SetWindowText(sSubHeader);

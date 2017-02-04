@@ -111,9 +111,9 @@ void CrproberTests::Test_output()
 #endif
 
     sParams.Format(_T("/f \"%s\" /fmd5 \"%s\" /o \"%s\""), 
-        m_sErrorReportName, 
-        m_sErrorReportName+_T(".md5"),
-        m_sTmpFolder+_T("\\out.txt"));
+		(LPCTSTR) m_sErrorReportName,
+		(LPCTSTR) (m_sErrorReportName+_T(".md5")),
+		(LPCTSTR) (m_sTmpFolder+_T("\\out.txt")));
 
     sei.cbSize = sizeof(SHELLEXECUTEINFO);
     sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI;
@@ -171,7 +171,7 @@ void CrproberTests::Test_extract_file()
     sExeName = Utility::GetModulePath(NULL)+_T("\\crprober.exe");
 #endif
 
-    sParams.Format(_T("/f \"%s\" /ext \"%s\""), m_sErrorReportName, m_sTmpFolder);
+    sParams.Format(_T("/f \"%s\" /ext \"%s\""), (LPCTSTR) m_sErrorReportName, (LPCTSTR) m_sTmpFolder);
 
     sei.cbSize = sizeof(SHELLEXECUTEINFO);
     sei.fMask = SEE_MASK_NOCLOSEPROCESS|SEE_MASK_FLAG_NO_UI;

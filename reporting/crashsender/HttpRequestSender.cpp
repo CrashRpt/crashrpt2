@@ -580,7 +580,7 @@ BOOL CHttpRequestSender::FormatTextPartHeader(CString sName, CString& sPart)
     if(it==m_Request.m_aTextFields.end())
         return FALSE;
 
-    sPart.Format(m_sTextPartHeaderFmt, m_sBoundary, it->first);    
+    sPart.Format(m_sTextPartHeaderFmt, (LPCTSTR) m_sBoundary, (LPCTSTR) it->first);
 
     return TRUE;
 }
@@ -597,7 +597,7 @@ BOOL CHttpRequestSender::FormatAttachmentPartHeader(CString sName, CString& sTex
     if(it==m_Request.m_aIncludedFiles.end())
         return FALSE; 
 
-    sText.Format(m_sFilePartHeaderFmt, m_sBoundary, it->first, Utility::GetFileName(it->second.m_sSrcFileName), it->second.m_sContentType);
+    sText.Format(m_sFilePartHeaderFmt, (LPCTSTR) m_sBoundary, (LPCTSTR) it->first, (LPCTSTR) Utility::GetFileName(it->second.m_sSrcFileName), (LPCTSTR) it->second.m_sContentType);
     return TRUE;
 }
 
@@ -609,7 +609,7 @@ BOOL CHttpRequestSender::FormatAttachmentPartFooter(CString sName, CString& sTex
 
 BOOL CHttpRequestSender::FormatTrailingBoundary(CString& sText)
 {
-    sText.Format(_T("--%s--\r\n"), m_sBoundary);
+    sText.Format(_T("--%s--\r\n"), (LPCTSTR) m_sBoundary);
     return TRUE;
 }
 

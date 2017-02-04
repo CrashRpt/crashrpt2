@@ -44,12 +44,12 @@ add_executable(CrashSender WIN32 ${source_files} ${header_files})
 # Add input link libraries
 target_link_libraries(CrashSender zlib minizip libjpeg libpng tinyxml libogg libtheora WS2_32.lib Dnsapi.lib wininet.lib Rpcrt4.lib Gdi32.lib shell32.lib Comdlg32.lib version.lib psapi.lib)
 
-# Add compiler flags (/MP for multi-processor compilation, /Os to favor small code)
-set_target_properties(CrashRpt PROPERTIES COMPILE_FLAGS "/Os")
-#if(${MSVC_VERSION} GREATER 1310)
-#	set_target_properties(CrashRpt PROPERTIES COMPILE_FLAGS "/MP")
-#endif(${MSVC_VERSION} GREATER 1310)
-
 set_target_properties(CrashSender PROPERTIES 
 				DEBUG_POSTFIX ${CRASHRPT_VER}d
-				RELEASE_POSTFIX ${CRASHRPT_VER} )
+				RELEASE_POSTFIX ${CRASHRPT_VER}
+				RELWITHDEBINFO_POSTFIX ${CRASHRPT_VER}
+				MINSIZEREL_POSTFIX ${CRASHRPT_VER})
+
+INSTALL(TARGETS CrashSender LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
+						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
