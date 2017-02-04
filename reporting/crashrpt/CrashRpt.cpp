@@ -377,6 +377,52 @@ crSetCrashCallbackA(
 	return 0;
 }
 
+CRASHRPTAPI(int)
+crSetEmailSubjectW(   
+    LPCWSTR pszSubject
+    )
+{
+    crSetErrorMsg(_T("Success."));
+
+    CCrashHandler *pCrashHandler = 
+        CCrashHandler::GetCurrentProcessCrashHandler();
+
+    if(pCrashHandler==NULL)
+    {    
+        crSetErrorMsg(_T("Crash handler wasn't previously installed for current process."));
+        return 1; // No handler installed for current process?
+    }
+
+    pCrashHandler->m_sEmailSubject = pszSubject;
+
+    return 0;
+}
+
+CRASHRPTAPI(int)
+crSetEmailSubjectA(   
+    LPCSTR pszSubject
+)
+{
+    crSetErrorMsg(_T("Success."));
+
+    CCrashHandler *pCrashHandler = 
+        CCrashHandler::GetCurrentProcessCrashHandler();
+
+    if(pCrashHandler==NULL)
+    {    
+        crSetErrorMsg(_T("Crash handler wasn't previously installed for current process."));
+        return 1; // No handler installed for current process?
+    }
+
+    strconv_t strconv;
+
+    LPCWSTR pwszSubject = strconv.a2w(pszSubject);
+
+    pCrashHandler->m_sEmailSubject = pwszSubject;
+
+    return 0;
+}
+
 CRASHRPTAPI(int) 
 crAddFile2W(PCWSTR pszFile, PCWSTR pszDestFile, PCWSTR pszDesc, DWORD dwFlags)
 {

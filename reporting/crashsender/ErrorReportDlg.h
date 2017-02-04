@@ -47,6 +47,7 @@ public:
     CHyperLink  m_linkPrivacyPolicy;           
     CStatic m_statHorzLine;
     CStatic m_statCrashRpt;
+    CStatic m_describe;
     CButton m_btnOk;
     CButton m_btnCancel;    
     CFont m_HeadingFont;
@@ -67,6 +68,7 @@ public:
         MESSAGE_HANDLER(WM_CLOSE, OnClose)        
         MESSAGE_HANDLER(WM_TRAYICON, OnTrayIcon)
 		MESSAGE_HANDLER(WM_REPORTSIZECHANGED, OnReportSizeChanged)
+        MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
 
         COMMAND_ID_HANDLER(IDC_LINK, OnLinkClick)
         COMMAND_ID_HANDLER(IDC_MOREINFO, OnMoreInfoClick)    

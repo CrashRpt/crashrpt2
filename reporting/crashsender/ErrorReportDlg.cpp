@@ -124,6 +124,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
     m_statCrashRpt = GetDlgItem(IDC_CRASHRPT);
     m_statHorzLine = GetDlgItem(IDC_HORZLINE);  
+    m_describe = GetDlgItem(IDC_DESCRIBE);
 
 	// Init OK button
     m_btnOk = GetDlgItem(IDOK);
@@ -265,6 +266,20 @@ LRESULT CErrorReportDlg::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPa
 LRESULT CErrorReportDlg::OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	// This method is used to set background and text color for m_statIcon control
+
+    if((HWND)lParam == m_describe) {
+        HDC hdcStatic = (HDC)wParam;
+        //SetBkMode(hdcStatic, TRANSPARENT);
+        COLORREF cr = GetSysColor(COLOR_3DFACE);
+        //CBrush brush;
+        //brush.CreateSolidBrush(cr);
+
+        //SelectObject(hdcStatic, brush);
+        SetTextColor(hdcStatic, RGB(255, 0, 0));
+        SetBkColor(hdcStatic, cr);
+        SetDCBrushColor(hdcStatic, cr);
+        return (LRESULT)CreateSolidBrush(cr);
+    }
 
     if((HWND)lParam!=m_statIcon)
         return 0;

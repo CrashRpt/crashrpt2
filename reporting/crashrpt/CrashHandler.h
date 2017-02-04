@@ -231,6 +231,9 @@ public:
 	// Initializes several internal fields before each crash.
 	int PerCrashInit();
 
+    // Pack configuration info into shared memory.
+    void Repack();
+
     // Acqure exclusive access to this crash handler.
     void CrashLock(BOOL bLock);
 

@@ -117,7 +117,7 @@ BEGIN
     CONTROL         "",IDC_UPPERHORZ,"Static",SS_ETCHEDHORZ,0,37,326,1
     LTEXT           "Please send us this error report to help fix the problem and improve this software.",IDC_SUBHEADER,10,47,294,16
     LTEXT           "Your E-mail:",IDC_STATMAIL,27,101,65,8
-    LTEXT           "Describe in few words what did you do when the error occurred:",IDC_DESCRIBE,27,118,279,8
+    LTEXT           "Please describe what you did when the error occurred:",IDC_DESCRIBE,27,118,279,8
     LTEXT           "Privacy Policy",IDC_PRIVACYPOLICY,10,184,165,8
     LTEXT           "By clicking the 'Send report' button, I confirm I'm familiar with the contents of the report and accept the terms of the Privacy Policy.",IDC_CONSENT,10,167,292,17
     CONTROL         "",IDC_INDENT,"Static",SS_BLACKRECT,12,97,2,44
