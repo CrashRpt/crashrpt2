@@ -78,6 +78,24 @@ struct RegKeyInfo
 // and launch crash report sender process.
 class CCrashHandler  
 {
+	struct Locker
+	{
+		Locker( CCrashHandler & self ) : self_( self ) { self_.CrashLock( TRUE ) ; }
+		~Locker() { self_.CrashLock( FALSE ) ; }
+
+	private:
+		CCrashHandler & self_ ;
+	} ;
+
+	struct ReInitializer
+	{
+		ReInitializer( CCrashHandler & self ) : self_( self ) {}
+		~ReInitializer() { self_.PerCrashInit() ; }
+
+	private:
+		CCrashHandler & self_ ;
+	} ;
+
 public:
 
     // Default constructor.
