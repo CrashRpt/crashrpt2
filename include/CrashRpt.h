@@ -423,6 +423,24 @@ crSetCrashCallbackW(
 			 LPVOID lpParam
              );
 
+CRASHRPTAPI(int)
+crSetEmailSubjectW(
+    LPCWSTR pszSubject
+);
+
+CRASHRPTAPI(int)
+crSetEmailSubjectA(
+    LPCSTR pszSubject
+);
+
+/*! \brief Character set-independent mapping of crSetEmailSubjectW() and crSetEmailSubjectA() functions. 
+*  \ingroup CrashRptAPI
+*/
+#ifdef UNICODE
+#define crSetEmailSubject crSetEmailSubjectW
+#else
+#define crSetEmailSubject crSetEmailSubjectA
+#endif //UNICODE
 
 /*! \ingroup CrashRptAPI
 *  \copydoc crSetCrashCallbackW()

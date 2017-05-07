@@ -21,5 +21,5 @@ EXPORTS
    crAddVideo                     @28
    crSetCrashCallbackW            @29
    crSetCrashCallbackA            @30
-   
-
+   crSetEmailSubjectA             @31
+   crSetEmailSubjectW             @32
