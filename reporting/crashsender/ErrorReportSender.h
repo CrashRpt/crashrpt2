@@ -89,8 +89,14 @@ public:
     void FeedbackReady(int code);
 	    
     // Returns current error report's index.
-    int GetCurReport();
+	int GetCurReportIndex() const  { return m_nCurReport; }
 	    
+	// Kaneva - Added
+	void SetCurReportIndex(int index) { m_nCurReport = index; }
+	CErrorReportInfo* GetReport(int index = -1) { 
+		return (index < 0) ? m_CrashInfo.GetReport(GetCurReportIndex()) : m_CrashInfo.GetReport(index); 
+	}
+
 	// Returns path to log file.
 	CString GetLogFilePath();
 	    

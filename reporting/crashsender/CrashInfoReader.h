@@ -81,7 +81,8 @@ public:
 	ERIFileItem* GetFileItemByIndex(int nItem);
 
 	// Returns file item by its name.
-	ERIFileItem* GetFileItemByName(LPCTSTR szDestFileName);
+	// Kaneva - Bug Fix - Use Source File Full Path
+	ERIFileItem* GetFileItemByName(LPCTSTR szName);
 	
 	// Adds/replaces a file to crash report.
 	void AddFileItem(ERIFileItem* pfi);
@@ -221,8 +222,10 @@ private:
     BOOL            m_bSelected;           // Is this report selected for delivery or not?
     DELIVERY_STATUS m_DeliveryStatus;      // Error report delivery status.
 
-    std::map<CString, ERIFileItem>  m_FileItems; // The list of files that are included into this error report.
-    std::map<CString, ERIRegKey> m_RegKeys; // The list of registry keys included into this error report.
+    // Kaneva - Bug Fix - Now Using Full SrcPath Instead of DestFileName Only
+	std::map<CString, ERIFileItem>  m_FileItems; // The list of files that are included into this error report.
+   
+	std::map<CString, ERIRegKey> m_RegKeys; // The list of registry keys included into this error report.
     std::map<CString, CString> m_Props;   // The list of custom properties included into this error report.
 };
 

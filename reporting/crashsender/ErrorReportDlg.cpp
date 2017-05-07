@@ -25,9 +25,18 @@ BOOL CErrorReportDlg::PreTranslateMessage(MSG* pMsg)
 
 LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   	
-	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	CCrashInfoReader* pCrashInfo = pSender->GetCrashInfo();
+	// Kaneva - Added
+	auto pReport = GetReport();
+	if (!pReport) return FALSE;
 
+	auto pSender = CErrorReportSender::GetInstance();
+	if (!pSender)
+		return FALSE;
+
+	auto pCI = pSender->GetCrashInfo();
+	if (!pCI)
+		return FALSE;
+	
     // Mirror this window if RTL language is in use.
     CString sRTL = pSender->GetLangStr(_T("Settings"), _T("RTLReading"));
     if(sRTL.CompareNoCase(_T("1"))==0)
@@ -44,7 +53,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     HICON hIcon = NULL;
 
     // Get custom icon.
-    hIcon = pCrashInfo->GetCustomIcon();
+    hIcon = pCI->GetCustomIcon();
     if(hIcon==NULL)
     {
         // Use default icon, if custom icon is not provided.
@@ -54,8 +63,9 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     // Set window icon.
     SetIcon(hIcon, 0);
 
+
     // Get the first icon in the EXE image and use it for header.
-    m_HeadingIcon = ExtractIcon(NULL, pCrashInfo->GetReport(0)->GetImageName(), 0);
+    m_HeadingIcon = ExtractIcon(NULL, pReport->GetImageName(), 0);
 
     // If there is no icon in crashed EXE module, use default IDI_APPLICATION system icon.
     if(m_HeadingIcon == NULL)
@@ -79,7 +89,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     m_statEmail.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("YourEmail")));
 
     m_editEmail = GetDlgItem(IDC_EMAIL);
-	m_editEmail.SetWindowText(pSender->GetCrashInfo()->GetPersistentUserEmail());
+	m_editEmail.SetWindowText(pCI->GetPersistentUserEmail());
 
     m_statDesc = GetDlgItem(IDC_DESCRIBE);
     m_statDesc.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("DescribeProblem")));
@@ -93,7 +103,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     sCaption.Format(pSender->GetLangStr(_T("MainDlg"), _T("RestartApp")), (LPCTSTR)pSender->GetCrashInfo()->m_sAppName);
     m_chkRestart.SetWindowText(sCaption);
     m_chkRestart.SetCheck(BST_CHECKED);
-    m_chkRestart.ShowWindow(pSender->GetCrashInfo()->m_bAppRestart?SW_SHOW:SW_HIDE);
+    m_chkRestart.ShowWindow(pCI->m_bAppRestart?SW_SHOW:SW_HIDE);
 
     m_statConsent = GetDlgItem(IDC_CONSENT);
 
@@ -109,17 +119,17 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
     m_statConsent.SetFont(hConsentFont);
 
 	// Set text of the static
-    if(pSender->GetCrashInfo()->m_sPrivacyPolicyURL.IsEmpty())
+    if(pCI->m_sPrivacyPolicyURL.IsEmpty())
         m_statConsent.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("MyConsent2")));
     else
         m_statConsent.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("MyConsent")));
 
 	// Init Privacy Policy link
     m_linkPrivacyPolicy.SubclassWindow(GetDlgItem(IDC_PRIVACYPOLICY));
-    m_linkPrivacyPolicy.SetHyperLink(pSender->GetCrashInfo()->m_sPrivacyPolicyURL);
+    m_linkPrivacyPolicy.SetHyperLink(pCI->m_sPrivacyPolicyURL);
     m_linkPrivacyPolicy.SetLabel(pSender->GetLangStr(_T("MainDlg"), _T("PrivacyPolicy")));
 
-    BOOL bShowPrivacyPolicy = !pSender->GetCrashInfo()->m_sPrivacyPolicyURL.IsEmpty();  
+    BOOL bShowPrivacyPolicy = !pCI->m_sPrivacyPolicyURL.IsEmpty();  
     m_linkPrivacyPolicy.ShowWindow(bShowPrivacyPolicy?SW_SHOW:SW_HIDE);
 
     m_statCrashRpt = GetDlgItem(IDC_CRASHRPT);
@@ -131,13 +141,13 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 	// Init Cancel button
     m_btnCancel = GetDlgItem(IDC_CANCEL);  
-    if(pSender->GetCrashInfo()->m_bQueueEnabled)
+    if(pCI->m_bQueueEnabled)
         m_btnCancel.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("OtherActions")));
     else
         m_btnCancel.SetWindowText(pSender->GetLangStr(_T("MainDlg"), _T("CloseTheProgram")));
 
 	// If send procedure is mandatory...
-	if(pSender->GetCrashInfo()->m_bSendMandatory) 
+	if(pCI->m_bSendMandatory) 
 	{
 		// Hide Cancel button
 		m_btnCancel.ShowWindow(SW_HIDE);
@@ -171,7 +181,7 @@ LRESULT CErrorReportDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 	// By default, hide the email & description fields.
 	// But user may override the default.
-	ShowMoreInfo(pSender->GetCrashInfo()->m_bShowAdditionalInfoFields);
+	ShowMoreInfo(pCI->m_bShowAdditionalInfoFields);
 
 	// Create progress dialog
     m_dlgProgress.Create(m_hWnd);
@@ -402,7 +412,7 @@ LRESULT CErrorReportDlg::OnLinkClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
     
 	// Show "Error Report Details" dialog.
     CDetailDlg dlg;
-    dlg.m_nCurReport = 0;
+    dlg.SetCurReportIndex(0);
     dlg.DoModal();
 
     return 0;

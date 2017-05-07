@@ -322,7 +322,7 @@ LRESULT CResendDlg::OnListDblClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandle
 
 		// Show Error Report Details dialog
         CDetailDlg dlg;
-        dlg.m_nCurReport = nReport;
+        dlg.SetCurReportIndex(nReport);
         dlg.DoModal(m_hWnd);        
     }
     return 0;
@@ -791,7 +791,7 @@ void CResendDlg::DoProgressTimer()
     // Update progress bar
     m_dlgActionProgress.m_prgProgress.SetPos(nProgressPct);
 
-	int nCurItem = FindListItemByReportIndex(pSender->GetCurReport());
+	int nCurItem = FindListItemByReportIndex(pSender->GetCurReportIndex());
 
     unsigned i;
     for(i=0; i<messages.size(); i++)
