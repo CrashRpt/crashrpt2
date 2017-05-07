@@ -52,6 +52,9 @@ public:
 
 	// Returns n-th recipient address
 	CString GetRecipientAddress(int nRecipient);
+	
+	// Adds a recipient address.
+	void RemoveRecipient(int nRecipient);
 
 	// Adds file attachment.
 	void AddAttachment(LPCTSTR szFileName);
@@ -61,6 +64,9 @@ public:
 
 	// Returns n-th attachment.
 	CString GetAttachment(int nAttachment);
+	
+	// Removes n-th attachment.
+	void RemoveAttachment(int nAttachment);
 
 	// Returns E-mail body.
 	CString GetText();

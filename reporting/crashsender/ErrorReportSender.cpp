@@ -67,7 +67,19 @@ BOOL CErrorReportSender::Init(LPCTSTR szFileMappingName)
 		m_sErrorMsg.Format(_T("Error reading crash info: %s"), m_CrashInfo.GetErrorMsg().GetBuffer(0));
         return FALSE;
     }
-		
+
+    // Check for the report throttling
+    if (m_CrashInfo.m_bSendErrorReport)
+    {
+        const int nDailyReportCount = m_CrashInfo.GetDailyReportCount();
+        if (m_CrashInfo.m_nMaxReportsPerDay != 0 && m_CrashInfo.m_nMaxReportsPerDay <= nDailyReportCount)
+        {
+            // Parent process can now terminate
+            UnblockParentProcess();
+            return FALSE;
+        }
+    }
+
 	// Check window mirroring settings 
     CString sRTL = Utility::GetINIString(m_CrashInfo.m_sLangFileName, _T("Settings"), _T("RTLReading"));
     if(sRTL.CompareNoCase(_T("1"))==0)
@@ -417,6 +429,11 @@ BOOL CErrorReportSender::DoWork(int Action)
         // Send the error report.
         if(!SendReport())
 			return FALSE;
+        else
+        {
+            int nDailyReportCount = m_CrashInfo.GetDailyReportCount();
+            m_CrashInfo.SetDailyReportCount(nDailyReportCount + 1);
+        }
     }
 
     // Done
@@ -2132,7 +2149,19 @@ BOOL CErrorReportSender::SendReport()
         if(0==m_Assync.WaitForCompletion())
         {
             status = 0;
-            break;
+            
+			// If the report was sent through SMTP
+			if (id == CR_SMTP)
+			{
+				// Remove the ZIP and MD5 files from the attachment list
+				m_EmailMsg.RemoveAttachment(0);
+				m_EmailMsg.RemoveAttachment(0);
+
+				// Remove the recipient so that there will be no copies
+				m_EmailMsg.RemoveRecipient(0);
+			}
+			
+			break;
         }
     }
 
@@ -2400,6 +2429,7 @@ BOOL CErrorReportSender::SendOverSMTP()
 
     // Send mail assynchronously
     int res = m_SmtpClient.SendEmailAssync(&m_EmailMsg, &m_Assync); 
+
     return (res==0);
 }
 

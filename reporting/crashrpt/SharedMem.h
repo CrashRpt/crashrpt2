@@ -88,6 +88,7 @@ struct CRASH_DESCRIPTION
     DWORD m_dwLangFileNameOffs;    // Offset of language INI file name.
     DWORD m_dwRestartCmdLineOffs;  // Offset of app restart command line.
 	int m_nRestartTimeout;         // Restart timeout
+    int m_nMaxReportsPerDay;       // Maximum number of crash reports that will be sent per calendar day.
     DWORD m_dwEmailToOffs;         // Offset to E-mail recipient.
     DWORD m_dwCrashGUIDOffs;       // Offset to crash GUID.
     DWORD m_dwUnsentCrashReportsFolderOffs;  // Offset of folder name where error reports are stored.
