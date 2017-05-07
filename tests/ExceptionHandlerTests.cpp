@@ -16,6 +16,7 @@ be found in the Authors.txt file in the root of the source tree.
 #include "TestUtils.h"
 #include "strconv.h"
 #include "CrashRptProbe.h"
+#include <iostream>
 
 #ifndef _DEBUG
 

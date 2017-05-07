@@ -44,7 +44,7 @@ be found in the Authors.txt file in the root of the source tree.
 #define CRASHRPTAPI(rettype) CRASHRPT_EXTERNC rettype WINAPI
 
 //! Current CrashRpt version
-#define CRASHRPT_VER 1403
+#define CRASHRPT_VER 1500
 
 /*! \defgroup CrashRptAPI CrashRpt Functions */
 /*! \defgroup DeprecatedAPI Obsolete Functions */

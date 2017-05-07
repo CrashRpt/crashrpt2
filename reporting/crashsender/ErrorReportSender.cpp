@@ -198,8 +198,8 @@ BOOL CErrorReportSender::InitLog()
 	
 	CString sLogFile;
 	sLogFile.Format(_T("%s\\CrashRpt-Log-%s-{%s}.txt"), 
-		sLogDir, szDateTime, 
-		m_CrashInfo.m_bSendRecentReports?_T("batch"):m_CrashInfo.GetReport(0)->GetCrashGUID());
+		(LPCTSTR) sLogDir, (LPCTSTR) szDateTime,
+		m_CrashInfo.m_bSendRecentReports?_T("batch"): (LPCTSTR) m_CrashInfo.GetReport(0)->GetCrashGUID());
 	m_Assync.InitLogFile(sLogFile);
 	
 	m_sCrashLogFile = sLogFile;
@@ -303,7 +303,7 @@ void CErrorReportSender::UnblockParentProcess()
 
 	// Open the event the parent process had created for us
     CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s"), GetCrashInfo()->GetReport(0)->GetCrashGUID());
+    sEventName.Format(_T("Local\\CrashRptEvent_%s"), (LPCTSTR) GetCrashInfo()->GetReport(0)->GetCrashGUID());
     HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
     if(hEvent!=NULL)
         SetEvent(hEvent); // Signal event
@@ -702,7 +702,7 @@ BOOL CErrorReportSender::CreateMiniDump()
         DWORD dwError = GetLastError();
         CString sMsg;    
         sMsg.Format(_T("Couldn't create minidump file: %s"), 
-            Utility::FormatErrorMsg(dwError));
+			(LPCTSTR) Utility::FormatErrorMsg(dwError));
         m_Assync.SetProgress(sMsg, 0, false);
         sErrorMsg = sMsg;
         return FALSE;
@@ -716,9 +716,9 @@ BOOL CErrorReportSender::CreateMiniDump()
     if(lpImagehlpApiVersionEx!=NULL)
     {    
         API_VERSION CompiledApiVer;
-        CompiledApiVer.MajorVersion = 6;
-        CompiledApiVer.MinorVersion = 1;
-        CompiledApiVer.Revision = 11;    
+        CompiledApiVer.MajorVersion = 10;
+        CompiledApiVer.MinorVersion = 0;
+        CompiledApiVer.Revision = 12;    
         CompiledApiVer.Reserved = 0;
         LPAPI_VERSION pActualApiVer = lpImagehlpApiVersionEx(&CompiledApiVer);    
         pActualApiVer;
@@ -1191,7 +1191,7 @@ BOOL CErrorReportSender::CollectCrashFiles()
 
 		CString sFilePath = eri->GetErrorReportDirName() + _T("\\") + rki.m_sDstFileName;
 
-        str.Format(_T("Dumping registry key '%s' to file '%s' "), sKeyName, sFilePath);
+        str.Format(_T("Dumping registry key '%s' to file '%s' "), (LPCTSTR) sKeyName, (LPCTSTR) sFilePath);
         m_Assync.SetProgress(str, 0, false);    
 
         // Create registry key dump
@@ -1245,7 +1245,7 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
     if(hSrcFile==INVALID_HANDLE_VALUE)
     {
         pfi->m_sErrorStatus = Utility::FormatErrorMsg(GetLastError());
-        str.Format(_T("Error opening file %s."), pfi->m_sSrcFile);
+        str.Format(_T("Error opening file %s."), (LPCTSTR) pfi->m_sSrcFile);
         m_Assync.SetProgress(str, 0, false);
 		goto cleanup;
     }
@@ -1253,14 +1253,14 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
 	// If we should make a copy of the file
     if(pfi->m_bMakeCopy)
     {
-        str.Format(_T("Copying file %s."), pfi->m_sSrcFile);
+        str.Format(_T("Copying file %s."), (LPCTSTR) pfi->m_sSrcFile);
         m_Assync.SetProgress(str, 0, false);		     
 
         bGetSize = GetFileSizeEx(hSrcFile, &lFileSize);
         if(!bGetSize)
         {
             pfi->m_sErrorStatus = Utility::FormatErrorMsg(GetLastError());
-            str.Format(_T("Couldn't get file size of %s"), pfi->m_sSrcFile);
+            str.Format(_T("Couldn't get file size of %s"), (LPCTSTR) pfi->m_sSrcFile);
             m_Assync.SetProgress(str, 0, false);
             CloseHandle(hSrcFile);
             hSrcFile = INVALID_HANDLE_VALUE;
@@ -1274,7 +1274,7 @@ BOOL CErrorReportSender::CollectSingleFile(ERIFileItem* pfi)
         if(hDestFile==INVALID_HANDLE_VALUE)
         {
             pfi->m_sErrorStatus = Utility::FormatErrorMsg(GetLastError());
-            str.Format(_T("Error creating file %s."), sDestFile);
+            str.Format(_T("Error creating file %s."), (LPCTSTR) sDestFile);
             m_Assync.SetProgress(str, 0, false);
             CloseHandle(hSrcFile);
             hSrcFile = INVALID_HANDLE_VALUE;
@@ -1329,7 +1329,7 @@ cleanup:
 BOOL CErrorReportSender::CollectFilesBySearchTemplate(ERIFileItem* pfi, std::vector<ERIFileItem>& file_list)
 {
 	CString sMsg;
-	sMsg.Format(_T("Looking for files using search template: %s"), pfi->m_sSrcFile);
+	sMsg.Format(_T("Looking for files using search template: %s"), (LPCTSTR) pfi->m_sSrcFile);
 	m_Assync.SetProgress(sMsg, 0);
 
 	// Look for files matching search pattern
@@ -1748,12 +1748,12 @@ BOOL CErrorReportSender::RestartApp()
     if(m_CrashInfo.m_sRestartCmdLine.IsEmpty())
     {
         // Format with double quotes to avoid first empty parameter
-        sCmdLine.Format(_T("\"%s\""), m_CrashInfo.GetReport(m_nCurReport)->GetImageName());
+        sCmdLine.Format(_T("\"%s\""), (LPCTSTR) m_CrashInfo.GetReport(m_nCurReport)->GetImageName());
     }
     else
     {
 		// Format with double quotes to avoid first empty parameters
-        sCmdLine.Format(_T("\"%s\" %s"), m_CrashInfo.GetReport(m_nCurReport)->GetImageName(), 
+        sCmdLine.Format(_T("\"%s\" %s"), (LPCTSTR) m_CrashInfo.GetReport(m_nCurReport)->GetImageName(),
             m_CrashInfo.m_sRestartCmdLine.GetBuffer(0));
     }
 
@@ -1825,7 +1825,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
         m_sZipName = eri->GetErrorReportDirName() + _T(".zip");  
 
 	// Update progress
-    sMsg.Format(_T("Creating ZIP archive file %s"), m_sZipName);
+    sMsg.Format(_T("Creating ZIP archive file %s"), (LPCTSTR) m_sZipName);
     m_Assync.SetProgress(sMsg, 1, false);
 
 	// Create ZIP archive
@@ -1854,7 +1854,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
         CString sDesc = pfi->m_sDesc;
 
 		// Update progress
-        sMsg.Format(_T("Compressing file %s"), sDstFileName);
+        sMsg.Format(_T("Compressing file %s"), (LPCTSTR) sDstFileName);
         m_Assync.SetProgress(sMsg, 0, false);
 
 		// Open file for reading
@@ -1862,7 +1862,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
             GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL); 
         if(hFile==INVALID_HANDLE_VALUE)
         {
-            sMsg.Format(_T("Couldn't open file %s"), sFileName);
+            sMsg.Format(_T("Couldn't open file %s"), (LPCTSTR) sFileName);
             m_Assync.SetProgress(sMsg, 0, false);
             continue;
         }
@@ -1892,7 +1892,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
             NULL, 0, NULL, 0, strconv.t2a(sDesc), Z_DEFLATED, Z_DEFAULT_COMPRESSION);
         if(n!=0)
         {
-            sMsg.Format(_T("Couldn't compress file %s"), sDstFileName);
+            sMsg.Format(_T("Couldn't compress file %s"), (LPCTSTR) sDstFileName);
             m_Assync.SetProgress(sMsg, 0, false);
             continue;
         }
@@ -1914,7 +1914,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
             if(res!=0)
             {
                 zipCloseFileInZip(hZip);
-                sMsg.Format(_T("Couldn't write to compressed file %s"), sDstFileName);
+                sMsg.Format(_T("Couldn't write to compressed file %s"), (LPCTSTR) sDstFileName);
                 m_Assync.SetProgress(sMsg, 0, false);        
                 break;
             }
@@ -1943,13 +1943,13 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
     // Save MD5 hash file
     if(!m_bExport)
     {
-        sMsg.Format(_T("Calculating MD5 hash for file %s"), m_sZipName);
+        sMsg.Format(_T("Calculating MD5 hash for file %s"), (LPCTSTR) m_sZipName);
         m_Assync.SetProgress(sMsg, 0, false);
 
         int nCalcMD5 = CalcFileMD5Hash(m_sZipName, sMD5Hash);
         if(nCalcMD5!=0)
         {
-            sMsg.Format(_T("Couldn't calculate MD5 hash for file %s"), m_sZipName);
+            sMsg.Format(_T("Couldn't calculate MD5 hash for file %s"), (LPCTSTR) m_sZipName);
             m_Assync.SetProgress(sMsg, 0, false);
             goto cleanup;
         }
@@ -1961,7 +1961,7 @@ BOOL CErrorReportSender::CompressReportFiles(CErrorReportInfo* eri)
 #endif
         if(f==NULL)
         {
-            sMsg.Format(_T("Couldn't save MD5 hash for file %s"), m_sZipName);
+            sMsg.Format(_T("Couldn't save MD5 hash for file %s"), (LPCTSTR) m_sZipName);
             m_Assync.SetProgress(sMsg, 0, false);
             goto cleanup;
         }
@@ -2393,7 +2393,7 @@ BOOL CErrorReportSender::SendOverSMAPI()
     CString sMailClientName;
     m_MapiSender.DetectMailClient(sMailClientName);
 
-	msg.Format(_T("Launching the default email client (%s)"), sMailClientName);
+	msg.Format(_T("Launching the default email client (%s)"), (LPCTSTR) sMailClientName);
     m_Assync.SetProgress(msg, 10);
 
 	// Fill in email fields
@@ -2542,7 +2542,7 @@ BOOL CErrorReportSender::SendNextReport(int nReport)
     // Add a message to log
 	CString sMsg;
 	sMsg.Format(_T(">>> Performing actions with error report: '%s'"), 
-					m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName());
+		(LPCTSTR) m_CrashInfo.GetReport(m_nCurReport)->GetErrorReportDirName());
 	m_Assync.SetProgress(sMsg, 0, false);
 
 	// Send report
@@ -2669,7 +2669,7 @@ BOOL CErrorReportSender::RecordVideo()
 
 	// Open the event we will use for synchronization with the parent process
 	CString sEventName;
-    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), GetCrashInfo()->GetReport(0)->GetCrashGUID());
+    sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), (LPCTSTR) GetCrashInfo()->GetReport(0)->GetCrashGUID());
     HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
 	if(hEvent==NULL)
 	{

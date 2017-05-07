@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.10
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLDLGS_H__
 #define __ATLDLGS_H__
@@ -193,6 +190,17 @@ public:
 			m_ofn.hwndOwner = hWndParent;
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRetTh = m_thunk.Init(NULL, NULL);
+		if(bRetTh == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (ATL::CDialogImplBase*)this);
 
 		BOOL bRet;
@@ -481,9 +489,16 @@ public:
 		m_ofn.Flags |= OFN_ALLOWMULTISELECT;   // Force multiple selection mode
 
 #ifndef _UNICODE
+#ifdef _versionhelpers_H_INCLUDED_
+		OSVERSIONINFOEX ovi = { sizeof(OSVERSIONINFOEX) };
+		ovi.dwPlatformId = VER_PLATFORM_WIN32_NT;
+		DWORDLONG const dwlConditionMask = ::VerSetConditionMask(0, VER_PLATFORMID, VER_EQUAL);
+		m_bIsNT = (::VerifyVersionInfo(&ovi, VER_PLATFORMID, dwlConditionMask) != FALSE);
+#else // !_versionhelpers_H_INCLUDED_
 		OSVERSIONINFO ovi = { sizeof(OSVERSIONINFO) };
 		::GetVersionEx(&ovi);
 		m_bIsNT = (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT);
+#endif // _versionhelpers_H_INCLUDED_
 		if (m_bIsNT)
 		{
 			// On NT platforms, GetOpenFileNameA thunks to GetOpenFileNameW and there 
@@ -770,7 +785,11 @@ public:
 		
 		// Get the ID-list of the current folder.
 		int nBytes = GetFolderIDList(NULL, 0);
+#ifdef STRICT_TYPED_ITEMIDS
+		CTempBuffer<ITEMIDLIST_RELATIVE> idlist;
+#else
 		CTempBuffer<ITEMIDLIST> idlist;
+#endif
 		idlist.AllocateBytes(nBytes);
 		if ((nBytes <= 0) || (GetFolderIDList(idlist, nBytes) <= 0))
 			return;
@@ -813,7 +832,11 @@ public:
 					int nFileNameLength = (int)(DWORD_PTR)(pChar - pAnchor);
 					TCHAR szFileName[MAX_PATH] = { 0 };
 					SecureHelper::strncpy_x(szFileName, MAX_PATH, pAnchor, nFileNameLength);
+#ifdef STRICT_TYPED_ITEMIDS
+					PIDLIST_RELATIVE pidl = NULL;
+#else
 					LPITEMIDLIST pidl = NULL;
+#endif
 					DWORD dwAttrib = SFGAO_LINK;
 					if (SUCCEEDED(pFolder->ParseDisplayName(NULL, NULL, T2W(szFileName), NULL, &pidl, &dwAttrib)))
 					{
@@ -1309,7 +1332,11 @@ public:
 	bool m_bExpandInitialSelection;
 	TCHAR m_szFolderDisplayName[MAX_PATH];
 	TCHAR m_szFolderPath[MAX_PATH];
+#ifdef STRICT_TYPED_ITEMIDS
+	PIDLIST_ABSOLUTE m_pidlSelected;
+#else
 	LPITEMIDLIST m_pidlSelected;
+#endif
 	HWND m_hWnd;   // used only in the callback function
 
 // Constructor
@@ -1377,6 +1404,15 @@ public:
 	{
 		m_pidlInitialSelection = pidl;
 		m_bExpandInitialSelection = bExpand;
+	}
+
+#ifdef STRICT_TYPED_ITEMIDS
+	void SetRootFolder(PCIDLIST_ABSOLUTE pidl)
+#else
+	void SetRootFolder(LPCITEMIDLIST pidl)
+#endif
+	{
+		m_bi.pidlRoot = pidl;
 	}
 
 	// Methods to call after DoModal
@@ -1668,6 +1704,17 @@ public:
 			m_cf.hwndOwner = hWndParent;
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRetTh = m_thunk.Init(NULL, NULL);
+		if(bRetTh == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (CCommonDialogImplBase*)this);
 
 		BOOL bRet = ::ChooseFont(&m_cf);
@@ -1991,6 +2038,17 @@ public:
 			m_cc.hwndOwner = hWndParent;
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRetTh = m_thunk.Init(NULL, NULL);
+		if(bRetTh == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (CCommonDialogImplBase*)this);
 
 		BOOL bRet = ::ChooseColor(&m_cc);
@@ -2042,11 +2100,17 @@ public:
 			ATLASSERT(pT != NULL);
 			ATLASSERT(::IsWindow(pT->m_hWnd));
 		}
+		else
+		{
+			ATLASSERT(FALSE);
+			return 0;
+		}
 
 		// pass to the message map
-		LRESULT lRes;
+		LRESULT lRes = 0;
 		if(pT->ProcessWindowMessage(pT->m_hWnd, uMsg, wParam, lParam, lRes, 0) == FALSE)
 			return 0;
+
 		return lRes;
 	}
 
@@ -2150,7 +2214,7 @@ public:
 #ifndef _WIN32_WCE
 
 // global helper
-static HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
+static inline HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
 {
 	if(hDevNames == NULL)
 		return NULL;
@@ -2171,6 +2235,9 @@ static HDC _AtlCreateDC(HGLOBAL hDevNames, HGLOBAL hDevMode)
 		::GlobalUnlock(hDevMode);
 	return hDC;
 }
+
+#pragma warning(push)
+#pragma warning(disable: 4512)   // assignment operator could not be generated
 
 template <class T>
 class ATL_NO_VTABLE CPrintDialogImpl : public CCommonDialogImplBase
@@ -2214,6 +2281,17 @@ public:
 			m_pd.hwndOwner = hWndParent;
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRetTh = m_thunk.Init(NULL, NULL);
+		if(bRetTh == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (CCommonDialogImplBase*)this);
 
 		BOOL bRet = ::PrintDlg(&m_pd);
@@ -2377,6 +2455,8 @@ public:
 	{ }
 };
 
+#pragma warning(pop)
+
 #endif // _WIN32_WCE
 
 
@@ -2449,11 +2529,17 @@ public:
 	// GetDefaults will not display a dialog but will get device defaults
 	HRESULT GetDefaults()
 	{
-		m_pdex.Flags |= PD_RETURNDEFAULT;
 		ATLASSERT(m_pdex.hDevMode == NULL);    // must be NULL
 		ATLASSERT(m_pdex.hDevNames == NULL);   // must be NULL
 
-		return ::PrintDlgEx(&m_pdex);
+		if(m_pdex.hwndOwner == NULL)   // set only if not specified before
+			m_pdex.hwndOwner = ::GetActiveWindow();
+
+		m_pdex.Flags |= PD_RETURNDEFAULT;
+		HRESULT hRet = ::PrintDlgEx(&m_pdex);
+		m_pdex.Flags &= ~PD_RETURNDEFAULT;
+
+		return hRet;
 	}
 
 	// Helpers for parsing information after successful return num. copies requested
@@ -2707,9 +2793,7 @@ public:
 
 	SIZE GetPaperSize() const
 	{
-		SIZE size;
-		size.cx = m_psd.ptPaperSize.x;
-		size.cy = m_psd.ptPaperSize.y;
+		SIZE size = { m_psd.ptPaperSize.x, m_psd.ptPaperSize.y };
 		return size;
 	}
 
@@ -2733,6 +2817,17 @@ public:
 			m_psd.hwndOwner = hWndParent;
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRetTh = m_thunk.Init(NULL, NULL);
+		if(bRetTh == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (CCommonDialogImplBase*)this);
 
 		BOOL bRet = ::PageSetupDlg(&m_psd);
@@ -2859,6 +2954,17 @@ public:
 			SecureHelper::strncpy_x(m_szReplaceWith, _countof(m_szReplaceWith), lpszReplaceWith, _TRUNCATE);
 
 		ATLASSERT(m_hWnd == NULL);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRet = m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return NULL;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&m_thunk.cd, (CCommonDialogImplBase*)this);
 
 		HWND hWnd = NULL;
@@ -3048,7 +3154,7 @@ public:
 		return out;
 	}
 
-	RECT MapDialogPixels(RECT input) const
+	RECT MapDialogPixels(const RECT& input) const
 	{
 		RECT out = { MapDialogPixelsX(input.left), MapDialogPixelsY(input.top), MapDialogPixelsX(input.right), MapDialogPixelsY(input.bottom) };
 		return out;
@@ -3061,7 +3167,7 @@ public:
 
 	INT MapDialogUnitsY(INT y) const
 	{
-		return ::MulDiv(y, m_sizeUnits.cx, 8);  // DLU to Pixels Y
+		return ::MulDiv(y, m_sizeUnits.cy, 8);  // DLU to Pixels Y
 	}
 
 	POINT MapDialogUnits(POINT pt) const
@@ -3076,7 +3182,7 @@ public:
 		return out;
 	}
 
-	RECT MapDialogUnits(RECT input) const
+	RECT MapDialogUnits(const RECT& input) const
 	{
 		RECT out = { MapDialogUnitsX(input.left), MapDialogUnitsY(input.top), MapDialogUnitsX(input.right), MapDialogUnitsY(input.bottom) };
 		return out;
@@ -3108,7 +3214,8 @@ public:
 #endif // (_ATL_VER >= 0x800)
 
 
-class CMemDlgTemplate
+template <class TWinTraits>
+class CMemDlgTemplateT
 {
 public:
 	enum StdCtrlType
@@ -3121,10 +3228,15 @@ public:
 		CTRL_COMBOBOX  = 0x0085
 	};
 
-	CMemDlgTemplate() : m_hData(NULL), m_pData(NULL), m_pPtr(NULL), m_cAllocated(0)
+	HANDLE m_hData;
+	LPBYTE m_pData;
+	LPBYTE m_pPtr;
+	SIZE_T m_cAllocated;
+
+	CMemDlgTemplateT() : m_hData(NULL), m_pData(NULL), m_pPtr(NULL), m_cAllocated(0)
 	{ }
 
-	~CMemDlgTemplate()
+	~CMemDlgTemplateT()
 	{
 		Reset();
 	}
@@ -3164,17 +3276,17 @@ public:
 		m_cAllocated = 0;
 	}
 
-	void Create(bool bDlgEx, LPCTSTR lpszCaption, RECT rc, DWORD dwStyle = 0, DWORD dwExStyle = 0,
-		LPCTSTR lpstrFontName = NULL, WORD wFontSize = 0, WORD wWeight = 0, BYTE bItalic = 0, BYTE bCharset = 0, DWORD dwHelpID = 0,
-		ATL::_U_STRINGorID ClassName = 0U, ATL::_U_STRINGorID Menu = 0U)
+	void Create(bool bDlgEx, LPCTSTR lpszCaption, const RECT& rc, DWORD dwStyle = 0, DWORD dwExStyle = 0,
+	            LPCTSTR lpstrFontName = NULL, WORD wFontSize = 0, WORD wWeight = 0, BYTE bItalic = 0, BYTE bCharset = 0, DWORD dwHelpID = 0,
+	            ATL::_U_STRINGorID ClassName = 0U, ATL::_U_STRINGorID Menu = 0U)
 	{
 		Create(bDlgEx, lpszCaption, (short) rc.left, (short) rc.top, (short) (rc.right - rc.left), (short) (rc.bottom - rc.top), dwStyle, dwExStyle,
 			lpstrFontName, wFontSize, wWeight, bItalic, bCharset, dwHelpID, ClassName.m_lpstr, Menu.m_lpstr);
 	}
 
 	void Create(bool bDlgEx, LPCTSTR lpszCaption, short nX, short nY, short nWidth, short nHeight, DWORD dwStyle = 0, DWORD dwExStyle = 0,
-		LPCTSTR lpstrFontName = NULL, WORD wFontSize = 0, WORD wWeight = 0, BYTE bItalic = 0, BYTE bCharset = 0, DWORD dwHelpID = 0,
-		ATL::_U_STRINGorID ClassName = 0U, ATL::_U_STRINGorID Menu = 0U)
+	            LPCTSTR lpstrFontName = NULL, WORD wFontSize = 0, WORD wWeight = 0, BYTE bItalic = 0, BYTE bCharset = 0, DWORD dwHelpID = 0,
+	            ATL::_U_STRINGorID ClassName = 0U, ATL::_U_STRINGorID Menu = 0U)
 	{
 		// Should have DS_SETFONT style to set the dialog font name and size
 		if (lpstrFontName != NULL)
@@ -3205,7 +3317,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(Menu.m_lpstr))
 		{
-			WORD menuData[] = {0xFFFF, (WORD)Menu.m_lpstr};
+			WORD menuData[] = { 0xFFFF, LOWORD(Menu.m_lpstr) };
 			AddData(menuData, sizeof(menuData));
 		}
 		else
@@ -3227,7 +3339,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(ClassName.m_lpstr))
 		{
-			WORD classData[] = {0xFFFF, (WORD)ClassName.m_lpstr};
+			WORD classData[] = { 0xFFFF, LOWORD(ClassName.m_lpstr) };
 			AddData(classData, sizeof(classData));
 		}
 		else
@@ -3253,7 +3365,7 @@ public:
 		}
 	}
 
-	void AddControl(ATL::_U_STRINGorID ClassName, WORD wId, RECT rc, DWORD dwStyle, DWORD dwExStyle,
+	void AddControl(ATL::_U_STRINGorID ClassName, WORD wId, const RECT& rc, DWORD dwStyle, DWORD dwExStyle,
 	                ATL::_U_STRINGorID Text, const WORD* pCreationData = NULL, WORD nCreationData = 0, DWORD dwHelpID = 0)
 	{
 		AddControl(ClassName.m_lpstr, wId, (short) rc.left, (short) rc.top, (short) (rc.right - rc.left), (short) (rc.bottom - rc.top), dwStyle, dwExStyle,
@@ -3266,14 +3378,15 @@ public:
 		ATLASSERT(IsValid());
 
 		// DWORD align data
-		m_pPtr = (LPBYTE)(DWORD_PTR)((DWORD)(DWORD_PTR)(m_pPtr + 3) & (~3));
+		const DWORD_PTR dwDwordAlignBits = sizeof(DWORD) - 1;
+		m_pPtr = (LPBYTE)(((DWORD_PTR)m_pPtr + dwDwordAlignBits) & (~dwDwordAlignBits));
 
 		if (IsTemplateEx())
 		{
 			DLGTEMPLATEEX* dlg = (DLGTEMPLATEEX*)m_pData;
 			dlg->cDlgItems++;
 
-			DLGITEMTEMPLATEEX item = {dwHelpID, ATL::CControlWinTraits::GetWndExStyle(0) | dwExStyle, ATL::CControlWinTraits::GetWndStyle(0) | dwStyle, nX, nY, nWidth, nHeight, wId};
+			DLGITEMTEMPLATEEX item = {dwHelpID, TWinTraits::GetWndExStyle(0) | dwExStyle, TWinTraits::GetWndStyle(0) | dwStyle, nX, nY, nWidth, nHeight, wId};
 			AddData(&item, sizeof(item));
 		}
 		else
@@ -3281,14 +3394,14 @@ public:
 			LPDLGTEMPLATE dlg = (LPDLGTEMPLATE)m_pData;
 			dlg->cdit++;
 
-			DLGITEMTEMPLATE item = {ATL::CControlWinTraits::GetWndStyle(0) | dwStyle, ATL::CControlWinTraits::GetWndExStyle(0) | dwExStyle, nX, nY, nWidth, nHeight, wId};
+			DLGITEMTEMPLATE item = {TWinTraits::GetWndStyle(0) | dwStyle, TWinTraits::GetWndExStyle(0) | dwExStyle, nX, nY, nWidth, nHeight, wId};
 			AddData(&item, sizeof(item));
 		}
 
 		ATLASSERT(ClassName.m_lpstr != NULL);
 		if (IS_INTRESOURCE(ClassName.m_lpstr))
 		{
-			WORD wData[] = {0xFFFF, (WORD)ClassName.m_lpstr};
+			WORD wData[] = { 0xFFFF, LOWORD(ClassName.m_lpstr) };
 			AddData(wData, sizeof(wData));
 		}
 		else
@@ -3303,7 +3416,7 @@ public:
 		}
 		else if (IS_INTRESOURCE(Text.m_lpstr))
 		{
-			WORD wData[] = {0xFFFF, (WORD)Text.m_lpstr};
+			WORD wData[] = { 0xFFFF, LOWORD(Text.m_lpstr) };
 			AddData(wData, sizeof(wData));
 		}
 		else
@@ -3382,12 +3495,9 @@ public:
 			AddData(lpstr, nSize * sizeof(WCHAR));
 		}
 	}
-
-	HANDLE m_hData;
-	LPBYTE m_pData;
-	LPBYTE m_pPtr;
-	SIZE_T m_cAllocated;
 };
+
+typedef CMemDlgTemplateT<ATL::CControlWinTraits>	CMemDlgTemplate;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3463,43 +3573,43 @@ public:
 
 
 #define CONTROL_LTEXT(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_LEFT | WS_GROUP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_LEFT | WS_GROUP, exStyle, text, NULL, 0);
 #define CONTROL_CTEXT(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_CENTER | WS_GROUP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_CENTER | WS_GROUP, exStyle, text, NULL, 0);
 #define CONTROL_RTEXT(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_RIGHT | WS_GROUP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_RIGHT | WS_GROUP, exStyle, text, NULL, 0);
 #define CONTROL_PUSHBUTTON(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_PUSHBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_PUSHBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_DEFPUSHBUTTON(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_DEFPUSHBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_DEFPUSHBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
 #ifndef _WIN32_WCE
 #define CONTROL_PUSHBOX(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_PUSHBOX | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_PUSHBOX | WS_TABSTOP, exStyle, text, NULL, 0);
 #endif // !_WIN32_WCE
 #define CONTROL_STATE3(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_3STATE | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_3STATE | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_AUTO3STATE(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTO3STATE | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTO3STATE | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_CHECKBOX(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_CHECKBOX | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_CHECKBOX | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_AUTOCHECKBOX(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTOCHECKBOX | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTOCHECKBOX | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_RADIOBUTTON(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_RADIOBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_RADIOBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_AUTORADIOBUTTON(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTORADIOBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_AUTORADIOBUTTON | WS_TABSTOP, exStyle, text, NULL, 0);
 #define CONTROL_COMBOBOX(id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_COMBOBOX, (WORD)id, x, y, width, height, style | CBS_DROPDOWN | WS_TABSTOP, exStyle, (LPCTSTR)NULL, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_COMBOBOX, (WORD)id, x, y, width, height, style | CBS_DROPDOWN | WS_TABSTOP, exStyle, (LPCTSTR)NULL, NULL, 0);
 #define CONTROL_EDITTEXT(id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_EDIT, (WORD)id, x, y, width, height, style | ES_LEFT | WS_BORDER | WS_TABSTOP, exStyle, (LPCTSTR)NULL, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_EDIT, (WORD)id, x, y, width, height, style | ES_LEFT | WS_BORDER | WS_TABSTOP, exStyle, (LPCTSTR)NULL, NULL, 0);
 #define CONTROL_GROUPBOX(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_GROUPBOX, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_BUTTON, (WORD)id, x, y, width, height, style | BS_GROUPBOX, exStyle, text, NULL, 0);
 #define CONTROL_LISTBOX(id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_LISTBOX, (WORD)id, x, y, width, height, style | LBS_NOTIFY | WS_BORDER, exStyle, (LPCTSTR)NULL, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_LISTBOX, (WORD)id, x, y, width, height, style | LBS_NOTIFY | WS_BORDER, exStyle, (LPCTSTR)NULL, NULL, 0);
 #define CONTROL_SCROLLBAR(id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_SCROLLBAR, (WORD)id, x, y, width, height, style | SBS_HORZ, exStyle, (LPCTSTR)NULL, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_SCROLLBAR, (WORD)id, x, y, width, height, style | SBS_HORZ, exStyle, (LPCTSTR)NULL, NULL, 0);
 #define CONTROL_ICON(text, id, x, y, width, height, style, exStyle) \
-	m_Template.AddStdControl(WTL::CMemDlgTemplate::CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_ICON, exStyle, text, NULL, 0);
+	m_Template.AddStdControl(m_Template.CTRL_STATIC, (WORD)id, x, y, width, height, style | SS_ICON, exStyle, text, NULL, 0);
 #define CONTROL_CONTROL(text, id, className, style, x, y, width, height, exStyle) \
 	m_Template.AddControl(className, (WORD)id, x, y, width, height, style, exStyle, text, NULL, 0);
 
@@ -3507,8 +3617,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // CIndirectDialogImpl - dialogs with template in memory
 
-template <class T, class TDlgTemplate = CMemDlgTemplate, class TBase = ATL::CDialogImpl<T, ATL::CWindow> >
-class ATL_NO_VTABLE CIndirectDialogImpl : public TBase
+template <class T, class TDlgTemplate = CMemDlgTemplate, class TBase = ATL::CWindow>
+class ATL_NO_VTABLE CIndirectDialogImpl : public ATL::CDialogImpl< T, TBase >
 {
 public:
 	enum { IDD = 0 };   // no dialog template resource
@@ -3527,20 +3637,20 @@ public:
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(pT->m_hWnd == NULL);
 
-		if (!m_Template.IsValid())
+		if(!m_Template.IsValid())
 			CreateTemplate();
 
 #if (_ATL_VER >= 0x0800)
 		// Allocate the thunk structure here, where we can fail gracefully.
-		BOOL result = m_thunk.Init(NULL, NULL);
-		if (result == FALSE)
+		BOOL bRet = m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE)
 		{
-			SetLastError(ERROR_OUTOFMEMORY);
+			::SetLastError(ERROR_OUTOFMEMORY);
 			return -1;
 		}
 #endif // (_ATL_VER >= 0x0800)
 
-		ModuleHelper::AddCreateWndData(&m_thunk.cd, pT);
+		ModuleHelper::AddCreateWndData(&m_thunk.cd, (ATL::CDialogImplBaseT< TBase >*)pT);
 
 #ifdef _DEBUG
 		m_bModal = true;
@@ -3554,20 +3664,20 @@ public:
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(pT->m_hWnd == NULL);
 
-		if (!m_Template.IsValid())
+		if(!m_Template.IsValid())
 			CreateTemplate();
 
 #if (_ATL_VER >= 0x0800)
 		// Allocate the thunk structure here, where we can fail gracefully.
-		BOOL result = m_thunk.Init(NULL, NULL);
-		if (result == FALSE) 
+		BOOL bRet = m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE) 
 		{
-			SetLastError(ERROR_OUTOFMEMORY);
+			::SetLastError(ERROR_OUTOFMEMORY);
 			return NULL;
 		}
 #endif // (_ATL_VER >= 0x0800)
 
-		ModuleHelper::AddCreateWndData(&m_thunk.cd, pT);
+		ModuleHelper::AddCreateWndData(&m_thunk.cd, (ATL::CDialogImplBaseT< TBase >*)pT);
 
 #ifdef _DEBUG
 		m_bModal = false;
@@ -3595,6 +3705,7 @@ public:
 		ATLASSERT(FALSE);   // MUST be defined in derived class
 	}
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // CPropertySheetWindow - client side for a property sheet
@@ -3985,6 +4096,17 @@ public:
 		m_psh.nPages = m_arrPages.GetSize();
 
 		T* pT = static_cast<T*>(this);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRet = pT->m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return NULL;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&pT->m_thunk.cd, pT);
 
 		HWND hWnd = (HWND)::PropertySheet(&m_psh);
@@ -4006,6 +4128,17 @@ public:
 		m_psh.nPages = m_arrPages.GetSize();
 
 		T* pT = static_cast<T*>(this);
+
+#if (_ATL_VER >= 0x0800)
+		// Allocate the thunk structure here, where we can fail gracefully.
+		BOOL bRet = pT->m_thunk.Init(NULL, NULL);
+		if(bRet == FALSE)
+		{
+			::SetLastError(ERROR_OUTOFMEMORY);
+			return -1;
+		}
+#endif // (_ATL_VER >= 0x0800)
+
 		ModuleHelper::AddCreateWndData(&pT->m_thunk.cd, pT);
 
 		INT_PTR nRet = ::PropertySheet(&m_psh);
@@ -4993,23 +5126,11 @@ public:
 										(LPWSTR)(((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem) + 1) :
 										(LPWSTR)(pItem + 1);
 								// Get control rect.
-								RECT rect;
-								rect.left = 
-									bDialogEx ? 
-										((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->x : 
-										pItem->x;
-								rect.top = 
-									bDialogEx ? 
-										((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->y : 
-										pItem->y;
-								rect.right = rect.left + 
-									(bDialogEx ? 
-										((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->cx : 
-										pItem->cx);
-								rect.bottom = rect.top + 
-									(bDialogEx ? 
-										((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->cy : 
-										pItem->cy);
+								RECT rect = { 0 };
+								rect.left = bDialogEx ? ((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->x : pItem->x;
+								rect.top = bDialogEx ? ((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->y : pItem->y;
+								rect.right = rect.left + (bDialogEx ? ((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->cx : pItem->cx);
+								rect.bottom = rect.top + (bDialogEx ? ((ATL::_DialogSplitHelper::DLGITEMTEMPLATEEX*)pItem)->cy : pItem->cy);
 
 								// Convert from dialog units to screen units
 								MapDialogRect(&rect);
@@ -5848,9 +5969,9 @@ public:
 
 // Operations - setting values
 	// common buttons
-	void SetCommonButtons(TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons)
+	void SetCommonButtons(TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtonsArg)
 	{
-		this->dwCommonButtons = dwCommonButtons;
+		this->dwCommonButtons = dwCommonButtonsArg;
 	}
 
 	// window title text
@@ -5906,31 +6027,31 @@ public:
 	}
 
 	// buttons
-	void SetButtons(const TASKDIALOG_BUTTON* pButtons, UINT cButtons, int nDefaultButton = 0)
+	void SetButtons(const TASKDIALOG_BUTTON* pButtonsArg, UINT cButtonsArg, int nDefaultButtonArg = 0)
 	{
-		this->pButtons = pButtons;
-		this->cButtons = cButtons;
-		if(nDefaultButton != 0)
-			this->nDefaultButton = nDefaultButton;
+		this->pButtons = pButtonsArg;
+		this->cButtons = cButtonsArg;
+		if(nDefaultButtonArg != 0)
+			this->nDefaultButton = nDefaultButtonArg;
 	}
 
-	void SetDefaultButton(int nDefaultButton)
+	void SetDefaultButton(int nDefaultButtonArg)
 	{
-		this->nDefaultButton = nDefaultButton;
+		this->nDefaultButton = nDefaultButtonArg;
 	}
 
 	// radio buttons
-	void SetRadioButtons(const TASKDIALOG_BUTTON* pRadioButtons, UINT cRadioButtons, int nDefaultRadioButton = 0)
+	void SetRadioButtons(const TASKDIALOG_BUTTON* pRadioButtonsArg, UINT cRadioButtonsArg, int nDefaultRadioButtonArg = 0)
 	{
-		this->pRadioButtons = pRadioButtons;
-		this->cRadioButtons = cRadioButtons;
-		if(nDefaultRadioButton != 0)
-			this->nDefaultRadioButton = nDefaultRadioButton;
+		this->pRadioButtons = pRadioButtonsArg;
+		this->cRadioButtons = cRadioButtonsArg;
+		if(nDefaultRadioButtonArg != 0)
+			this->nDefaultRadioButton = nDefaultRadioButtonArg;
 	}
 
-	void SetDefaultRadioButton(int nDefaultRadioButton)
+	void SetDefaultRadioButton(int nDefaultRadioButtonArg)
 	{
-		this->nDefaultRadioButton = nDefaultRadioButton;
+		this->nDefaultRadioButton = nDefaultRadioButtonArg;
 	}
 
 	// verification text
@@ -6008,9 +6129,9 @@ public:
 	}
 
 	// width (in DLUs)
-	void SetWidth(UINT cxWidth)
+	void SetWidth(UINT cxWidthArg)
 	{
-		this->cxWidth = cxWidth;
+		this->cxWidth = cxWidthArg;
 	}
 
 	// modify flags
@@ -6191,7 +6312,7 @@ public:
 			break;
 		}
 
-		return (HRESULT)bRet;
+		return (bRet != FALSE) ? S_OK : S_FALSE;
 	}
 
 // Overrideables - notification handlers

@@ -72,7 +72,7 @@ LRESULT CResendDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	// Set dialog caption
     CString sTitle;
 	sTitle.Format(pSender->GetLangStr(_T("ResendDlg"), _T("DlgCaption")), 
-		pSender->GetCrashInfo()->m_sAppName);
+		(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
     SetWindowText(sTitle);
 
     // center the dialog on the screen
@@ -666,7 +666,7 @@ void CResendDlg::AddTrayIcon(BOOL bAdd)
 
 		// Format balloon tip caption
         CString sTip; 
-		sTip.Format(pSender->GetLangStr(_T("ResendDlg"), _T("DlgCaption")), pSender->GetCrashInfo()->m_sAppName);
+		sTip.Format(pSender->GetLangStr(_T("ResendDlg"), _T("DlgCaption")), (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
 
 #if (NTDDI_VERSION >= NTDDI_WIN2K)
 		// Truncate the string if it is too long.
@@ -685,14 +685,14 @@ void CResendDlg::AddTrayIcon(BOOL bAdd)
 		// Format balloon text
         CString sInfo;
 		sInfo.Format(pSender->GetLangStr(_T("ResendDlg"), _T("BalloonText")), 
-			pSender->GetCrashInfo()->m_sAppName, pSender->GetCrashInfo()->m_sAppName);
+			(LPCTSTR) pSender->GetCrashInfo()->m_sAppName, (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
 		// Truncate the string if it is too long.
 		sInfo = Utility::AddEllipsis(sInfo, 255);
         _TCSCPY_S(nf.szInfo, 255, sInfo.GetBuffer(0));
 
         CString sInfoTitle;
 		sInfoTitle.Format(pSender->GetLangStr(_T("ResendDlg"), _T("BalloonCaption")), 
-			pSender->GetCrashInfo()->m_sAppName);
+			(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
 		// Truncate the string if it is too long.
 		sInfoTitle = Utility::AddEllipsis(sInfoTitle, 63);
         _TCSCPY_S(nf.szInfoTitle, 63, sInfoTitle.GetBuffer(0));
@@ -840,12 +840,12 @@ void CResendDlg::DoProgressTimer()
             CString sMailClientName;        
             CMailMsg::DetectMailClient(sMailClientName);
             CString msg;
-			msg.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("ConfirmLaunchEmailClient")), sMailClientName);
+			msg.Format(pSender->GetLangStr(_T("ProgressDlg"), _T("ConfirmLaunchEmailClient")), (LPCTSTR) sMailClientName);
 
 			// Display message box.
             CString sCaption = pSender->GetLangStr(_T("ProgressDlg"), _T("DlgCaption"));
             CString sTitle;
-			sTitle.Format(sCaption, pSender->GetCrashInfo()->m_sAppName);
+			sTitle.Format(sCaption, (LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
             INT_PTR result = MessageBox(msg, 
                 sTitle,
                 MB_OKCANCEL|MB_ICONQUESTION|dwFlags);
@@ -968,7 +968,7 @@ LRESULT CResendDlg::OnDeliveryComplete(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
     CString sCaption;
 	sCaption.Format(pSender->GetLangStr(_T("ResendDlg"), _T("DlgCaption")), 
-		pSender->GetCrashInfo()->m_sAppName);
+		(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
 
 	if(pSender->HasErrors())
     {

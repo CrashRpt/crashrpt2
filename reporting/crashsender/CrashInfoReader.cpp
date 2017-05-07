@@ -458,7 +458,7 @@ int CCrashInfoReader::Init(LPCTSTR szFileMappingName)
     {
         // Unblock the parent process
         CString sEventName;
-        sEventName.Format(_T("Local\\CrashRptEvent_%s"), eri.m_sCrashGUID);
+        sEventName.Format(_T("Local\\CrashRptEvent_%s"), (LPCTSTR)eri.m_sCrashGUID);
         HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
         if(hEvent!=NULL)
             SetEvent(hEvent);

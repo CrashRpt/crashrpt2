@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Inglese (Stati Uniti) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,4,0,3
- PRODUCTVERSION 1,4,0,3
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,12 +68,12 @@ BEGIN
         BLOCK "000904b0"
         BEGIN
             VALUE "FileDescription", "CrashRptProbe Module"
-            VALUE "FileVersion", "1.4.0.3"
+            VALUE "FileVersion", "2.0.0.0"
             VALUE "InternalName", "CrashRpt"
             VALUE "LegalCopyright", "Copyright 2003-2013 The CrashRpt Project Authors"
             VALUE "OriginalFilename", "CrashRptProbe.dll"
             VALUE "ProductName", "CrashRpt"
-            VALUE "ProductVersion", "1.4.0.3"
+            VALUE "ProductVersion", "2.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -82,7 +82,7 @@ BEGIN
     END
 END
 
-#endif    // English (United States) resources
+#endif    // Inglese (Stati Uniti) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

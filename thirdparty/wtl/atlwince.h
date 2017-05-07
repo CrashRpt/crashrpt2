@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.10
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLWINCE_H__
 #define __ATLWINCE_H__
@@ -515,12 +512,10 @@ public:
 	
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-#ifdef _DEBUG
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(t_bModal == pT->m_bModal);
-#endif
-		StdPlatformInit();
-		StdShidInit();
+		pT->StdPlatformInit();
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -677,13 +672,11 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-#ifdef _DEBUG
 		T* pT = static_cast<T*>(this);
 		ATLASSERT(t_bModal == pT->m_bModal);
-#endif
-		StdPlatformInit();
-		DlgResize_Init(FALSE);
-		StdShidInit();
+		pT->StdPlatformInit();
+		pT->DlgResize_Init(FALSE);
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -741,9 +734,10 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-		StdPlatformInit();
-		DlgResize_Init(FALSE);
-		StdShidInit();
+		T* pT = static_cast<T*>(this);
+		pT->StdPlatformInit();
+		pT->DlgResize_Init(FALSE);
+		pT->StdShidInit();
 		return bHandled = FALSE;
 	}
 };
@@ -784,7 +778,7 @@ public:
 		ATLASSERT(pT->IsWindow());
 		if (wParam == SETTINGCHANGE_RESET)
 		{
-			SetOrientation(DRA::GetDisplayMode());
+			pT->SetOrientation(DRA::GetDisplayMode());
 			pT->StdPlatformInit();
 			pT->StdShidInit();
 		}
@@ -822,7 +816,7 @@ public:
 		ATLASSERT(t_bModal == pT->m_bModal);
 #endif
 		if (DRA::GetDisplayMode() == DRA::Landscape)
-			SetOrientation(DRA::Landscape);
+			pT->SetOrientation(DRA::Landscape);
 		pT->StdPlatformInit();
 		pT->StdShidInit();
 		return bHandled = FALSE;
@@ -1784,7 +1778,7 @@ public:
 
 	void UpdateLayout()
 	{
-		RECT rect;
+		RECT rect = { 0 };
 		GetClientRect(&rect);
 
 		if(m_tab.IsWindow() && ((m_tab.GetStyle() & WS_VISIBLE) != 0))
@@ -2635,7 +2629,7 @@ public:
 	BOOL SetItemState(int iIndex, UINT uState, UINT uMask)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
-		LV_ITEM lvi = { 0 };
+		LVITEM lvi = { 0 };
 		lvi.stateMask = uMask;
 		lvi.state = uState;
 		return (BOOL)::SendMessage(m_hWnd, DLM_SETITEMSTATE, (WPARAM)iIndex, (LPARAM)&lvi);

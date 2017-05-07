@@ -19,3 +19,7 @@ add_executable(crprober ${source_files} ${header_files})
 target_link_libraries(crprober CrashRptProbe)
 
 set_target_properties(crprober PROPERTIES DEBUG_POSTFIX d )
+
+INSTALL(TARGETS crprober LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
+						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})

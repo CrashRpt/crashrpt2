@@ -1,0 +1,3 @@
+- Unify the crashrpt version from CMake instead of many places
+- Test windows XP with the new DBGApi
+- Build with VS 2010

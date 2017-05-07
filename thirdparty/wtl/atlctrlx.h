@@ -1,13 +1,10 @@
-// Windows Template Library - WTL version 8.1
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Windows Template Library - WTL version 9.10
+// Copyright (C) Microsoft Corporation, WTL Team. All rights reserved.
 //
 // This file is a part of the Windows Template Library.
 // The use and distribution terms for this software are covered by the
-// Common Public License 1.0 (http://opensource.org/licenses/cpl1.0.php)
-// which can be found in the file CPL.TXT at the root of this distribution.
-// By using this software in any fashion, you are agreeing to be bound by
-// the terms of this license. You must not remove this notice, or
-// any other, from this software.
+// Microsoft Public License (http://opensource.org/licenses/MS-PL)
+// which can be found in the file MS-PL.txt at the root folder.
 
 #ifndef __ATLCTRLX_H__
 #define __ATLCTRLX_H__
@@ -57,15 +54,20 @@ namespace WTL
 #ifndef _WIN32_WCE
 
 // bitmap button extended styles
-#define BMPBTN_HOVER		0x00000001
-#define BMPBTN_AUTO3D_SINGLE	0x00000002
-#define BMPBTN_AUTO3D_DOUBLE	0x00000004
-#define BMPBTN_AUTOSIZE		0x00000008
-#define BMPBTN_SHAREIMAGELISTS	0x00000010
-#define BMPBTN_AUTOFIRE		0x00000020
+#define BMPBTN_HOVER            0x00000001
+#define BMPBTN_AUTO3D_SINGLE    0x00000002
+#define BMPBTN_AUTO3D_DOUBLE    0x00000004
+#define BMPBTN_AUTOSIZE         0x00000008
+#define BMPBTN_SHAREIMAGELISTS  0x00000010
+#define BMPBTN_AUTOFIRE         0x00000020
+#define BMPBTN_CHECK            0x00000040
+#define BMPBTN_AUTOCHECK        0x00000080
+
+// Note: BMPBTN_CHECK/BMPBTN_AUTOCHECK disables BN_DOUBLECLICKED,
+// BMPBTN_AUTOFIRE doesn't work with BMPBTN_CHECK/BMPBTN_AUTOCHECK
 
 template <class T, class TBase = CButton, class TWinTraits = ATL::CControlWinTraits>
-class ATL_NO_VTABLE CBitmapButtonImpl : public ATL::CWindowImpl< T, TBase, TWinTraits>
+class ATL_NO_VTABLE CBitmapButtonImpl : public ATL::CWindowImpl< T, TBase, TWinTraits >
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, TBase::GetWndClassName())
@@ -99,18 +101,24 @@ public:
 	unsigned m_fMouseOver:1;
 	unsigned m_fFocus:1;
 	unsigned m_fPressed:1;
+	unsigned m_fChecked:1;
 
 
 // Constructor/Destructor
 	CBitmapButtonImpl(DWORD dwExtendedStyle = BMPBTN_AUTOSIZE, HIMAGELIST hImageList = NULL) : 
-			m_ImageList(hImageList), m_dwExtendedStyle(dwExtendedStyle), 
-			m_lpstrToolTipText(NULL),
-			m_fMouseOver(0), m_fFocus(0), m_fPressed(0)
+	                  m_dwExtendedStyle(dwExtendedStyle), m_ImageList(hImageList), 
+	                  m_lpstrToolTipText(NULL),
+	                  m_fMouseOver(0), m_fFocus(0), m_fPressed(0), m_fChecked(0)
 	{
 		m_nImage[_nImageNormal] = -1;
 		m_nImage[_nImagePushed] = -1;
 		m_nImage[_nImageFocusOrHover] = -1;
 		m_nImage[_nImageDisabled] = -1;
+
+#ifdef _DEBUG
+		if(((m_dwExtendedStyle & BMPBTN_AUTOFIRE) != 0) && IsCheckMode())
+			ATLTRACE2(atlTraceUI, 0, _T("CBitmapButtonImpl - Check mode and BMPBTN_AUTOFIRE cannot be used together, BMPBTN_AUTOFIRE will be ignored.\n"));
+#endif // _DEBUG
 	}
 
 	~CBitmapButtonImpl()
@@ -124,13 +132,17 @@ public:
 	BOOL SubclassWindow(HWND hWnd)
 	{
 #if (_MSC_VER >= 1300)
-		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits>::SubclassWindow(hWnd);
+		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits >::SubclassWindow(hWnd);
 #else // !(_MSC_VER >= 1300)
-		typedef ATL::CWindowImpl< T, TBase, TWinTraits>   _baseClass;
+		typedef ATL::CWindowImpl< T, TBase, TWinTraits >   _baseClass;
 		BOOL bRet = _baseClass::SubclassWindow(hWnd);
 #endif // !(_MSC_VER >= 1300)
-		if(bRet)
-			Init();
+		if(bRet != FALSE)
+		{
+			T* pT = static_cast<T*>(this);
+			pT->Init();
+		}
+
 		return bRet;
 	}
 
@@ -147,6 +159,12 @@ public:
 			m_dwExtendedStyle = dwExtendedStyle;
 		else
 			m_dwExtendedStyle = (m_dwExtendedStyle & ~dwMask) | (dwExtendedStyle & dwMask);
+
+#ifdef _DEBUG
+		if(((m_dwExtendedStyle & BMPBTN_AUTOFIRE) != 0) && IsCheckMode())
+			ATLTRACE2(atlTraceUI, 0, _T("CBitmapButtonImpl - Check mode and BMPBTN_AUTOFIRE cannot be used together, BMPBTN_AUTOFIRE will be ignored.\n"));
+#endif // _DEBUG
+
 		return dwPrevStyle;
 	}
 
@@ -161,6 +179,7 @@ public:
 		m_ImageList = hImageList;
 		if((m_dwExtendedStyle & BMPBTN_AUTOSIZE) != 0 && ::IsWindow(m_hWnd))
 			SizeToImage();
+
 		return hImageListPrev;
 	}
 
@@ -210,6 +229,22 @@ public:
 		return true;
 	}
 
+	bool GetCheck() const
+	{
+		return (m_fChecked == 1);
+	}
+
+	void SetCheck(bool bCheck, bool bUpdate = true)
+	{
+		m_fChecked = bCheck ? 1 : 0;
+
+		if(bUpdate)
+		{
+			Invalidate();
+			UpdateWindow();
+		}
+	}
+
 // Operations
 	void SetImages(int nNormal, int nPushed = -1, int nFocusOrHover = -1, int nDisabled = -1)
 	{
@@ -240,35 +275,37 @@ public:
 		ATLASSERT(m_nImage[0] != -1);                  // main bitmap must be set
 
 		// set bitmap according to the current button state
-		int nImage = -1;
 		bool bHover = IsHoverMode();
+		bool bPressed = (m_fPressed == 1) || (IsCheckMode() && (m_fChecked == 1));
+		int nImage = -1;
 		if(!IsWindowEnabled())
 			nImage = m_nImage[_nImageDisabled];
-		else if(m_fPressed == 1)
+		else if(bPressed)
 			nImage = m_nImage[_nImagePushed];
-		else if((!bHover && m_fFocus == 1) || (bHover && m_fMouseOver == 1))
+		else if((!bHover && (m_fFocus == 1)) || (bHover && (m_fMouseOver == 1)))
 			nImage = m_nImage[_nImageFocusOrHover];
-		if(nImage == -1)   // not there, use default one
+
+		// if none is set, use default one
+		if(nImage == -1)
 			nImage = m_nImage[_nImageNormal];
 
 		// draw the button image
-		int xyPos = 0;
-		if((m_fPressed == 1) && ((m_dwExtendedStyle & (BMPBTN_AUTO3D_SINGLE | BMPBTN_AUTO3D_DOUBLE)) != 0) && (m_nImage[_nImagePushed] == -1))
-			xyPos = 1;
+		bool bAuto3D = (m_dwExtendedStyle & (BMPBTN_AUTO3D_SINGLE | BMPBTN_AUTO3D_DOUBLE)) != 0;
+		int xyPos = (bPressed && bAuto3D && (m_nImage[_nImagePushed] == -1)) ? 1 : 0;
 		m_ImageList.Draw(dc, nImage, xyPos, xyPos, ILD_NORMAL);
 
 		// draw 3D border if required
-		if((m_dwExtendedStyle & (BMPBTN_AUTO3D_SINGLE | BMPBTN_AUTO3D_DOUBLE)) != 0)
+		if(bAuto3D)
 		{
-			RECT rect;
+			RECT rect = { 0 };
 			GetClientRect(&rect);
 
-			if(m_fPressed == 1)
+			if(bPressed)
 				dc.DrawEdge(&rect, ((m_dwExtendedStyle & BMPBTN_AUTO3D_SINGLE) != 0) ? BDR_SUNKENOUTER : EDGE_SUNKEN, BF_RECT);
-			else if(!bHover || m_fMouseOver == 1)
+			else if(!bHover || (m_fMouseOver == 1))
 				dc.DrawEdge(&rect, ((m_dwExtendedStyle & BMPBTN_AUTO3D_SINGLE) != 0) ? BDR_RAISEDINNER : EDGE_RAISED, BF_RECT);
 
-			if(!bHover && m_fFocus == 1)
+			if(!bHover && (m_fFocus == 1))
 			{
 				::InflateRect(&rect, -2 * ::GetSystemMetrics(SM_CXEDGE), -2 * ::GetSystemMetrics(SM_CYEDGE));
 				dc.DrawFocusRect(&rect);
@@ -301,7 +338,9 @@ public:
 
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 	{
-		Init();
+		T* pT = static_cast<T*>(this);
+		pT->Init();
+
 		bHandled = FALSE;
 		return 1;
 	}
@@ -368,7 +407,7 @@ public:
 			Invalidate();
 			UpdateWindow();
 		}
-		if((m_dwExtendedStyle & BMPBTN_AUTOFIRE) != 0)
+		if(((m_dwExtendedStyle & BMPBTN_AUTOFIRE) != 0) && !IsCheckMode())
 		{
 			int nElapse = 250;
 			int nDelay = 0;
@@ -382,7 +421,7 @@ public:
 	LRESULT OnLButtonDblClk(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 	{
 		LRESULT lRet = 0;
-		if(!IsHoverMode())
+		if(!IsHoverMode() && !IsCheckMode())
 			lRet = DefWindowProc(uMsg, wParam, lParam);
 		if(::GetCapture() != m_hWnd)
 			SetCapture();
@@ -397,13 +436,15 @@ public:
 
 	LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 	{
+		if(((m_dwExtendedStyle & BMPBTN_AUTOCHECK) != 0) && (m_fPressed == 1))
+			SetCheck(!GetCheck(), false);
+
 		LRESULT lRet = 0;
-		bool bHover = IsHoverMode();
-		if(!bHover)
+		if(!IsHoverMode() && !IsCheckMode())
 			lRet = DefWindowProc(uMsg, wParam, lParam);
 		if(::GetCapture() == m_hWnd)
 		{
-			if(bHover && m_fPressed == 1)
+			if((IsHoverMode() || IsCheckMode()) && (m_fPressed == 1))
 				::SendMessage(GetParent(), WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(), BN_CLICKED), (LPARAM)m_hWnd);
 			::ReleaseCapture();
 		}
@@ -489,6 +530,8 @@ public:
 		if(wParam == VK_SPACE && m_fPressed == 1)
 		{
 			m_fPressed = 0;
+			if((m_dwExtendedStyle & BMPBTN_AUTOCHECK) != 0)
+				SetCheck(!GetCheck(), false);
 			Invalidate();
 			UpdateWindow();
 		}
@@ -564,6 +607,11 @@ public:
 	{
 		return ((m_dwExtendedStyle & BMPBTN_HOVER) != 0);
 	}
+
+	bool IsCheckMode() const
+	{
+		return ((m_dwExtendedStyle & (BMPBTN_CHECK | BMPBTN_AUTOCHECK)) != 0);
+	}
 };
 
 class CBitmapButton : public CBitmapButtonImpl<CBitmapButton>
@@ -605,7 +653,7 @@ public:
 typedef CCheckListViewCtrlImplTraits<WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT>   CCheckListViewCtrlTraits;
 
 template <class T, class TBase = CListViewCtrl, class TWinTraits = CCheckListViewCtrlTraits>
-class ATL_NO_VTABLE CCheckListViewCtrlImpl : public ATL::CWindowImpl<T, TBase, TWinTraits>
+class ATL_NO_VTABLE CCheckListViewCtrlImpl : public ATL::CWindowImpl<T, TBase, TWinTraits >
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, TBase::GetWndClassName())
@@ -620,18 +668,17 @@ public:
 	BOOL SubclassWindow(HWND hWnd)
 	{
 #if (_MSC_VER >= 1300)
-		BOOL bRet = ATL::CWindowImplBaseT< TBase, TWinTraits>::SubclassWindow(hWnd);
+		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits >::SubclassWindow(hWnd);
 #else // !(_MSC_VER >= 1300)
-		typedef ATL::CWindowImplBaseT< TBase, TWinTraits>   _baseClass;
+		typedef ATL::CWindowImpl< T, TBase, TWinTraits >   _baseClass;
 		BOOL bRet = _baseClass::SubclassWindow(hWnd);
 #endif // !(_MSC_VER >= 1300)
-		if(bRet)
+		if(bRet != FALSE)
 		{
 			T* pT = static_cast<T*>(this);
-			pT;
-			ATLASSERT((pT->GetExtendedLVStyle() & LVS_EX_CHECKBOXES) != 0);
-			SetExtendedListViewStyle(pT->GetExtendedLVStyle());
+			pT->Init();
 		}
+
 		return bRet;
 	}
 
@@ -660,6 +707,15 @@ public:
 	}
 
 // Implementation
+	void Init()
+	{
+		T* pT = static_cast<T*>(this);
+		pT;   // avoid level 4 warning
+		ATLASSERT((pT->GetExtendedLVStyle() & LVS_EX_CHECKBOXES) != 0);
+		SetExtendedListViewStyle(pT->GetExtendedLVStyle());
+	}
+
+// Message map and handlers
 	BEGIN_MSG_MAP(CCheckListViewCtrlImpl)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
@@ -671,10 +727,12 @@ public:
 	{
 		// first let list view control initialize everything
 		LRESULT lRet = DefWindowProc(uMsg, wParam, lParam);
-		T* pT = static_cast<T*>(this);
-		pT;
-		ATLASSERT((pT->GetExtendedLVStyle() & LVS_EX_CHECKBOXES) != 0);
-		SetExtendedListViewStyle(pT->GetExtendedLVStyle());
+		if(lRet == 0)
+		{
+			T* pT = static_cast<T*>(this);
+			pT->Init();
+		}
+
 		return lRet;
 	}
 
@@ -943,7 +1001,7 @@ public:
 		RECT rcLink = rect;
 		dc.DrawText(_T("NS"), -1, &rcLink, DT_LEFT | uFormat | DT_CALCRECT);
 		dc.SelectFont(hFontOld);
-		return max(rcText.bottom - rcText.top, rcLink.bottom - rcLink.top);
+		return __max(rcText.bottom - rcText.top, rcLink.bottom - rcLink.top);
 	}
 
 	bool GetIdealSize(SIZE& size) const
@@ -1001,7 +1059,7 @@ public:
 
 			dc.SelectFont(hFontOld);
 
-			int cyMax = max(rcLeft.bottom, max(rcLink.bottom, rcRight.bottom));
+			int cyMax = __max(rcLeft.bottom, __max(rcLink.bottom, rcRight.bottom));
 			::SetRect(&rcAll, rcLeft.left, rcLeft.top, rcRight.right, cyMax);
 		}
 		else
@@ -1058,17 +1116,19 @@ public:
 		ATLASSERT(::IsWindow(hWnd));
 		if(m_hFontNormal == NULL)
 			m_hFontNormal = (HFONT)::SendMessage(hWnd, WM_GETFONT, 0, 0L);
+
 #if (_MSC_VER >= 1300)
-		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits>::SubclassWindow(hWnd);
+		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits >::SubclassWindow(hWnd);
 #else // !(_MSC_VER >= 1300)
-		typedef ATL::CWindowImpl< T, TBase, TWinTraits>   _baseClass;
+		typedef ATL::CWindowImpl< T, TBase, TWinTraits >   _baseClass;
 		BOOL bRet = _baseClass::SubclassWindow(hWnd);
 #endif // !(_MSC_VER >= 1300)
-		if(bRet)
+		if(bRet != FALSE)
 		{
 			T* pT = static_cast<T*>(this);
 			pT->Init();
 		}
+
 		return bRet;
 	}
 
@@ -1078,7 +1138,7 @@ public:
 		bool bRet = true;
 		if(IsNotifyButton())
 		{
-			NMHDR nmhdr = { m_hWnd, GetDlgCtrlID(), NM_CLICK };
+			NMHDR nmhdr = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), NM_CLICK };
 			::SendMessage(GetParent(), WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nmhdr);
 		}
 		else if(IsCommandButton())
@@ -2230,10 +2290,14 @@ public:
 // CPaneContainer - provides header with title and close button for panes
 
 // pane container extended styles
-#define PANECNT_NOCLOSEBUTTON	0x00000001
-#define PANECNT_VERTICAL	0x00000002
-#define PANECNT_FLATBORDER	0x00000004
-#define PANECNT_NOBORDER	0x00000008
+#define PANECNT_NOCLOSEBUTTON   0x00000001
+#define PANECNT_VERTICAL        0x00000002
+#define PANECNT_FLATBORDER      0x00000004
+#define PANECNT_NOBORDER        0x00000008
+#define PANECNT_DIVIDER         0x00000010
+#define PANECNT_GRADIENT        0x00000020
+
+// Note: PANECNT_GRADIENT doesn't work with _ATL_NO_MSIMG
 
 template <class T, class TBase = ATL::CWindow, class TWinTraits = ATL::CControlWinTraits>
 class ATL_NO_VTABLE CPaneContainerImpl : public ATL::CWindowImpl< T, TBase, TWinTraits >, public CCustomDraw< T >
@@ -2321,6 +2385,13 @@ public:
 				bUpdate = true;
 			}
 
+#if (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+			if((dwPrevStyle & PANECNT_GRADIENT) != (m_dwExtendedStyle & PANECNT_GRADIENT))   // change background
+			{
+				bUpdate = true;
+			}
+#endif // (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+
 			if(bUpdate)
 				pT->UpdateLayout();
 		}
@@ -2400,6 +2471,27 @@ public:
 #endif // !(_MSC_VER >= 1300)
 	}
 
+	BOOL SubclassWindow(HWND hWnd)
+	{
+#if (_MSC_VER >= 1300)
+		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits >::SubclassWindow(hWnd);
+#else // !(_MSC_VER >= 1300)
+		typedef ATL::CWindowImpl< T, TBase, TWinTraits >   _baseClass;
+		BOOL bRet = _baseClass::SubclassWindow(hWnd);
+#endif // !(_MSC_VER >= 1300)
+		if(bRet != FALSE)
+		{
+			T* pT = static_cast<T*>(this);
+			pT->Init();
+
+			RECT rect = { 0 };
+			GetClientRect(&rect);
+			pT->UpdateLayout(rect.right, rect.bottom);
+		}
+
+		return bRet;
+	}
+
 	BOOL EnableCloseButton(BOOL bEnable)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
@@ -2436,32 +2528,8 @@ public:
 
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
-		if(m_hFont == NULL)
-		{
-			// The same as AtlCreateControlFont() for horizontal pane
-#ifndef _WIN32_WCE
-			LOGFONT lf = { 0 };
-			ATLVERIFY(::SystemParametersInfo(SPI_GETICONTITLELOGFONT, sizeof(LOGFONT), &lf, 0) != FALSE);
-			if(IsVertical())
-				lf.lfEscapement = 900;   // 90 degrees
-			m_hFont = ::CreateFontIndirect(&lf);
-#else // CE specific
-			m_hFont = (HFONT)::GetStockObject(SYSTEM_FONT);
-			if(IsVertical())
-			{
-				CLogFont lf(m_hFont);
-				lf.lfEscapement = 900;   // 90 degrees
-				m_hFont = ::CreateFontIndirect(&lf);
-			}
-#endif // _WIN32_WCE
-			m_bInternalFont = true;
-		}
-
 		T* pT = static_cast<T*>(this);
-		pT->CalcSize();
-
-		if((m_dwExtendedStyle & PANECNT_NOCLOSEBUTTON) == 0)
-			pT->CreateCloseButton();
+		pT->Init();
 
 		return 0;
 	}
@@ -2516,9 +2584,12 @@ public:
 		return 0;
 	}
 
-	LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
-		return 1;   // no background needed
+		T* pT = static_cast<T*>(this);
+		pT->DrawPaneTitleBackground((HDC)wParam);
+
+		return 1;
 	}
 
 	LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -2588,18 +2659,8 @@ public:
 		return CDRF_NOTIFYITEMDRAW;   // we need per-item notifications
 	}
 
-	DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW lpNMCustomDraw)
+	DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/)
 	{
-		CDCHandle dc = lpNMCustomDraw->hdc;
-#if (_WIN32_IE >= 0x0400)
-		RECT& rc = lpNMCustomDraw->rc;
-#else // !(_WIN32_IE >= 0x0400)
-		RECT rc;
-		m_tb.GetItemRect(0, &rc);
-#endif // !(_WIN32_IE >= 0x0400)
-
-		dc.FillRect(&rc, COLOR_3DFACE);
-
 		return CDRF_NOTIFYPOSTPAINT;
 	}
 
@@ -2641,6 +2702,36 @@ public:
 	}
 
 // Implementation - overrideable methods
+	void Init()
+	{
+		if(m_hFont == NULL)
+		{
+			// The same as AtlCreateControlFont() for horizontal pane
+#ifndef _WIN32_WCE
+			LOGFONT lf = { 0 };
+			ATLVERIFY(::SystemParametersInfo(SPI_GETICONTITLELOGFONT, sizeof(LOGFONT), &lf, 0) != FALSE);
+			if(IsVertical())
+				lf.lfEscapement = 900;   // 90 degrees
+			m_hFont = ::CreateFontIndirect(&lf);
+#else // CE specific
+			m_hFont = (HFONT)::GetStockObject(SYSTEM_FONT);
+			if(IsVertical())
+			{
+				CLogFont lf(m_hFont);
+				lf.lfEscapement = 900;   // 90 degrees
+				m_hFont = ::CreateFontIndirect(&lf);
+			}
+#endif // _WIN32_WCE
+			m_bInternalFont = true;
+		}
+
+		T* pT = static_cast<T*>(this);
+		pT->CalcSize();
+
+		if((m_dwExtendedStyle & PANECNT_NOCLOSEBUTTON) == 0)
+			pT->CreateCloseButton();
+	}
+
 	void UpdateLayout(int cxWidth, int cyHeight)
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
@@ -2689,16 +2780,16 @@ public:
 			TBBUTTON tbbtn = { 0 };
 			tbbtn.idCommand = pT->m_nCloseBtnID;
 			tbbtn.fsState = TBSTATE_ENABLED;
-			tbbtn.fsStyle = TBSTYLE_BUTTON;
+			tbbtn.fsStyle = BTNS_BUTTON;
 			m_tb.AddButtons(1, &tbbtn);
 
 			m_tb.SetBitmapSize(m_cxImageTB, m_cyImageTB);
 			m_tb.SetButtonSize(m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB);
 
 			if(IsVertical())
-				m_tb.SetWindowPos(NULL, m_cxyBorder + m_cxyBtnOffset, m_cxyBorder + m_cxyBtnOffset, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB, SWP_NOZORDER | SWP_NOACTIVATE);
+				m_tb.SetWindowPos(NULL, m_cxyBorder + m_cxyBtnOffset, m_cxyBorder + m_cxyBtnOffset, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB + 1, SWP_NOZORDER | SWP_NOACTIVATE);
 			else
-				m_tb.SetWindowPos(NULL, 0, 0, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+				m_tb.SetWindowPos(NULL, 0, 0, m_cxImageTB + m_cxyBtnAddTB, m_cyImageTB + m_cxyBtnAddTB + 1, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 		}
 	}
 
@@ -2718,13 +2809,13 @@ public:
 		font.GetLogFont(lf);
 		if(IsVertical())
 		{
-			m_cxyHeader = m_cxImageTB + m_cxyBtnAddTB + m_cxyBorder;
+			m_cxyHeader = m_cxImageTB + m_cxyBtnAddTB + m_cxyBorder + 1;
 		}
 		else
 		{
 			int cyFont = abs(lf.lfHeight) + m_cxyBorder + 2 * m_cxyTextOffset;
-			int cyBtn = m_cyImageTB + m_cxyBtnAddTB + m_cxyBorder + 2 * m_cxyBtnOffset;
-			m_cxyHeader = max(cyFont, cyBtn);
+			int cyBtn = m_cyImageTB + m_cxyBtnAddTB + m_cxyBorder + 2 * m_cxyBtnOffset + 1;
+			m_cxyHeader = __max(cyFont, cyBtn);
 		}
 	}
 
@@ -2763,16 +2854,21 @@ public:
 				uBorder |= BF_FLAT;
 			dc.DrawEdge(&rect, EDGE_ETCHED, uBorder);
 		}
-		dc.FillRect(&rect, COLOR_3DFACE);
+
+		if((m_dwExtendedStyle & PANECNT_DIVIDER) != 0)
+		{
+			uBorder = BF_FLAT | BF_ADJUST | (IsVertical() ? BF_RIGHT : BF_BOTTOM);
+			dc.DrawEdge(&rect, BDR_SUNKENOUTER, uBorder);
+		}
 
 		// draw title text
 		dc.SetTextColor(::GetSysColor(COLOR_WINDOWTEXT));
 		dc.SetBkMode(TRANSPARENT);
 		T* pT = static_cast<T*>(this);
 		HFONT hFontOld = dc.SelectFont(pT->GetTitleFont());
-#ifdef _WIN32_WCE
+#if defined(_WIN32_WCE) && !defined(DT_END_ELLIPSIS)
 		const UINT DT_END_ELLIPSIS = 0;
-#endif // _WIN32_WCE
+#endif // defined(_WIN32_WCE) && !defined(DT_END_ELLIPSIS)
 
 		if(IsVertical())
 		{
@@ -2801,6 +2897,23 @@ public:
 		}
 
 		dc.SelectFont(hFontOld);
+	}
+
+	void DrawPaneTitleBackground(CDCHandle dc)
+	{
+		RECT rect = { 0 };
+		GetClientRect(&rect);
+		if(IsVertical())
+			rect.right = m_cxyHeader;
+		else
+			rect.bottom = m_cxyHeader;
+
+#if (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+		if((m_dwExtendedStyle & PANECNT_GRADIENT) != 0)
+			dc.GradientFillRect(rect, ::GetSysColor(COLOR_WINDOW), ::GetSysColor(COLOR_3DFACE), IsVertical());
+		else
+#endif // (!defined(_WIN32_WCE) && !defined(_ATL_NO_MSIMG)) || (_WIN32_WCE >= 420)
+			dc.FillRect(&rect, COLOR_3DFACE);
 	}
 
 	// called only if pane is empty
@@ -3255,7 +3368,7 @@ public:
 			dcMem.CreateCompatibleDC(dc.m_hDC);
 			m_bmSort[i].CreateCompatibleBitmap(dc.m_hDC, m_cxSortImage, m_cySortImage);
 			HBITMAP hbmOld = dcMem.SelectBitmap(m_bmSort[i]);
-			RECT rc = {0,0,m_cxSortImage, m_cySortImage};
+			RECT rc = { 0, 0, m_cxSortImage, m_cySortImage };
 			pT->DrawSortBitmap(dcMem.m_hDC, i, &rc);
 			dcMem.SelectBitmap(hbmOld);
 			dcMem.DeleteDC();
@@ -3266,7 +3379,7 @@ public:
 	{
 		T* pT = static_cast<T*>(this);
 		int nID = pT->GetDlgCtrlID();
-		NMSORTLISTVIEW nm = { { pT->m_hWnd, nID, SLVN_SORTCHANGED }, iNewSortCol, iOldSortCol };
+		NMSORTLISTVIEW nm = { { pT->m_hWnd, (UINT_PTR)nID, SLVN_SORTCHANGED }, iNewSortCol, iOldSortCol };
 		::SendMessage(pT->GetParent(), WM_NOTIFY, (WPARAM)nID, (LPARAM)&nm);
 	}
 
@@ -3740,7 +3853,7 @@ typedef TBVCONTEXTMENUINFO* LPTBVCONTEXTMENUINFO;
 
 
 template <class T, class TBase = ATL::CWindow, class TWinTraits = ATL::CControlWinTraits>
-class ATL_NO_VTABLE CTabViewImpl : public ATL::CWindowImpl<T, TBase, TWinTraits>
+class ATL_NO_VTABLE CTabViewImpl : public ATL::CWindowImpl< T, TBase, TWinTraits >
 {
 public:
 	DECLARE_WND_CLASS_EX(NULL, 0, COLOR_APPWORKSPACE)
@@ -4134,6 +4247,10 @@ public:
 			return false;
 		}
 
+		// adjust active page index, if inserted before it
+		if(nPage <= m_nActivePage)
+			m_nActivePage++;
+
 		SetActivePage(nItem);
 		pT->OnPageActivated(m_nActivePage);
 
@@ -4305,7 +4422,7 @@ public:
 		{
 			// Append menu items for all pages
 			const int cchPrefix = 3;   // 2 digits + space
-			nMenuItemsCount = min(min(nPageCount, nMenuItemsCount), (int)m_nMenuItemsMax);
+			nMenuItemsCount = __min(__min(nPageCount, nMenuItemsCount), (int)m_nMenuItemsMax);
 			ATLASSERT(nMenuItemsCount < 100);   // 2 digits only
 			if(nMenuItemsCount >= 100)
 				nMenuItemsCount = 99;
@@ -4365,6 +4482,24 @@ public:
 		// Add "Windows..." menu item
 		if(bWindowsMenuItem)
 			menu.AppendMenu(MF_BYPOSITION | MF_STRING, ID_WINDOW_SHOWTABLIST, pT->GetWindowsMenuItemText());
+	}
+
+	BOOL SubclassWindow(HWND hWnd)
+	{
+#if (_MSC_VER >= 1300)
+		BOOL bRet = ATL::CWindowImpl< T, TBase, TWinTraits >::SubclassWindow(hWnd);
+#else // !(_MSC_VER >= 1300)
+		typedef ATL::CWindowImpl< T, TBase, TWinTraits >   _baseClass;
+		BOOL bRet = _baseClass::SubclassWindow(hWnd);
+#endif // !(_MSC_VER >= 1300)
+		if(bRet != FALSE)
+		{
+			T* pT = static_cast<T*>(this);
+			pT->CreateTabControl();
+			pT->UpdateLayout();
+		}
+
+		return bRet;
 	}
 
 // Message map and handlers
@@ -4728,9 +4863,10 @@ public:
 	int CalcTabHeight()
 	{
 		int nCount = m_tab.GetItemCount();
+		TCHAR szText[] = _T("NS");
 		TCITEMEXTRA tcix = { 0 };
 		tcix.tciheader.mask = TCIF_TEXT;
-		tcix.tciheader.pszText = _T("NS");
+		tcix.tciheader.pszText = szText;
 		int nIndex = m_tab.InsertItem(nCount, tcix);
 
 		RECT rect = { 0, 0, 1000, 1000 };
@@ -4749,18 +4885,24 @@ public:
 	void ShowTabControl(bool bShow)
 	{
 		m_tab.ShowWindow(bShow ? SW_SHOWNOACTIVATE : SW_HIDE);
+		T* pT = static_cast<T*>(this);
+		pT->UpdateLayout();
 	}
 
 	void UpdateLayout()
 	{
-		RECT rect;
+		RECT rect = { 0 };
 		GetClientRect(&rect);
 
+		int cyOffset = 0;
 		if(m_tab.IsWindow() && ((m_tab.GetStyle() & WS_VISIBLE) != 0))
+		{
 			m_tab.SetWindowPos(NULL, 0, 0, rect.right - rect.left, m_cyTabHeight, SWP_NOZORDER);
+			cyOffset = m_cyTabHeight;
+		}
 
 		if(m_nActivePage != -1)
-			::SetWindowPos(GetPageHWND(m_nActivePage), NULL, 0, m_cyTabHeight, rect.right - rect.left, rect.bottom - rect.top - m_cyTabHeight, SWP_NOZORDER);
+			::SetWindowPos(GetPageHWND(m_nActivePage), NULL, 0, cyOffset, rect.right - rect.left, rect.bottom - rect.top - cyOffset, SWP_NOZORDER);
 	}
 
 	void UpdateMenu()

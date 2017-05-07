@@ -29,11 +29,11 @@ LRESULT CVideoRecDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	// Set dialog caption.
 	CString sMsg;
 	sMsg.Format(pSender->GetLangStr(_T("VideoRecDlg"), _T("DlgCaption")), 
-		pSender->GetCrashInfo()->m_sAppName);
+		(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
     SetWindowText(sMsg);
 
 	sMsg.Format(pSender->GetLangStr(_T("VideoRecDlg"), _T("Text")),
-		pSender->GetCrashInfo()->m_sAppName);
+		(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
 	m_statText.SetWindowText(sMsg);
 
 
