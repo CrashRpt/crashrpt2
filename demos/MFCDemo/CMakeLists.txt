@@ -11,12 +11,12 @@ add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp)
 
 # Use MFC
 ADD_DEFINITIONS(-D_AFXDLL)
-if (CRASHRPT_LINK_CRT_AS_DLL)     					
-	# Use MFC as a shared lib
-	SET(CMAKE_MFC_FLAG 2) 
+if (CRASHRPT_LINK_CRT_AS_DLL)               
+  # Use MFC as a shared lib
+  SET(CMAKE_MFC_FLAG 2) 
 else(CRASHRPT_LINK_CRT_AS_DLL)   
-	# Use MFC as a static lib
-	SET(CMAKE_MFC_FLAG 1) 
+  # Use MFC as a static lib
+  SET(CMAKE_MFC_FLAG 1) 
 endif(CRASHRPT_LINK_CRT_AS_DLL)   
 
 # Include resource file
@@ -52,5 +52,5 @@ ADD_CUSTOM_COMMAND(
 )
 
 INSTALL(TARGETS MFCDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
-						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
-						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+             ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+             RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
