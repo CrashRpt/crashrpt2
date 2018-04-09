@@ -31,14 +31,14 @@ endif(CRASHRPT_BUILD_SHARED_LIBS)
 target_link_libraries(CrashRpt rpcrt4.dll version.lib)
 
 if(CRASHRPT_BUILD_SHARED_LIBS)
-	set_target_properties(CrashRpt PROPERTIES 
-									DEBUG_POSTFIX ${CRASHRPT_VER}d 
+	set_target_properties(CrashRpt PROPERTIES
+									DEBUG_POSTFIX ${CRASHRPT_VER}d
 									RELEASE_POSTFIX ${CRASHRPT_VER}
 									RELWITHDEBINFO_POSTFIX ${CRASHRPT_VER}
 									MINSIZEREL_POSTFIX ${CRASHRPT_VER})
 else(CRASHRPT_BUILD_SHARED_LIBS)
-	set_target_properties(CrashRpt PROPERTIES 
-									DEBUG_POSTFIX LIBd 
+	set_target_properties(CrashRpt PROPERTIES
+									DEBUG_POSTFIX LIBd
 									RELEASE_POSTFIX LIB
 									RELWITHDEBINFO_POSTFIX LIB
 									MINSIZEREL_POSTFIX LIB)

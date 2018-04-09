@@ -1,10 +1,14 @@
 =========================================================
 Language Files Change Log
 
-This info may be helpful when updating language files from 
+This info may be helpful when updating language files from
 a previous version to the latest version.
 
 =========================================================
+
+--- v.1.5.0 ---
+
+  - Added final newline
 
 --- v.1.4.3 ---
 
@@ -13,7 +17,7 @@ a previous version to the latest version.
 --- v.1.4.2 ---
 
    No changes
-  
+
 --- v.1.4.1 ---
 
  * In [DetailDlg]
@@ -24,7 +28,7 @@ a previous version to the latest version.
  * In [DetailDlg]
   - DescVideo - new
  * New section [VideoRecDlg]
- 
+
 
 --- v.1.3.1 ---
 
@@ -73,7 +77,7 @@ a previous version to the latest version.
   - SubHeaderText - modified
   - OtherActions - new
   - SendReportLater - new
- 
+
  * New section [ResendDlg]:
   - ColumnCreationDate
   - ColumnSize
@@ -93,7 +97,7 @@ a previous version to the latest version.
   - StatusSuccess
   - StatusFailed
   - CurrentAction
-  - DeliveryingReports 
+  - DeliveryingReports
   - DeliverySucceeded
   - DeliveryFailed
 
@@ -137,9 +141,7 @@ The following strings have changed:
    - MyConsent2 - new
 
  * In [ProgressDlg] section:
-   - DlgCaption - modified 
+   - DlgCaption - modified
    - DlgCaption2 - new
    - CollectingCrashInfo - new
    - CompressingFiles - new
-
-

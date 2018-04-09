@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -9,10 +9,10 @@ be found in the Authors.txt file in the root of the source tree.
 ***************************************************************************************/
 
 // File: CritSec.h
-// Description: Critical section wrapper classes. Code of CCritSec and CAutoLock classes 
+// Description: Critical section wrapper classes. Code of CCritSec and CAutoLock classes
 // is taken from DirectShow base classes and modified in some way.
 // Authors: zexspectrum
-// Date: 
+// Date:
 
 #ifndef _CRITSEC_H
 #define _CRITSEC_H
@@ -20,7 +20,7 @@ be found in the Authors.txt file in the root of the source tree.
 #include "Prefastdef.h"
 
 // wrapper for whatever critical section we have
-class CCritSec 
+class CCritSec
 {
     // make copy constructor and assignment operator inaccessible
 
@@ -31,22 +31,22 @@ class CCritSec
 
 public:
 
-    CCritSec() 
+    CCritSec()
     {
         InitializeCriticalSection(&m_CritSec);
     };
 
-    ~CCritSec() 
+    ~CCritSec()
     {
         DeleteCriticalSection(&m_CritSec);
     }
 
-    void Lock() 
+    void Lock()
     {
         EnterCriticalSection(&m_CritSec);
     };
 
-    void Unlock() 
+    void Unlock()
     {
         LeaveCriticalSection(&m_CritSec);
     };
@@ -54,7 +54,7 @@ public:
 
 // locks a critical section, and unlocks it automatically
 // when the lock goes out of scope
-class CAutoLock 
+class CAutoLock
 {
     // make copy constructor and assignment operator inaccessible
 
@@ -71,7 +71,7 @@ public:
         m_pLock->Lock();
     };
 
-    ~CAutoLock() 
+    ~CAutoLock()
     {
         m_pLock->Unlock();
     };

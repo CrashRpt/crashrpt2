@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,14 +19,14 @@ be found in the Authors.txt file in the root of the source tree.
 
 #define WM_REPORTSIZECHANGED (WM_APP+400)
 
-class CDetailDlg : 
+class CDetailDlg :
 	public CDialogImpl<CDetailDlg>,
     public CDialogResize<CDetailDlg>
 {
 public:
     enum { IDD = IDD_DETAILDLG };
-	    
-    BEGIN_DLGRESIZE_MAP(CProgressDlg)    
+
+    BEGIN_DLGRESIZE_MAP(CProgressDlg)
         DLGRESIZE_CONTROL(IDC_FILE_LIST, DLSZ_SIZE_X)
         DLGRESIZE_CONTROL(IDC_PREVIEW, DLSZ_SIZE_X|DLSZ_SIZE_Y)
         DLGRESIZE_CONTROL(IDC_PRIVACYPOLICY, DLSZ_MOVE_Y)
@@ -45,7 +45,7 @@ public:
         COMMAND_RANGE_HANDLER(ID_PREVIEW_AUTO, ID_PREVIEW_VIDEO, OnPreviewModeChanged)
         COMMAND_RANGE_HANDLER(ID_ENCODING_AUTO, ID_ENCODING_UTF16BE, OnTextEncodingChanged)
         NOTIFY_HANDLER(IDC_PREVIEW, NM_RCLICK, OnPreviewRClick)
-		NOTIFY_HANDLER(IDC_FILE_LIST, NM_RCLICK, OnListRClick)	
+		NOTIFY_HANDLER(IDC_FILE_LIST, NM_RCLICK, OnListRClick)
 		COMMAND_ID_HANDLER(ID_MENU7_OPEN, OnPopupOpen)
 		COMMAND_ID_HANDLER(ID_MENU7_DELETESELECTEDFILE, OnPopupDeleteSelected)
 		COMMAND_ID_HANDLER(ID_MENU7_ATTACHMOREFILES, OnPopupAddMoreFiles)
@@ -61,17 +61,17 @@ public:
     LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
+    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnExport(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnPreviewModeChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
-    LRESULT OnTextEncodingChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
+    LRESULT OnPreviewModeChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnTextEncodingChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
     LRESULT OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
     LRESULT OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
-	LRESULT OnPopupOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
-	LRESULT OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
-	LRESULT OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
+	LRESULT OnPopupOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	void FillFileItemList();
 
@@ -82,22 +82,22 @@ public:
     CHyperLink m_linkPrivacyPolicy;
     CButton m_btnClose;
     CButton m_btnExport;
-    CStatic m_statPreview;     
-    CFilePreviewCtrl m_filePreview; 
+    CStatic m_statPreview;
+    CFilePreviewCtrl m_filePreview;
     PreviewMode m_previewMode;    // Current preview mode
     TextEncoding m_textEncoding;  // Current text encoding
-    
+
 	int m_nCurReport;             // Index of the error report currently being displayed
 
 	// Kaneva - Added
 	int GetCurReportIndex() const { return m_nCurReport; }
 	void SetCurReportIndex(int id) { m_nCurReport = id; }
-	CErrorReportInfo* GetReport(int index = -1) { 
+	CErrorReportInfo* GetReport(int index = -1) {
 		auto pSender = CErrorReportSender::GetInstance();
 		if (!pSender) return NULL;
 		auto pCI = pSender->GetCrashInfo();
 		if (!pCI) return NULL;
-		return (index < 0) ? pCI->GetReport(GetCurReportIndex()) : pCI->GetReport(index); 
+		return (index < 0) ? pCI->GetReport(GetCurReportIndex()) : pCI->GetReport(index);
 	}
 
 };

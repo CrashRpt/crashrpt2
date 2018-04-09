@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -32,17 +32,17 @@ typedef std::basic_string<TCHAR> tstring;
 #define cmp_arg(val) (arg_exists() && (0==_tcscmp(argv[cur_arg], val)))
 
 // Return codes
-enum ReturnCode 
+enum ReturnCode
 {
     SUCCESS     = 0, // OK
     UNEXPECTED  = 1,  // Unexpected error
     INVALIDARG  = 2, // Invalid argument
     INVALIDMD5  = 3, // Integrity check failed
-    EXTRACTERR  = 4  // File extraction error   
+    EXTRACTERR  = 4  // File extraction error
 };
 
 // Function prototypes
-int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput, 
+int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
                    LPTSTR szSymSearchPath, LPTSTR szExtractPath, LPTSTR szTableId, LPTSTR szColumnId, LPTSTR szRowId);
 int get_prop(CrpHandle hReport, LPCTSTR table_id, LPCTSTR column_id, tstring& str, int row_id=0);
 int output_document(CrpHandle hReport, FILE* f);
@@ -51,7 +51,7 @@ int extract_files(CrpHandle hReport, LPCTSTR pszExtractPath);
 // We want to use secure version of _stprintf function when possible
 int __STPRINTF_S(TCHAR* buffer, size_t sizeOfBuffer, const TCHAR* format, ... )
 {
-    va_list args; 
+    va_list args;
     va_start(args, format);
 
 #if _MSC_VER<1400
@@ -83,11 +83,11 @@ void print_usage()
     _tprintf(_T("   /o <out_file_or_dir>     Optional. Output file name or directory name. Or use empty name \"\" ")\
              _T("to direct output to terminal. If this parameter is omitted, output is not generated.\n"));
     _tprintf(_T("   /sym <sym_search_dirs>   Optional. Symbol files search directory or list of directories ")\
-             _T("separated with semicolon. If this parameter is omitted, symbol files are searched using the default search sequence.\n"));  
+             _T("separated with semicolon. If this parameter is omitted, symbol files are searched using the default search sequence.\n"));
     _tprintf(_T("   /ext <extract_dir>       Optional. Specifies the directory where to extract all files contained in error report. ")\
-             _T("If this parameter is omitted, files are not extracted.\n"));    
+             _T("If this parameter is omitted, files are not extracted.\n"));
     _tprintf(_T("   /get <table_id> <column_id> <row_id> Optional. Specifies the table ID, column ID and row index of the property to retrieve. ")\
-             _T("If this parameter specified, the property is written to the output file or to terminal, as defined by /o parameter.\n"));    
+             _T("If this parameter specified, the property is written to the output file or to terminal, as defined by /o parameter.\n"));
 }
 
 // COutputter
@@ -100,16 +100,16 @@ public:
     void Init(FILE* f)
     {
         assert(f!=NULL);
-        m_fOut = f;    
+        m_fOut = f;
     }
 
     void BeginDocument(LPCTSTR pszTitle)
     {
-        _ftprintf(m_fOut, _T("= %s = \n\n"), pszTitle);    
+        _ftprintf(m_fOut, _T("= %s = \n\n"), pszTitle);
     }
 
     void EndDocument()
-    {    
+    {
         _ftprintf(m_fOut, _T("\n== END ==\n"));
     }
 
@@ -148,10 +148,10 @@ int _tmain(int argc, TCHAR** argv)
     int result = INVALIDARG; // Return code
     int cur_arg = 1; // Current cmdline argument being processed
 
-    TCHAR* szInput = NULL; // Input file       
+    TCHAR* szInput = NULL; // Input file
     TCHAR* szInputMD5 = NULL; // Input MD5 file or dir
-    TCHAR* szOutput = NULL;   // Output file 
-    TCHAR* szSymSearchPath = NULL; // Symbol search path   
+    TCHAR* szOutput = NULL;   // Output file
+    TCHAR* szSymSearchPath = NULL; // Symbol search path
     TCHAR* szExtractPath = NULL;   // File extraction path
 
     TCHAR* szTableId = NULL;
@@ -176,21 +176,21 @@ int _tmain(int argc, TCHAR** argv)
         }
         else if(cmp_arg(_T("/f"))) // input file name
         {
-            skip_arg();    
+            skip_arg();
             szInput = get_arg();
-            skip_arg();    
+            skip_arg();
             if(szInput==NULL)
             {
                 result = INVALIDARG;
-                _tprintf(_T("Input file name is missing in /f parameter.\n"));        
+                _tprintf(_T("Input file name is missing in /f parameter.\n"));
                 goto done;
             }
         }
         else if(cmp_arg(_T("/fmd5"))) // md5 file or directory
         {
-            skip_arg();    
+            skip_arg();
             szInputMD5 = get_arg();
-            skip_arg();    
+            skip_arg();
             if(szInputMD5==NULL)
             {
                 result = INVALIDARG;
@@ -200,19 +200,19 @@ int _tmain(int argc, TCHAR** argv)
         }
         else if(cmp_arg(_T("/o"))) // output file or directory or "" (terminal)
         {
-            skip_arg();    
+            skip_arg();
             szOutput = get_arg();
-            skip_arg();          
+            skip_arg();
             if(szOutput==NULL)
             {
                 result = INVALIDARG;
                 _tprintf(_T("Missing output file name in /o parameter.\n"));
                 goto done;
             }
-        }    
+        }
         else if(cmp_arg(_T("/sym"))) // symbol search dirs
         {
-            skip_arg();    
+            skip_arg();
             szSymSearchPath = get_arg();
             skip_arg();
             if(szSymSearchPath==NULL)
@@ -224,7 +224,7 @@ int _tmain(int argc, TCHAR** argv)
         }
         else if(cmp_arg(_T("/ext"))) // extract dir
         {
-            skip_arg();    
+            skip_arg();
             szExtractPath = get_arg();
             if(szExtractPath==NULL)
             {
@@ -236,7 +236,7 @@ int _tmain(int argc, TCHAR** argv)
         }
         else if(cmp_arg(_T("/get"))) // get property
         {
-            skip_arg();    
+            skip_arg();
             szTableId = get_arg();
             skip_arg();
             szColumnId = get_arg();
@@ -249,18 +249,18 @@ int _tmain(int argc, TCHAR** argv)
                 result = INVALIDARG;
                 _tprintf(_T("Missing table ID or column ID or row ID in /get parameter.\n"));
                 goto done;
-            }      
+            }
         }
         else // unknown arg
         {
             _tprintf(_T("Unexpected parameter: %s\n"), get_arg());
             goto done;
-        }    
+        }
     }
 
     // Do the processing work
-    result = process_report(szInput, szInputMD5, szOutput, szSymSearchPath, 
-        szExtractPath, szTableId, szColumnId, szRowId); 
+    result = process_report(szInput, szInputMD5, szOutput, szSymSearchPath,
+        szExtractPath, szTableId, szColumnId, szRowId);
 
 done:
 
@@ -274,7 +274,7 @@ done:
 
 
 // Processes a crash report file.
-int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput, 
+int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
                    LPTSTR szSymSearchPath, LPTSTR szExtractPath, LPTSTR szTableId,
                    LPTSTR szColumnId, LPTSTR szRowId)
 {
@@ -284,14 +284,14 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
     tstring sInFileName;
     tstring sOutDirName;
     tstring sMD5DirName;
-    tstring sMD5FileName;    
-    tstring sExtactDirName;  
+    tstring sMD5FileName;
+    tstring sExtactDirName;
     BOOL bInputMD5FromDir = FALSE; // Did user specified file name for .MD5 file or directory name for search?
-    BOOL bOutputToDir = FALSE; // Do we save resulting files to directory or save single resulting file?  
+    BOOL bOutputToDir = FALSE; // Do we save resulting files to directory or save single resulting file?
     DWORD dwFileAttrs = 0;
     TCHAR szMD5Buffer[64]=_T("");
     TCHAR* szMD5Hash = NULL;
-    FILE* f = NULL;      
+    FILE* f = NULL;
 
     // Validate input parameters
     if(szInput==NULL)
@@ -313,13 +313,13 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
     size_t pos = sInDirName.rfind('\\');
     if(pos<0) // There is no back slash in path
     {
-        sInDirName = _T(""); 
+        sInDirName = _T("");
         sInFileName = szInput;
     }
     else
     {
         sInFileName = sInDirName.substr(pos+1);
-        sInDirName = sInDirName.substr(0, pos);    
+        sInDirName = sInDirName.substr(0, pos);
     }
 
     if(szExtractPath!=NULL)
@@ -333,16 +333,16 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
             _tprintf(_T("Invalid directory name for file extraction.\n"));
             goto done;
         }
-    }  
+    }
 
     if(szInputMD5!=NULL)
     {
         // Determine if user wants us to search for .MD5 files in a directory
-        // or if he specifies the .MD5 file name.  
+        // or if he specifies the .MD5 file name.
         dwFileAttrs = GetFileAttributes(szInputMD5);
-        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES && 
+        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES &&
             (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
-            bInputMD5FromDir = TRUE;  
+            bInputMD5FromDir = TRUE;
 
         // Append the last back slash to the MD5 dir name if needed
         if(bInputMD5FromDir)
@@ -350,7 +350,7 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
             sMD5DirName = szInputMD5;
             size_t pos = sMD5DirName.rfind('\\');
             if(pos< tstring::npos) // There is no back slash in path
-                sMD5DirName = _T(""); 
+                sMD5DirName = _T("");
             else if(pos!=sMD5DirName.length()-1) // Append the back slash to dir name
                 sMD5DirName = sMD5DirName.substr(0, pos+1);
         }
@@ -363,17 +363,17 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
 
     if(szOutput!=NULL && _tcscmp(szOutput, _T(""))!=0) // If empty, direct output to terminal
     {
-        // Determine if user wants us to save resulting file in directory using its respective 
+        // Determine if user wants us to save resulting file in directory using its respective
         // file name or if he specifies the file name for the saved file
         dwFileAttrs = GetFileAttributes(szOutput);
-        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES && 
+        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES &&
             (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
-            bOutputToDir = TRUE;  
-    }  
+            bOutputToDir = TRUE;
+    }
 
     //_tprintf(_T("Processing file: %s\n"), sInFileName.c_str());
 
-    // Decide MD5 file name  
+    // Decide MD5 file name
     if(szInputMD5==NULL)
     {
         // If /md5 cmdline argument is omitted, search for md5 files in the same dir
@@ -383,10 +383,10 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
     else
     {
         if(bInputMD5FromDir)
-        {  
+        {
             // Look for .md5 files in the special directory
             sMD5FileName = sMD5DirName+sInFileName;
-            sMD5FileName += _T(".md5");        
+            sMD5FileName += _T(".md5");
         }
         else
         {
@@ -399,53 +399,53 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
     _TFOPEN_S(f, sMD5FileName.c_str(), _T("rt"));
     if(f!=NULL)
     {
-        szMD5Hash = _fgetts(szMD5Buffer, 64, f);   
+        szMD5Hash = _fgetts(szMD5Buffer, 64, f);
         fclose(f);
         if(szTableId==NULL)
             _tprintf(_T("Found MD5 file %s; MD5=%s\n"), sMD5FileName.c_str(), szMD5Hash);
-    }    
+    }
     else if(szTableId==NULL)
     {
         _tprintf(_T("Warning: 'MD5 file not detected; integrity check not performed.' while processing file '%s'\n"), sInFileName.c_str());
     }
 
-    // Open the error report file  
+    // Open the error report file
     int res = crpOpenErrorReport(szInput, szMD5Hash, szSymSearchPath, 0, &hReport);
     if(res!=0)
     {
         result = UNEXPECTED;
         TCHAR buff[1024];
         crpGetLastErrorMsg(buff, 1024);
-        _tprintf(_T("Error '%s' while processing file '%s'\n"), buff, sInFileName.c_str());      
+        _tprintf(_T("Error '%s' while processing file '%s'\n"), buff, sInFileName.c_str());
         goto done;
     }
-    else 
+    else
     {
         // Output results
         tstring sOutFileName;
         if(szOutput!=NULL && _tcscmp(szOutput, _T(""))!=0)
-        {        
+        {
             if(bOutputToDir)
             {
                 // Write output to directory
                 sOutFileName = tstring(szOutput);
                 if( sOutFileName[sOutFileName.length()-1]!='\\' )
-                    sOutFileName += _T("\\"); 
+                    sOutFileName += _T("\\");
                 sOutFileName += sInFileName + _T(".txt");
             }
             else
             {
                 // Write output to single file
                 sOutFileName = szOutput;
-            }              
+            }
 
             // Open resulting file
             _TFOPEN_S(f, sOutFileName.c_str(), _T("wt"));
             if(f==NULL)
             {
                 result = UNEXPECTED;
-                _tprintf(_T("Error: couldn't open output file '%s'.\n"), 
-                    sOutFileName.c_str());      
+                _tprintf(_T("Error: couldn't open output file '%s'.\n"),
+                    sOutFileName.c_str());
                 goto done;
             }
         }
@@ -457,7 +457,7 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
         if(szExtractPath!=NULL && szOutput!=NULL && f==NULL)
         {
             result = UNEXPECTED;
-            _tprintf(_T("Error: couldn't open output file.\n")); 
+            _tprintf(_T("Error: couldn't open output file.\n"));
             goto done;
         }
 
@@ -472,7 +472,7 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
                 {
                     result = UNEXPECTED;
                     TCHAR szErr[1024];
-                    crpGetLastErrorMsg(szErr, 1024);        
+                    crpGetLastErrorMsg(szErr, 1024);
                     _tprintf(_T("%s\n"), szErr);
                     goto done;
                 }
@@ -486,7 +486,7 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
             {
                 result = UNEXPECTED;
                 TCHAR szErr[1024];
-                crpGetLastErrorMsg(szErr, 1024);        
+                crpGetLastErrorMsg(szErr, 1024);
                 _tprintf(_T("%s\n"), szErr);
                 goto done;
             }
@@ -496,11 +496,11 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
             }
         }
         else if(szOutput!=NULL)
-        {      
+        {
             // Write error report properties to the resulting file
             result = output_document(hReport, f);
             if(result!=0)
-                goto done;      
+                goto done;
         }
 
         if(szExtractPath!=NULL)
@@ -530,7 +530,7 @@ done:
 int get_prop(CrpHandle hReport, LPCTSTR table_id, LPCTSTR column_id, tstring& str, int row_id)
 {
     const int BUFF_SIZE = 1024;
-    TCHAR buffer[BUFF_SIZE];  
+    TCHAR buffer[BUFF_SIZE];
     int result = crpGetProperty(hReport, table_id, column_id, row_id, buffer, BUFF_SIZE, NULL);
     if(result==0)
         str = buffer;
@@ -544,7 +544,7 @@ int get_table_row_count(CrpHandle hReport, LPCTSTR table_id)
 
 // Writes all error report properties to the file
 int output_document(CrpHandle hReport, FILE* f)
-{  
+{
     int result = UNEXPECTED;
     COutputter doc;
 
@@ -559,7 +559,7 @@ int output_document(CrpHandle hReport, FILE* f)
     if(result==0)
         doc.PutRecord(_T("Generator version"), sCrashRptVer.c_str());
 
-    // Print CrashGUID  
+    // Print CrashGUID
     tstring sCrashGUID;
     result = get_prop(hReport, CRP_TBL_XMLDESC_MISC, CRP_COL_CRASH_GUID, sCrashGUID);
     if(result==0)
@@ -611,7 +611,7 @@ int output_document(CrpHandle hReport, FILE* f)
     sOsVer += _T(".");
     sOsVer += sOsVerBuild;
     sOsVer += _T(" ");
-    sOsVer += sOsVerCSD; 
+    sOsVer += sOsVerCSD;
 
     doc.PutRecord(_T("OS version (from minidump)"), sOsVer.c_str());
 
@@ -682,7 +682,7 @@ int output_document(CrpHandle hReport, FILE* f)
     if(result==0)
         doc.PutRecord(_T("SEH exception code (from minidump)"), sExceptionCode.c_str());
 
-    tstring sExceptionThreadRowID;  
+    tstring sExceptionThreadRowID;
     result = get_prop(hReport, CRP_TBL_MDMP_MISC, CRP_COL_EXCEPTION_THREAD_ROWID, sExceptionThreadRowID);
     int uExceptionThreadRowID = _ttoi(sExceptionThreadRowID.c_str());
     if(result==0)
@@ -693,7 +693,7 @@ int output_document(CrpHandle hReport, FILE* f)
             doc.PutRecord(_T("Exception thread ID"), sExceptionThreadId.c_str());
     }
 
-    tstring sExceptionModuleRowID;  
+    tstring sExceptionModuleRowID;
     result = get_prop(hReport, CRP_TBL_MDMP_MISC, CRP_COL_EXCEPTION_MODULE_ROWID, sExceptionModuleRowID);
     int uExceptionModuleRowID = _ttoi(sExceptionModuleRowID.c_str());
     if(result==0)
@@ -723,14 +723,14 @@ int output_document(CrpHandle hReport, FILE* f)
     int nPropCount = get_table_row_count(hReport, CRP_TBL_XMLDESC_CUSTOM_PROPS);
     if(nPropCount>0)
     {
-        // Print custom property list  
+        // Print custom property list
         doc.PutTableCell(_T("#"), 2, false);
         doc.PutTableCell(_T("Name"), 16, false);
         doc.PutTableCell(_T("Value"), 32, true);
 
         int i;
         for(i=0; i<nPropCount; i++)
-        { 
+        {
             TCHAR szBuffer[10];
             __STPRINTF_S(szBuffer, 10, _T("%d"), i+1);
             doc.PutTableCell(szBuffer, 2, false);
@@ -739,15 +739,15 @@ int output_document(CrpHandle hReport, FILE* f)
             doc.PutTableCell(sPropName.c_str(), 16, false);
             tstring sPropValue;
             get_prop(hReport, CRP_TBL_XMLDESC_CUSTOM_PROPS, CRP_COL_PROPERTY_VALUE, sPropValue, i);
-            doc.PutTableCell(sPropValue.c_str(), 32, true);      
-        }  
+            doc.PutTableCell(sPropValue.c_str(), 32, true);
+        }
 
         doc.EndSection();
     }
 
     doc.BeginSection(_T("File list"));
 
-    // Print file list  
+    // Print file list
     doc.PutTableCell(_T("#"), 2, false);
     doc.PutTableCell(_T("Name"), 16, false);
     doc.PutTableCell(_T("Description"), 32, true);
@@ -755,7 +755,7 @@ int output_document(CrpHandle hReport, FILE* f)
     int nItemCount = get_table_row_count(hReport, CRP_TBL_XMLDESC_FILE_ITEMS);
     int i;
     for(i=0; i<nItemCount; i++)
-    { 
+    {
         TCHAR szBuffer[10];
         __STPRINTF_S(szBuffer, 10, _T("%d"), i+1);
         doc.PutTableCell(szBuffer, 2, false);
@@ -764,14 +764,14 @@ int output_document(CrpHandle hReport, FILE* f)
         doc.PutTableCell(sFileName.c_str(), 16, false);
         tstring sDesc;
         get_prop(hReport, CRP_TBL_XMLDESC_FILE_ITEMS, CRP_COL_FILE_ITEM_DESCRIPTION, sDesc, i);
-        doc.PutTableCell(sDesc.c_str(), 32, true);      
-    }  
+        doc.PutTableCell(sDesc.c_str(), 32, true);
+    }
 
     doc.EndSection();
 
     int nThreadCount = get_table_row_count(hReport, CRP_TBL_MDMP_THREADS);
     for(i=0; i<nThreadCount; i++)
-    { 
+    {
         tstring sThreadId;
         result = get_prop(hReport, CRP_TBL_MDMP_THREADS, CRP_COL_THREAD_ID, sThreadId, i);
         if(result==0)
@@ -789,10 +789,10 @@ int output_document(CrpHandle hReport, FILE* f)
             int nFrameCount = get_table_row_count(hReport, sStackTableId.c_str());
             int j;
             for(j=0; j<nFrameCount; j++)
-            {        
+            {
                 tstring sModuleName;
                 tstring sAddrPCOffset;
-                tstring sSymbolName;            
+                tstring sSymbolName;
                 tstring sOffsInSymbol;
                 tstring sSourceFile;
                 tstring sSourceLine;
@@ -801,21 +801,21 @@ int output_document(CrpHandle hReport, FILE* f)
                 result = get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_MODULE_ROWID, sModuleRowId, j);
                 if(result==0)
                 {
-                    int nModuleRowId = _ttoi(sModuleRowId.c_str());              
+                    int nModuleRowId = _ttoi(sModuleRowId.c_str());
                     if(nModuleRowId==-1)
-                    {            
+                    {
                         if(!bMissingFrames)
-                            doc.PutTableCell(_T("[Frames below may be incorrect and/or missing]"), 32, true);                                
+                            doc.PutTableCell(_T("[Frames below may be incorrect and/or missing]"), 32, true);
                         bMissingFrames = TRUE;
                     }
-                    get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_NAME, sModuleName, nModuleRowId);              
-                }      
+                    get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_NAME, sModuleName, nModuleRowId);
+                }
 
-                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_ADDR_PC_OFFSET, sAddrPCOffset, j);        
-                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SYMBOL_NAME, sSymbolName, j);        
-                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_OFFSET_IN_SYMBOL, sOffsInSymbol, j);              
-                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SOURCE_FILE, sSourceFile, j);              
-                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SOURCE_LINE, sSourceLine, j);              
+                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_ADDR_PC_OFFSET, sAddrPCOffset, j);
+                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SYMBOL_NAME, sSymbolName, j);
+                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_OFFSET_IN_SYMBOL, sOffsInSymbol, j);
+                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SOURCE_FILE, sSourceFile, j);
+                get_prop(hReport, sStackTableId.c_str(), CRP_COL_STACK_SOURCE_LINE, sSourceLine, j);
 
                 tstring str;
                 str = sModuleName;
@@ -823,7 +823,7 @@ int output_document(CrpHandle hReport, FILE* f)
                     str += _T("!");
 
                 if(sSymbolName.empty())
-                    str += sAddrPCOffset;  
+                    str += sAddrPCOffset;
                 else
                 {
                     str += sSymbolName;
@@ -841,10 +841,10 @@ int output_document(CrpHandle hReport, FILE* f)
                     str += _T(": ");
                     str += sSourceLine;
                     str += _T(" ] ");
-                } 
+                }
 
-                doc.PutTableCell(str.c_str(), 32, true);                    
-            }       
+                doc.PutTableCell(str.c_str(), 32, true);
+            }
 
             doc.EndSection();
         }
@@ -868,21 +868,21 @@ int output_document(CrpHandle hReport, FILE* f)
         doc.PutTableCell(szBuffer, 2, false);
 
         tstring sModuleName;
-        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_NAME, sModuleName, i);  
-        doc.PutTableCell(sModuleName.c_str(), 32, false);      
+        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_NAME, sModuleName, i);
+        doc.PutTableCell(sModuleName.c_str(), 32, false);
 
         tstring sSymLoadStatus;
-        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_SYM_LOAD_STATUS, sSymLoadStatus, i);  
-        doc.PutTableCell(sSymLoadStatus.c_str(), 32, false);      
+        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_SYM_LOAD_STATUS, sSymLoadStatus, i);
+        doc.PutTableCell(sSymLoadStatus.c_str(), 32, false);
 
         tstring sLoadedPDBName;
-        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_LOADED_PDB_NAME, sLoadedPDBName, i);  
-        doc.PutTableCell(sLoadedPDBName.c_str(), 48, false);      
+        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_LOADED_PDB_NAME, sLoadedPDBName, i);
+        doc.PutTableCell(sLoadedPDBName.c_str(), 48, false);
 
         tstring sLoadedImageName;
-        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_LOADED_IMAGE_NAME, sLoadedImageName, i);  
-        doc.PutTableCell(sLoadedImageName.c_str(), 48, true);      
-    }  
+        result = get_prop(hReport, CRP_TBL_MDMP_MODULES, CRP_COL_MODULE_LOADED_IMAGE_NAME, sLoadedImageName, i);
+        doc.PutTableCell(sLoadedImageName.c_str(), 48, true);
+    }
     doc.EndSection();
 
     doc.BeginSection(_T("Minidump Load Log"));
@@ -894,8 +894,8 @@ int output_document(CrpHandle hReport, FILE* f)
         doc.PutTableCell(szBuffer, 2, false);
 
         tstring sEntry;
-        result = get_prop(hReport, CRP_TBL_MDMP_LOAD_LOG, CRP_COL_LOAD_LOG_ENTRY, sEntry, i);  
-        doc.PutTableCell(sEntry.c_str(), 64, true);          
+        result = get_prop(hReport, CRP_TBL_MDMP_LOAD_LOG, CRP_COL_LOAD_LOG_ENTRY, sEntry, i);
+        doc.PutTableCell(sEntry.c_str(), 64, true);
     }
     doc.EndSection();
 
@@ -927,7 +927,7 @@ int extract_files(CrpHandle hReport, LPCTSTR pszExtractPath)
             return UNEXPECTED; // Error getting file name
         }
 
-        tstring sFileSaveAs = sExtractPath+sFileName;    
+        tstring sFileSaveAs = sExtractPath+sFileName;
         nResult = crpExtractFile(hReport, sFileName.c_str(), sFileSaveAs.c_str(), TRUE);
         if(nResult!=0)
         {
@@ -938,4 +938,3 @@ int extract_files(CrpHandle hReport, LPCTSTR pszExtractPath)
     // Success.
     return SUCCESS;
 }
-

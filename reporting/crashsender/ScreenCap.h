@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -48,7 +48,7 @@ struct ScreenshotInfo
 	time_t m_CreateTime;     // Time of screenshot capture.
     CRect m_rcVirtualScreen; // Coordinates of virtual screen rectangle.
     std::vector<MonitorInfo> m_aMonitors; // The list of monitors captured.
-    std::vector<WindowInfo> m_aWindows; // The list of windows captured.	
+    std::vector<WindowInfo> m_aWindows; // The list of windows captured.
 };
 
 // Screenshot type
@@ -77,13 +77,13 @@ public:
 
 	// Destructor.
     ~CScreenCapture();
-	
+
 	// Takes desktop screenshot and returns information about it.
-	BOOL TakeDesktopScreenshot(	
+	BOOL TakeDesktopScreenshot(
 			LPCTSTR szSaveToDir,
-			ScreenshotInfo& ssi, 
-			SCREENSHOT_TYPE type=SCREENSHOT_TYPE_VIRTUAL_SCREEN, 
-			DWORD dwProcessId = 0, 
+			ScreenshotInfo& ssi,
+			SCREENSHOT_TYPE type=SCREENSHOT_TYPE_VIRTUAL_SCREEN,
+			DWORD dwProcessId = 0,
 			SCREENSHOT_IMAGE_FORMAT fmt=SCREENSHOT_FORMAT_PNG,
 			int nJpegQuality = 95,
 			BOOL bGrayscale=FALSE,
@@ -94,23 +94,23 @@ private:
 	// Returns current virtual screen rectangle
     void GetScreenRect(LPRECT rcScreen);
 
-    // Returns an array of visible windows for the specified process or 
+    // Returns an array of visible windows for the specified process or
     // the main window of the process.
-    BOOL FindWindows(DWORD dwProcessId, BOOL bAllProcessWindows, 
+    BOOL FindWindows(DWORD dwProcessId, BOOL bAllProcessWindows,
         std::vector<WindowInfo>* paWindows);
 
     // Captures the specified screen area and returns the list of image files
     BOOL CaptureScreenRect(
-        std::vector<CRect> arcCapture, 
-        CString sSaveDirName, 
-        int nIdStartFrom, 
-        SCREENSHOT_IMAGE_FORMAT fmt, 
+        std::vector<CRect> arcCapture,
+        CString sSaveDirName,
+        int nIdStartFrom,
+        SCREENSHOT_IMAGE_FORMAT fmt,
         int nJpegQuality,
         BOOL bGrayscale,
         std::vector<MonitorInfo>& monitor_list);
 
 	// Monitor enumeration callback.
-	static BOOL CALLBACK EnumMonitorsProc(HMONITOR hMonitor, 
+	static BOOL CALLBACK EnumMonitorsProc(HMONITOR hMonitor,
 		HDC /*hdcMonitor*/, LPRECT lprcMonitor, LPARAM dwData);
 
 	// Window enumeration callback.
@@ -161,8 +161,8 @@ private:
 
     CPoint m_ptCursorPos;                 // Current mouse cursor pos
     std::vector<CRect> m_arcCapture;      // Array of capture rectangles
-    CURSORINFO m_CursorInfo;              // Cursor info  
-    int m_nIdStartFrom;                   // An ID for the current screenshot image 
+    CURSORINFO m_CursorInfo;              // Cursor info
+    int m_nIdStartFrom;                   // An ID for the current screenshot image
     CString m_sSaveDirName;               // Directory name to save screenshots to
     SCREENSHOT_IMAGE_FORMAT m_fmt;        // Image format
     int m_nJpegQuality;                   // Jpeg quality
@@ -172,7 +172,7 @@ private:
     png_infop m_info_ptr;                 // libpng stuff
     struct jpeg_compress_struct m_cinfo;  // libjpeg stuff
     struct jpeg_error_mgr m_jerr;         // libjpeg stuff
-    std::vector<MonitorInfo> m_monitor_list; // The list of monitor devices   
+    std::vector<MonitorInfo> m_monitor_list; // The list of monitor devices
 };
 
 #endif //__SCREENCAP_H__

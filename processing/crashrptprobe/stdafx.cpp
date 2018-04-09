@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -20,7 +20,7 @@ be found in the Authors.txt file in the root of the source tree.
 
 int _STPRINTF_S(TCHAR* buffer, size_t sizeOfBuffer, const TCHAR* format, ... )
 {
-    va_list args; 
+    va_list args;
     va_start(args, format);
 
 #if _MSC_VER<1400

@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -33,7 +33,7 @@ public:
 	~CVideoRecorder();
 
 	// Inits the video recorder object.
-	BOOL Init(LPCTSTR szSaveToDir, 
+	BOOL Init(LPCTSTR szSaveToDir,
 			SCREENSHOT_TYPE type,
 			DWORD dwProcessId,
 			int nVideoDuration,
@@ -71,10 +71,10 @@ private:
 	HBITMAP LoadBitmapFromBMPFile(LPCTSTR szFileName);
 
 	// Converts an RGB24 image to YV12 image.
-	void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, 
-				int nFrameHeight, int nRGBStride, unsigned char *pFullYPlane, 
+	void RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth,
+				int nFrameHeight, int nRGBStride, unsigned char *pFullYPlane,
 				unsigned char *pDownsampledUPlane, unsigned char *pDownsampledVPlane );
-	
+
 	/* Internal variables */
 	BOOL m_bInitialized;  // Init flag.
 	CString m_sSaveToDir; // Directory where to save recorded video frames.
@@ -95,5 +95,5 @@ private:
 	LPVOID m_pFrameBits;  // Frame buffer.
 	LPBITMAPINFO m_pDIB;  // Bitmap info.
 	HDC m_hDC;            // Device context.
-	HBITMAP m_hOldBitmap; //	
+	HBITMAP m_hOldBitmap; //
 };

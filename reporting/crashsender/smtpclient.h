@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -40,7 +40,7 @@ public:
 
 	// Sets E-mail sender address.
 	void SetSenderAddress(LPCTSTR szEmailAddress);
-	
+
 	// Adds a recipient address.
 	void AddRecipient(LPCTSTR szEmailAddress);
 
@@ -52,7 +52,7 @@ public:
 
 	// Returns n-th recipient address
 	CString GetRecipientAddress(int nRecipient);
-	
+
 	// Adds a recipient address.
 	void RemoveRecipient(int nRecipient);
 
@@ -64,7 +64,7 @@ public:
 
 	// Returns n-th attachment.
 	CString GetAttachment(int nAttachment);
-	
+
 	// Removes n-th attachment.
 	void RemoveAttachment(int nAttachment);
 
@@ -78,7 +78,7 @@ private:
 
     CString m_sSubject;   // Subject
     CString m_sFrom;      // Sender address
-    std::vector<CString> m_aTo; // Recipient addresses    
+    std::vector<CString> m_aTo; // Recipient addresses
     CString m_sText;      // Message body
     std::vector<CString> m_aAttachments; // The list of file attachments
 };
@@ -109,7 +109,7 @@ public:
 	// Sends E-mail message in synchronous mode.
 	// Returns zero on success, otherwise non-zero.
     int SendEmail(CEmailMessage* msg);
-		
+
 	// Sends E-mail message in assynchronous mode. This function returns immediately,
 	// and message is sent in a worker thread.
 	// Returns zero on success, otherwise non-zero.
@@ -125,14 +125,14 @@ protected:
 	// Sends E-mail message to the specified SMTP server.
 	// Returns zero on success, otherwise non-zero.
     int SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg);
-	
+
 	// Validates E-mail address syntax.
 	// Returns zero on success, otherwise non-zero.
     int CheckAddressSyntax(CString addr);
 
 	// Sends a message to SMTP server and reads response.
 	// Returns zero on success, otherwise non-zero.
-    int SendMsg(SOCKET sock, LPCTSTR pszMessage, 
+    int SendMsg(SOCKET sock, LPCTSTR pszMessage,
 		LPSTR pszResponse=0, UINT uResponseSize=0);
 
 	// Extracts the first number from reponse message.
@@ -144,7 +144,7 @@ protected:
 
 	// Encodes the given file into BASE-64 encoding and returns the file contents as a string.
 	// Returns zero on success, otherwise non-zero.
-    int Base64EncodeAttachment(CString sFileName, 
+    int Base64EncodeAttachment(CString sFileName,
         std::string& sEncodedFileData);
 
 	// Converts a string from UTF-16 (UNICODE) to UTF-8 encoding.
@@ -152,7 +152,7 @@ protected:
 
 	// Worker thread procedure.
     static DWORD WINAPI WorkerThread(VOID* pParam);
-	
+
 	/* Variables used internally */
 
     CString m_sServer;       // SMTP server.

@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -26,9 +26,9 @@ CHttpRequestSender::CHttpRequestSender()
     m_sBoundary = _T("AaB03x5fs1045fcc7");
 
     m_sTextPartHeaderFmt = _T("--%s\r\nContent-disposition: form-data; name=\"%s\"\r\n\r\n");
-    m_sTextPartFooterFmt = _T("\r\n");   
+    m_sTextPartFooterFmt = _T("\r\n");
     m_sFilePartHeaderFmt = _T("--%s\r\nContent-disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\nContent-Transfer-Encoding: binary\r\n\r\n");
-    m_sFilePartFooterFmt = _T("\r\n");  
+    m_sFilePartFooterFmt = _T("\r\n");
 }
 
 // Sends HTTP request assyncronously (in a working thread)
@@ -51,14 +51,14 @@ DWORD WINAPI CHttpRequestSender::WorkerThread(VOID* pParam)
 {
     CHttpRequestSender* pSender = (CHttpRequestSender*)pParam;
     // Delegate further actions to CHttpRequestSender class
-    pSender->InternalSend();  
+    pSender->InternalSend();
 
     return 0;
 }
 
 // Sends HTTP request and checks response
 BOOL CHttpRequestSender::InternalSend()
-{ 
+{
     BOOL bStatus = FALSE;      // Resulting status
     strconv_t strconv;         // String conversion
     HINTERNET hSession = NULL; // Internet session
@@ -75,7 +75,7 @@ BOOL CHttpRequestSender::InternalSend()
     BOOL bRet = FALSE;
     DWORD dwBuffSize = 0;
     CString sMsg;
-    LONGLONG lPostSize = 0;  
+    LONGLONG lPostSize = 0;
     std::map<CString, std::string>::iterator it;
     std::map<CString, CHttpRequestFile>::iterator it2;
 
@@ -93,7 +93,7 @@ BOOL CHttpRequestSender::InternalSend()
     if(hSession==NULL)
     {
         m_Assync->SetProgress(_T("Error opening Internet session"), 0);
-        goto cleanup; 
+        goto cleanup;
     }
 
     // Parse application-provided URL
@@ -115,13 +115,13 @@ BOOL CHttpRequestSender::InternalSend()
     if(hConnect==NULL)
     {
         m_Assync->SetProgress(_T("Error connecting to server"), 0);
-        goto cleanup; 
+        goto cleanup;
     }
-	
-	// Set large receive timeout to avoid problems in case of 
+
+	// Set large receive timeout to avoid problems in case of
 	// slow upload => slow response from the server.
 	DWORD dwReceiveTimeout = 0;
-	InternetSetOption(hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT, 
+	InternetSetOption(hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT,
 		&dwReceiveTimeout, sizeof(dwReceiveTimeout));
 
     // Check if canceled
@@ -134,7 +134,7 @@ BOOL CHttpRequestSender::InternalSend()
     DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_NO_AUTO_REDIRECT;
     if(dwPort==INTERNET_DEFAULT_HTTPS_PORT)
 	    dwFlags |= INTERNET_FLAG_SECURE; // Use SSL
-	
+
 	BOOL bRedirect = FALSE;
 	int nCount = 0;
 	while(nCount==0 || bRedirect)
@@ -143,13 +143,13 @@ BOOL CHttpRequestSender::InternalSend()
 
 		// Open HTTP request
 		hRequest = HttpOpenRequest(
-			hConnect, 
-			_T("POST"), 
-			szURI, 
-			NULL, 
-			NULL, 
-			szAccept, 
-			dwFlags, 
+			hConnect,
+			_T("POST"),
+			szURI,
+			NULL,
+			NULL,
+			szAccept,
+			dwFlags,
 			0
 			);
 		if (!hRequest)
@@ -164,7 +164,7 @@ BOOL CHttpRequestSender::InternalSend()
 		DWORD dwBuffLen = sizeof(extraSSLDwFlags);
 		InternetQueryOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS,
 		(LPVOID)&extraSSLDwFlags, &dwBuffLen);
-		// We have to specifically ignore these 2 errors for MVS	
+		// We have to specifically ignore these 2 errors for MVS
 		extraSSLDwFlags |= SECURITY_FLAG_IGNORE_REVOCATION |  // Ignores certificate revocation problems.
 						   SECURITY_FLAG_IGNORE_WRONG_USAGE | // Ignores incorrect usage problems.
 						   SECURITY_FLAG_IGNORE_CERT_CN_INVALID | // Ignores the ERROR_INTERNET_SEC_CERT_CN_INVALID error message.
@@ -174,11 +174,11 @@ BOOL CHttpRequestSender::InternalSend()
 
 		// Fill in buffer
 		BufferIn.dwStructSize = sizeof( INTERNET_BUFFERS ); // Must be set or error will occur
-		BufferIn.Next = NULL; 
+		BufferIn.Next = NULL;
 		BufferIn.lpcszHeader = sHeaders;
 		BufferIn.dwHeadersLength = sHeaders.GetLength();
 		BufferIn.dwHeadersTotal = 0;
-		BufferIn.lpvBuffer = NULL;                
+		BufferIn.lpvBuffer = NULL;
 		BufferIn.dwBufferLength = 0;
 		BufferIn.dwBufferTotal = (DWORD)lPostSize; // This is the only member used other than dwStructSize
 		BufferIn.dwOffsetLow = 0;
@@ -199,7 +199,7 @@ BOOL CHttpRequestSender::InternalSend()
 		// Write text fields
 		for(it=m_Request.m_aTextFields.begin(); it!=m_Request.m_aTextFields.end(); it++)
 		{
-			bRet = WriteTextPart(hRequest, it->first); 
+			bRet = WriteTextPart(hRequest, it->first);
 			if(!bRet)
 				goto cleanup;
 		}
@@ -207,7 +207,7 @@ BOOL CHttpRequestSender::InternalSend()
 		// Write attachments
 		for(it2=m_Request.m_aIncludedFiles.begin(); it2!=m_Request.m_aIncludedFiles.end(); it2++)
 		{
-			bRet = WriteAttachmentPart(hRequest, it2->first); 
+			bRet = WriteAttachmentPart(hRequest, it2->first);
 			if(!bRet)
 				goto cleanup;
 		}
@@ -229,13 +229,13 @@ BOOL CHttpRequestSender::InternalSend()
 
 		// Add a message to log
 		m_Assync->SetProgress(_T("Reading server response..."), 0);
-	
+
 		// Get HTTP response code from HTTP headers
 		DWORD lHttpStatus = 0;
 		DWORD lHttpStatusSize = sizeof(lHttpStatus);
-		BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE|HTTP_QUERY_FLAG_NUMBER, 
+		BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE|HTTP_QUERY_FLAG_NUMBER,
 										&lHttpStatus, &lHttpStatusSize, 0);
-	
+
 		if(bQueryInfo)
 		{
 			sMsg.Format(_T("Server response code: %ld"), lHttpStatus);
@@ -248,7 +248,7 @@ BOOL CHttpRequestSender::InternalSend()
 		sMsg = CString((LPCSTR)pBuffer, dwBuffSize);
 		sMsg = _T("Server response body:")  + sMsg;
 		m_Assync->SetProgress(sMsg, 0);
-	
+
 		// If the first byte of HTTP response is a digit, than assume a legacy way
 		// of determining delivery status - the HTTP response starts with a delivery status code
 		if(dwBuffSize>0 && pBuffer[0]>='0' && pBuffer[0]<='9')
@@ -268,10 +268,10 @@ BOOL CHttpRequestSender::InternalSend()
 		{
 			// If the first byte of HTTP response is not a digit, assume that
 			// the delivery status should be read from HTTP header
-		
+
 			// Check if we have a redirect (302 response code)
 			if(bQueryInfo && lHttpStatus==302)
-			{	
+			{
 				// Check for multiple redirects
 				if(bRedirect)
 				{
@@ -282,8 +282,8 @@ BOOL CHttpRequestSender::InternalSend()
 				bRedirect = TRUE;
 
 				TCHAR szBuffer[1024]=_T("");
-				DWORD dwBuffSize = 1024*sizeof(TCHAR);	
-				DWORD nIndex = 0;				
+				DWORD dwBuffSize = 1024*sizeof(TCHAR);
+				DWORD nIndex = 0;
 
 				BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_LOCATION,
 						szBuffer,
@@ -312,7 +312,7 @@ BOOL CHttpRequestSender::InternalSend()
 				m_Assync->SetProgress(_T("Failed (HTTP response code is not equal to 200)."), 100, false);
 				goto cleanup;
 			}
-			
+
 			break;
 		}
 	}
@@ -330,15 +330,15 @@ cleanup:
     }
 
     // Clean up
-    if(hRequest) 
+    if(hRequest)
         InternetCloseHandle(hRequest);
 
     // Clean up internet handle
-    if(hConnect) 
+    if(hConnect)
         InternetCloseHandle(hConnect);
 
     // Clean up internet session
-    if(hSession) 
+    if(hSession)
         InternetCloseHandle(hSession);
 
     // Notify about completion
@@ -383,11 +383,11 @@ BOOL CHttpRequestSender::WriteTextPart(HINTERNET hRequest, CString sName)
     if(it==m_Request.m_aTextFields.end())
     {
         m_Assync->SetProgress(_T("Error searching for text part header name."), 0);
-        return FALSE; 
+        return FALSE;
     }
 
     size_t nDataSize = it->second.length();
-    int pos = 0;    
+    int pos = 0;
     DWORD dwBytesRead = 0;
     for(;;)
     {
@@ -396,7 +396,7 @@ BOOL CHttpRequestSender::WriteTextPart(HINTERNET hRequest, CString sName)
             return FALSE;
         }
 
-        dwBytesRead = (DWORD)MIN(1024, nDataSize-pos);    
+        dwBytesRead = (DWORD)MIN(1024, nDataSize-pos);
         if(dwBytesRead==0)
             break; // EOF
 
@@ -411,7 +411,7 @@ BOOL CHttpRequestSender::WriteTextPart(HINTERNET hRequest, CString sName)
         }
         UploadProgress(dwBytesWritten);
 
-        pos += dwBytesRead;    
+        pos += dwBytesRead;
     }
 
     /* Write part footer */
@@ -478,16 +478,16 @@ BOOL CHttpRequestSender::WriteAttachmentPart(HINTERNET hRequest, CString sName)
     if(it==m_Request.m_aIncludedFiles.end())
     {
         m_Assync->SetProgress(_T("Error searching for attachment part name."), 0);
-        return FALSE; 
+        return FALSE;
     }
 
     CString sFileName = it->second.m_sSrcFileName.GetBuffer(0);
-    HANDLE hFile = CreateFile(sFileName, 
-        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
+    HANDLE hFile = CreateFile(sFileName,
+        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
     if(hFile==INVALID_HANDLE_VALUE)
-    {    
+    {
         m_Assync->SetProgress(_T("Error opening attachment file."), 0);
-        return FALSE; 
+        return FALSE;
     }
 
     BYTE pBuffer[1024];
@@ -594,7 +594,7 @@ BOOL CHttpRequestSender::FormatAttachmentPartHeader(CString sName, CString& sTex
 {
     std::map<CString, CHttpRequestFile>::iterator it = m_Request.m_aIncludedFiles.find(sName);
     if(it==m_Request.m_aIncludedFiles.end())
-        return FALSE; 
+        return FALSE;
 
     sText.Format(m_sFilePartHeaderFmt, (LPCTSTR) m_sBoundary, (LPCTSTR) it->first, (LPCTSTR) Utility::GetFileName(it->second.m_sSrcFileName), (LPCTSTR) it->second.m_sContentType);
     return TRUE;
@@ -604,7 +604,7 @@ BOOL CHttpRequestSender::FormatAttachmentPartFooter(CString sName, CString& sTex
 {
     sText = m_sFilePartFooterFmt;
     return TRUE;
-}  
+}
 
 BOOL CHttpRequestSender::FormatTrailingBoundary(CString& sText)
 {
@@ -620,7 +620,7 @@ BOOL CHttpRequestSender::CalcRequestSize(LONGLONG& lSize)
     for(const auto& it : m_Request.m_aTextFields)
     {
         LONGLONG lPartSize = 0;
-        BOOL bCalc = CalcTextPartSize(it.first, lPartSize);        
+        BOOL bCalc = CalcTextPartSize(it.first, lPartSize);
         if(!bCalc) {
 		    m_Assync->SetProgress(_T("CHttpRequestSender::CalcRequestSize - CalcTextPartSize() FAILED"), 0);
             return FALSE;
@@ -632,7 +632,7 @@ BOOL CHttpRequestSender::CalcRequestSize(LONGLONG& lSize)
     for(const auto& it2 : m_Request.m_aIncludedFiles)
     {
         LONGLONG lPartSize = 0;
-        BOOL bCalc = CalcAttachmentPartSize(it2.first, lPartSize);        
+        BOOL bCalc = CalcAttachmentPartSize(it2.first, lPartSize);
         if(!bCalc) {
 		    m_Assync->SetProgress(_T("CHttpRequestSender::CalcRequestSize - CalcAttachmentPartSize() FAILED"), 0);
             return FALSE;
@@ -659,7 +659,7 @@ BOOL CHttpRequestSender::CalcTextPartSize(CString sName, LONGLONG& lSize)
 
     std::map<CString, std::string>::iterator it = m_Request.m_aTextFields.find(sName);
     if(it==m_Request.m_aTextFields.end())
-        return FALSE; 
+        return FALSE;
 
     lSize += it->second.length();
 
@@ -684,14 +684,14 @@ BOOL CHttpRequestSender::CalcAttachmentPartSize(CString sName, LONGLONG& lSize)
 
     std::map<CString, CHttpRequestFile>::iterator it = m_Request.m_aIncludedFiles.find(sName);
     if(it==m_Request.m_aIncludedFiles.end())
-        return FALSE; 
+        return FALSE;
 
     CString sFileName = it->second.m_sSrcFileName.GetBuffer(0);
-    HANDLE hFile = CreateFile(sFileName, 
-        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL); 
+    HANDLE hFile = CreateFile(sFileName,
+        GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
     if(hFile==INVALID_HANDLE_VALUE)
-    {    
-        return FALSE; 
+    {
+        return FALSE;
     }
 
     LARGE_INTEGER lFileSize;
@@ -723,11 +723,11 @@ void CHttpRequestSender::UploadProgress(DWORD dwBytesWritten)
     m_Assync->SetProgress((int)progress, false);
 }
 
-// Parses URL and splits it into URL, port, protocol and so on. This method's code was taken from 
+// Parses URL and splits it into URL, port, protocol and so on. This method's code was taken from
 // http://www.codeproject.com/KB/IP/simplehttpclient.aspx
-void CHttpRequestSender::ParseURL(LPCTSTR szURL, LPTSTR szProtocol, UINT cbProtocol, 
+void CHttpRequestSender::ParseURL(LPCTSTR szURL, LPTSTR szProtocol, UINT cbProtocol,
                                   LPTSTR szAddress, UINT cbAddress, DWORD &dwPort, LPTSTR szURI, UINT cbURI)
-{  
+{
     cbURI;
     cbAddress;
     cbProtocol;
@@ -744,7 +744,7 @@ void CHttpRequestSender::ParseURL(LPCTSTR szURL, LPTSTR szProtocol, UINT cbProto
             szProtocol[dwPosition]=0;
         }
         bFlag=TRUE;
-    }else{	// is HOST 
+    }else{	// is HOST
         if(szProtocol){
             _TCSNCPY_S(szProtocol, cbProtocol, _T("http"), 4);
             szProtocol[5]=0;
@@ -754,7 +754,7 @@ void CHttpRequestSender::ParseURL(LPCTSTR szURL, LPTSTR szProtocol, UINT cbProto
     DWORD dwStartPosition=0;
 
     if(bFlag){
-        dwStartPosition=dwPosition+=3;				
+        dwStartPosition=dwPosition+=3;
     }else{
         dwStartPosition=dwPosition=0;
     }
@@ -788,16 +788,16 @@ void CHttpRequestSender::ParseURL(LPCTSTR szURL, LPTSTR szProtocol, UINT cbProto
         _TCSNCPY_S(szAddress, cbAddress, (szURL+dwStartPosition), len);
         szAddress[len]=0;
     }
-    else 
+    else
     {
         dwPort=INTERNET_DEFAULT_HTTP_PORT;
         int len = dwPosition-dwStartPosition;
-        _TCSNCPY_S(szAddress, cbAddress, (szURL+dwStartPosition), len);    
+        _TCSNCPY_S(szAddress, cbAddress, (szURL+dwStartPosition), len);
         szAddress[len]=0;
     }
 
     if(dwPosition<_tcslen(szURL))
-    { 
+    {
         // find URI
         int len = (int)(_tcslen(szURL)-dwPosition);
         _TCSNCPY_S(szURI, cbURI, (szURL+dwPosition), len);

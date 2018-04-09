@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -64,4 +64,3 @@ private:
 
     int LoadXmlv10(TiXmlHandle hDoc);
 };
-

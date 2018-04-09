@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -15,7 +15,7 @@ be found in the Authors.txt file in the root of the source tree.
 
 class DeliveryTests : public CTestSuite
 {
-    BEGIN_TEST_MAP(DeliveryTests, "Error report delivery tests")        
+    BEGIN_TEST_MAP(DeliveryTests, "Error report delivery tests")
         REGISTER_TEST(Test_HttpDelivery)
         REGISTER_TEST(Test_SmtpDelivery)
         REGISTER_TEST(Test_SmtpDelivery_proxy);
@@ -26,7 +26,7 @@ public:
 
     void SetUp();
     void TearDown();
-	    
+
     void Test_HttpDelivery();
     void Test_SmtpDelivery();
     void Test_SmtpDelivery_proxy();
@@ -44,12 +44,12 @@ void DeliveryTests::TearDown()
 }
 
 void DeliveryTests::Test_HttpDelivery()
-{ 
+{
     CString sAppDataFolder;
     CString sExeFolder;
     CString sTmpFolder;
 
-    // Create a temporary folder  
+    // Create a temporary folder
     Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
     sTmpFolder = sAppDataFolder+_T("\\CrashRpt");
     BOOL bCreate = Utility::CreateFolder(sTmpFolder);
@@ -62,10 +62,10 @@ void DeliveryTests::Test_HttpDelivery()
     info.cb = sizeof(CR_INSTALL_INFO);
     info.pszAppVersion = _T("1.0.0"); // Specify app version, otherwise it will fail.
     info.dwFlags = CR_INST_NO_GUI;
-    info.pszUrl = _T("localhost/crashrpt.php"); // Use HTTP address for delivery 
+    info.pszUrl = _T("localhost/crashrpt.php"); // Use HTTP address for delivery
     info.uPriorities[CR_HTTP] = 0;
     info.uPriorities[CR_SMTP] = CR_NEGATIVE_PRIORITY;
-    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;  
+    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;
     info.pszErrorReportSaveDir = sTmpFolder;
     int nInstResult = crInstall(&info);
     TEST_ASSERT(nInstResult==0);
@@ -84,22 +84,22 @@ void DeliveryTests::Test_HttpDelivery()
     GetExitCodeProcess(exc.hSenderProcess, &dwExitCode);
     TEST_ASSERT(dwExitCode==0); // Exit code should be zero
 
-    __TEST_CLEANUP__;  
+    __TEST_CLEANUP__;
 
     // Uninstall
-    crUninstall();  
+    crUninstall();
 
     // Delete tmp folder
     Utility::RecycleFile(sTmpFolder, TRUE);
 }
 
 void DeliveryTests::Test_SmtpDelivery()
-{ 
+{
     CString sAppDataFolder;
     CString sExeFolder;
     CString sTmpFolder;
 
-    // Create a temporary folder  
+    // Create a temporary folder
     Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
     sTmpFolder = sAppDataFolder+_T("\\CrashRpt");
     BOOL bCreate = Utility::CreateFolder(sTmpFolder);
@@ -117,7 +117,7 @@ void DeliveryTests::Test_SmtpDelivery()
     info.pszEmailText = _T("And some text in the email body...");
     info.uPriorities[CR_HTTP] = CR_NEGATIVE_PRIORITY;
     info.uPriorities[CR_SMTP] = 0;
-    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;  
+    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;
     info.pszErrorReportSaveDir = sTmpFolder;
     int nInstResult = crInstall(&info);
     TEST_ASSERT(nInstResult==0);
@@ -136,22 +136,22 @@ void DeliveryTests::Test_SmtpDelivery()
     GetExitCodeProcess(exc.hSenderProcess, &dwExitCode);
     TEST_ASSERT(dwExitCode==0); // Exit code should be zero
 
-    __TEST_CLEANUP__;  
+    __TEST_CLEANUP__;
 
     // Uninstall
-    crUninstall();  
+    crUninstall();
 
     // Delete tmp folder
     Utility::RecycleFile(sTmpFolder, TRUE);
 }
 
 void DeliveryTests::Test_SmtpDelivery_proxy()
-{ 
+{
     CString sAppDataFolder;
     CString sExeFolder;
     CString sTmpFolder;
 
-    // Create a temporary folder  
+    // Create a temporary folder
     Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
     sTmpFolder = sAppDataFolder+_T("\\CrashRpt");
     BOOL bCreate = Utility::CreateFolder(sTmpFolder);
@@ -170,7 +170,7 @@ void DeliveryTests::Test_SmtpDelivery_proxy()
     info.pszEmailText = _T("And some text in the email body...");
     info.uPriorities[CR_HTTP] = CR_NEGATIVE_PRIORITY;
     info.uPriorities[CR_SMTP] = 0;
-    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;  
+    info.uPriorities[CR_SMAPI] = CR_NEGATIVE_PRIORITY;
     info.pszErrorReportSaveDir = sTmpFolder;
     int nInstResult = crInstall(&info);
     TEST_ASSERT(nInstResult==0);
@@ -189,10 +189,10 @@ void DeliveryTests::Test_SmtpDelivery_proxy()
     GetExitCodeProcess(exc.hSenderProcess, &dwExitCode);
     TEST_ASSERT(dwExitCode==0); // Exit code should be zero
 
-    __TEST_CLEANUP__;  
+    __TEST_CLEANUP__;
 
     // Uninstall
-    crUninstall();  
+    crUninstall();
 
     // Delete tmp folder
     Utility::RecycleFile(sTmpFolder, TRUE);
@@ -202,12 +202,12 @@ void DeliveryTests::Test_SmtpDelivery_proxy()
 // This test tries to send report in silent mode over SMAPI.
 // Since SMAPI is not available in silent mode, test passes when delivery fails.
 void DeliveryTests::Test_SMAPI_Delivery()
-{ 
+{
     CString sAppDataFolder;
     CString sExeFolder;
     CString sTmpFolder;
 
-    // Create a temporary folder  
+    // Create a temporary folder
     Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
     sTmpFolder = sAppDataFolder+_T("\\CrashRpt");
     BOOL bCreate = Utility::CreateFolder(sTmpFolder);
@@ -225,7 +225,7 @@ void DeliveryTests::Test_SMAPI_Delivery()
     info.pszEmailText = _T("And some text in the email body...");
     info.uPriorities[CR_HTTP] = CR_NEGATIVE_PRIORITY;
     info.uPriorities[CR_SMTP] = CR_NEGATIVE_PRIORITY;
-    info.uPriorities[CR_SMAPI] = 0;  
+    info.uPriorities[CR_SMAPI] = 0;
     info.pszErrorReportSaveDir = sTmpFolder;
     int nInstResult = crInstall(&info);
     TEST_ASSERT(nInstResult==0);
@@ -245,10 +245,10 @@ void DeliveryTests::Test_SMAPI_Delivery()
     // Since SMAPI is not available in silent mode, test passes when delivery fails.
     TEST_ASSERT(dwExitCode!=0); // Exit code should be non-zero
 
-    __TEST_CLEANUP__;  
+    __TEST_CLEANUP__;
 
     // Uninstall
-    crUninstall();  
+    crUninstall();
 
     // Delete tmp folder
     Utility::RecycleFile(sTmpFolder, TRUE);

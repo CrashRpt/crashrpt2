@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -11,16 +11,16 @@ be found in the Authors.txt file in the root of the source tree.
 #include "stdafx.h"
 #include "SharedMem.h"
 
-CSharedMem::CSharedMem()  
+CSharedMem::CSharedMem()
 {
 	// Set internal variables to their default state
     m_uSize = 0;
-    m_hFileMapping = NULL;  
+    m_hFileMapping = NULL;
 
 	// Determine memory granularity (needed for file mapping).
-    SYSTEM_INFO si;  
+    SYSTEM_INFO si;
     GetSystemInfo(&si);
-    m_dwAllocGranularity = si.dwAllocationGranularity;  
+    m_dwAllocGranularity = si.dwAllocationGranularity;
 }
 
 CSharedMem::~CSharedMem()
@@ -38,25 +38,25 @@ BOOL CSharedMem::Init(LPCTSTR szName, BOOL bOpenExisting, ULONG64 uSize)
 
 	// Either open existing file mapping or create new one
     if(!bOpenExisting)
-    {	
+    {
         ULARGE_INTEGER i;
         i.QuadPart = uSize;
         m_hFileMapping = CreateFileMapping(INVALID_HANDLE_VALUE, 0, PAGE_READWRITE, i.HighPart, i.LowPart, szName);
     }
     else
-    {    
+    {
         m_hFileMapping = OpenFileMapping(FILE_MAP_READ|FILE_MAP_WRITE, FALSE, szName);
     }
 
 	// Save name and size of the file mapping
     m_sName = szName;
-    m_uSize = uSize; 
+    m_uSize = uSize;
 
 	// Check file mapping is valid
     if(m_hFileMapping==NULL)
     {
 		// Failure
-        m_uSize = 0;  
+        m_uSize = 0;
         return FALSE;
     }
 
@@ -75,18 +75,18 @@ BOOL CSharedMem::Destroy()
     std::map<LPBYTE, LPBYTE>::iterator it;
     for(it=m_aViewStartPtrs.begin(); it!=m_aViewStartPtrs.end(); it++)
     {
-        UnmapViewOfFile(it ->second);    
+        UnmapViewOfFile(it ->second);
     }
     m_aViewStartPtrs.clear();
 
 	// Destroy file mapping
     if(m_hFileMapping!=NULL)
     {
-        CloseHandle(m_hFileMapping);    
+        CloseHandle(m_hFileMapping);
     }
 
-    m_hFileMapping = NULL;	
-    m_uSize = 0;  
+    m_hFileMapping = NULL;
+    m_uSize = 0;
 
     return TRUE;
 }

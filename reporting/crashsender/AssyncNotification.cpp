@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -20,7 +20,7 @@ AssyncNotification::AssyncNotification()
     m_hFeedbackEvent = CreateEvent(0, FALSE, FALSE, 0);
 	// Init handle to log file
     m_fileLog = NULL;
-	
+
     Reset();
 }
 
@@ -56,12 +56,12 @@ CString AssyncNotification::GetLogFilePath()
 }
 
 void AssyncNotification::Reset()
-{ 
+{
     // Reset the event
 
     m_cs.Lock(); // Acquire lock
 
-    m_nCompletionStatus = -1;    
+    m_nCompletionStatus = -1;
     m_nPercentCompleted = 0;
     m_statusLog.clear();
 
@@ -90,7 +90,7 @@ void AssyncNotification::SetProgress(CString sStatusMsg, int percentCompleted, b
     {
         m_nPercentCompleted += percentCompleted;
         if(m_nPercentCompleted>100)
-            m_nPercentCompleted = 100;      
+            m_nPercentCompleted = 100;
     }
     else // Update progress relatively to zero
     {
@@ -108,7 +108,7 @@ void AssyncNotification::SetProgress(int percentCompleted, bool bRelative)
     {
         m_nPercentCompleted += percentCompleted;
         if(m_nPercentCompleted>100)
-            m_nPercentCompleted = 100;      
+            m_nPercentCompleted = 100;
     }
     else // Update progress relatively to zero
     {
@@ -167,7 +167,7 @@ bool AssyncNotification::IsCancelled()
     DWORD dwWaitResult = WaitForSingleObject(m_hCancelEvent, 0);
     if(dwWaitResult==WAIT_OBJECT_0)
     {
-        SetEvent(m_hCancelEvent);      
+        SetEvent(m_hCancelEvent);
         return true;
     }
 
@@ -177,7 +177,7 @@ bool AssyncNotification::IsCancelled()
 void AssyncNotification::WaitForFeedback(int &code)
 {
     // Waits until the main thread's signal
-    ResetEvent(m_hFeedbackEvent);      
+    ResetEvent(m_hFeedbackEvent);
     WaitForSingleObject(m_hFeedbackEvent, INFINITE);
     m_cs.Lock();
     code = m_nCompletionStatus;
@@ -190,5 +190,5 @@ void AssyncNotification::FeedbackReady(int code)
     m_cs.Lock();
     m_nCompletionStatus = code;
     m_cs.Unlock();
-    SetEvent(m_hFeedbackEvent);      
+    SetEvent(m_hFeedbackEvent);
 }

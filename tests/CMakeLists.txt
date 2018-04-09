@@ -20,10 +20,10 @@ endif(NOT CRASHRPT_BUILD_SHARED_LIBS)
 
 fix_default_compiler_settings_()
 
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG") 
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG")
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include 
+include_directories( ${CMAKE_SOURCE_DIR}/include
                      ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
 					 ${CMAKE_SOURCE_DIR}/thirdparty/wtl )
 

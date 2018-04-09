@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -27,7 +27,7 @@ struct GENERIC_HEADER
 // String block description.
 struct STRING_DESC
 {
-    BYTE m_uchMagic[3]; // Magic sequence "STR".  
+    BYTE m_uchMagic[3]; // Magic sequence "STR".
     WORD m_wSize;       // Total bytes occupied by this block.
     // This structure is followed by (m_wSize-sizeof(STRING_DESC) bytes of string data.
 };
@@ -63,16 +63,16 @@ struct CUSTOM_PROP
     DWORD m_dwValueOffs; // Property value.
 };
 
-// Crash description. 
+// Crash description.
 struct CRASH_DESCRIPTION
-{  
+{
     BYTE m_uchMagic[3];  // Magic sequence "CRD"
     WORD m_wSize;        // Total bytes occupied by this block.
     DWORD m_dwTotalSize; // Total size of the whole used shared mem.
     DWORD m_dwCrashRptVer;         // Version of CrashRpt.
     UINT m_uFileItems;             // Count of file item records.
     UINT m_uRegKeyEntries;         // Count of registry key entries.
-    UINT m_uCustomProps;           // Count of user-defined properties.  
+    UINT m_uCustomProps;           // Count of user-defined properties.
     DWORD m_dwInstallFlags;        // Flags passed to crInstall() function.
     int m_nSmtpPort;               // Smtp port.
     int m_nSmtpProxyPort;          // Smtp proxy port.
@@ -112,14 +112,14 @@ struct CRASH_DESCRIPTION
     BOOL m_bSendRecentReports;     // If TRUE, CrashSender.exe needs to send queued error reports.
 								   // If FALSE, CrashSender.exe needs to send single report.
 	DWORD m_dwSmtpLoginOffs;       // Offset of SMTP login name.
-	DWORD m_dwSmtpPasswordOffs;    // Offset of SMTP login name. 
+	DWORD m_dwSmtpPasswordOffs;    // Offset of SMTP login name.
 	BOOL  m_bAddVideo;             // Wether to add video recording.
 	DWORD m_dwVideoFlags;          // Flags for video recording.
 	int   m_nVideoDuration;        // Video duration.
 	int   m_nVideoFrameInterval;   // Video frame interval.
 	SIZE  m_DesiredFrameSize;      // Video frame size.
 	HWND m_hWndVideoParent;        // Parent window for video recording dialog.
-	BOOL m_bClientAppCrashed;      // If TRUE, the client app has crashed; otherwise the client has exited without crash.          
+	BOOL m_bClientAppCrashed;      // If TRUE, the client app has crashed; otherwise the client has exited without crash.
 };
 
 #define SHARED_MEM_MAX_SIZE 10*1024*1024   /* 10 MB */
@@ -130,8 +130,8 @@ class CSharedMem
 public:
 
     // Construction/destruction
-    CSharedMem();  
-    ~CSharedMem();  
+    CSharedMem();
+    ~CSharedMem();
 
     // Initializes shared memory
     BOOL Init(LPCTSTR szName, BOOL bOpenExisting, ULONG64 uSize);
@@ -143,7 +143,7 @@ public:
     BOOL Destroy();
 
     // Returns file mapping name
-    CString GetName(); 
+    CString GetName();
 
     // Returns file mapping size
     ULONG64 GetSize();
@@ -158,9 +158,9 @@ private:
 
     CString m_sName;            // Name of the file mapping.
     HANDLE m_hFileMapping;		// Memory mapped object
-    DWORD m_dwAllocGranularity; // System allocation granularity  	  
-    ULONG64 m_uSize;	      	// Size of the file mapping.		  
-    std::map<LPBYTE, LPBYTE> m_aViewStartPtrs; // Base of the view of the file mapping.    
+    DWORD m_dwAllocGranularity; // System allocation granularity
+    ULONG64 m_uSize;	      	// Size of the file mapping.
+    std::map<LPBYTE, LPBYTE> m_aViewStartPtrs; // Base of the view of the file mapping.
 };
 
 

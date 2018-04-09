@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,8 +19,8 @@ be found in the Authors.txt file in the root of the source tree.
 
 // class CVideoRecDlg
 // Implements video recording notification dialog.
-class CVideoRecDlg : 
-    public CDialogImpl<CVideoRecDlg>    
+class CVideoRecDlg :
+    public CDialogImpl<CVideoRecDlg>
 {
 public:
     enum { IDD = IDD_VIDEOREC };
@@ -28,7 +28,7 @@ public:
     BEGIN_MSG_MAP(CVideoRecDlg)
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         COMMAND_ID_HANDLER(IDOK, OnOK)
-        COMMAND_ID_HANDLER(IDCANCEL, OnCancel)            
+        COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
     END_MSG_MAP()
 
     LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

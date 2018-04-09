@@ -18,7 +18,7 @@ add_definitions(-D_UNICODE)
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include 
+include_directories( ${CMAKE_SOURCE_DIR}/include
 			${CMAKE_SOURCE_DIR}/reporting/crashrpt
 			${CMAKE_SOURCE_DIR}/reporting/crashsender
 			${CMAKE_SOURCE_DIR}/thirdparty/wtl
@@ -26,16 +26,16 @@ include_directories( ${CMAKE_SOURCE_DIR}/include
 			${CMAKE_SOURCE_DIR}/thirdparty/minizip
 			${CMAKE_SOURCE_DIR}/thirdparty/tinyxml
 			${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/include)
-			
+
 # Add library build target
-if(CRASHRPT_BUILD_SHARED_LIBS)	
+if(CRASHRPT_BUILD_SHARED_LIBS)
 	add_library(CrashRptProbe SHARED ${source_files} ${header_files})
 else(CRASHRPT_BUILD_SHARED_LIBS)
-	add_library(CrashRptProbe STATIC ${source_files} ${header_files})	
+	add_library(CrashRptProbe STATIC ${source_files} ${header_files})
 endif(CRASHRPT_BUILD_SHARED_LIBS)
 
 if(CMAKE_CL_64)
-	link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64 )	
+	link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64 )
 	target_link_libraries(CrashRptProbe ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64/dbghelp.lib)
 else(CMAKE_CL_64)
 	link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib )
@@ -45,14 +45,14 @@ endif(CMAKE_CL_64)
 target_link_libraries(CrashRptProbe zlib minizip tinyxml Rpcrt4.lib shell32.lib gdi32.lib version.lib psapi.lib)
 
 if(CRASHRPT_BUILD_SHARED_LIBS)
-	set_target_properties(CrashRptProbe PROPERTIES 
-									DEBUG_POSTFIX ${CRASHRPT_VER}d 
+	set_target_properties(CrashRptProbe PROPERTIES
+									DEBUG_POSTFIX ${CRASHRPT_VER}d
 									RELEASE_POSTFIX ${CRASHRPT_VER}
 									RELWITHDEBINFO_POSTFIX ${CRASHRPT_VER}
 									MINSIZEREL_POSTFIX ${CRASHRPT_VER})
 else(CRASHRPT_BUILD_SHARED_LIBS)
-	set_target_properties(CrashRptProbe PROPERTIES 
-									DEBUG_POSTFIX LIBd 
+	set_target_properties(CrashRptProbe PROPERTIES
+									DEBUG_POSTFIX LIBd
 									RELEASE_POSTFIX LIB
 									RELWITHDEBINFO_POSTFIX LIB
 									MINSIZEREL_POSTFIX LIB)

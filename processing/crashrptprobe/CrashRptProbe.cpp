@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -73,7 +73,7 @@ std::map<int, CrpReportData> g_OpenedHandles;
 // CalcFileMD5Hash
 // Calculates the MD5 hash for the given file
 int CalcFileMD5Hash(CString sFileName, CString& sMD5Hash)
-{  
+{
     crpSetErrorMsg(_T("Unspecified error."));
 
     BYTE buff[512];
@@ -114,7 +114,7 @@ int CalcFileMD5Hash(CString sFileName, CString& sMD5Hash)
         CString number;
         number.Format(_T("%02x"), md5_hash[i]);
         sMD5Hash += number;
-    } 
+    }
 
     crpSetErrorMsg(_T("Success."));
     return 0;
@@ -159,7 +159,7 @@ int UnzipFile(unzFile hZip, const char* szFileName, const TCHAR* szOutFileName)
         size_t written = fwrite(buff, read_len, 1, f);
         if(written!=1)
             goto cleanup;
-    }  
+    }
 
     status = 0;
 
@@ -181,12 +181,12 @@ crpOpenErrorReportW(
                     LPCWSTR pszSymSearchPath,
                     DWORD dwFlags,
                     CrpHandle* pHandle)
-{   
+{
     UNREFERENCED_PARAMETER(dwFlags);
 
     int status = -1;
     int nNewHandle = 0;
-    CrpReportData report_data;  
+    CrpReportData report_data;
     int zr = 0;
     int xml_find_res = UNZ_END_OF_LIST_OF_FILE;
     int dmp_find_res = UNZ_END_OF_LIST_OF_FILE;
@@ -219,7 +219,7 @@ crpOpenErrorReportW(
             goto exit;
 
         if(sCalculatedMD5Hash.CompareNoCase(pszMd5Hash)!=0)
-        {  
+        {
             crpSetErrorMsg(_T("File might be corrupted, because MD5 hash is wrong."));
             goto exit; // Invalid hash
         }
@@ -237,19 +237,19 @@ crpOpenErrorReportW(
     xml_find_res = unzLocateFile(report_data.m_hZip, (const char*)"crashrpt.xml", 1);
     zr = unzGetCurrentFileInfo(report_data.m_hZip, NULL, szXmlFileName, 1024, NULL, 0, NULL, 0);
 
-    // Look for v1.1 crash dump 
+    // Look for v1.1 crash dump
     dmp_find_res = unzLocateFile(report_data.m_hZip, (const char*)"crashdump.dmp", 1);
     zr = unzGetCurrentFileInfo(report_data.m_hZip, NULL, szDmpFileName, 1024, NULL, 0, NULL, 0);
 
     // If xml and dmp still not found, assume it is v1.0
-    if(xml_find_res!=UNZ_OK && dmp_find_res!=UNZ_OK)  
-    {    
+    if(xml_find_res!=UNZ_OK && dmp_find_res!=UNZ_OK)
+    {
         // Look for .dmp file
         zr = unzGoToFirstFile(report_data.m_hZip);
         if(zr==UNZ_OK)
         {
             for(;;)
-            {        
+            {
                 zr = unzGetCurrentFileInfo(report_data.m_hZip, NULL, szDmpFileName, 1024, NULL, 0, NULL, 0);
                 if(zr!=UNZ_OK)
                     break;
@@ -285,7 +285,7 @@ crpOpenErrorReportW(
     if(xml_find_res!=UNZ_OK || dmp_find_res!=UNZ_OK)
     {
         crpSetErrorMsg(_T("File is not a valid crash report (XML or DMP missing)."));
-        goto exit; // XML or DMP not found 
+        goto exit; // XML or DMP not found
     }
 
     // Load crash description data
@@ -300,14 +300,14 @@ crpOpenErrorReportW(
             goto exit; // Can't unzip ZIP element
         }
 
-        int result = report_data.m_pDescReader->Load(sTempFile);    
+        int result = report_data.m_pDescReader->Load(sTempFile);
         DeleteFile(sTempFile);
         if(result!=0)
         {
             crpSetErrorMsg(_T("Crash description file is not a valid XML file."));
             goto exit; // Corrupted XML
-        }    
-    }  
+        }
+    }
 
     // Extract minidump file
     if(dmp_find_res==UNZ_OK)
@@ -322,7 +322,7 @@ crpOpenErrorReportW(
         }
 
         report_data.m_sMiniDumpTempName = sTempFile;
-    } 
+    }
 
     if(report_data.m_pDescReader->m_dwGeneratorVersion==1000)
     {
@@ -335,13 +335,13 @@ crpOpenErrorReportW(
             report_data.m_pDescReader->m_sImageName.IsEmpty())
         {
             // Load minidump right now
-            int nLoad = report_data.m_pDmpReader->Open(report_data.m_sMiniDumpTempName, 
+            int nLoad = report_data.m_pDmpReader->Open(report_data.m_sMiniDumpTempName,
                 report_data.m_sSymSearchPath);
             if(nLoad!=0)
             {
                 crpSetErrorMsg(_T("Error opening minidump file."));
                 Utility::RecycleFile(report_data.m_sMiniDumpTempName, TRUE);
-                goto exit; 
+                goto exit;
             }
 
             // Find the candidate for application's executable module
@@ -378,8 +378,8 @@ crpOpenErrorReportW(
                         WORD dwPatchLevel = (WORD)(fi->dwProductVersionLS>>16);
                         WORD dwVerBuild = (WORD)(fi->dwProductVersionLS&0xFF);
 
-                        report_data.m_pDescReader->m_sAppVersion.Format(_T("%u.%u.%u.%u"), 
-                            dwVerMajor, dwVerMinor, dwPatchLevel, dwVerBuild);            
+                        report_data.m_pDescReader->m_sAppVersion.Format(_T("%u.%u.%u.%u"),
+                            dwVerMajor, dwVerMinor, dwPatchLevel, dwVerBuild);
                     }
                 }
             }
@@ -391,8 +391,8 @@ crpOpenErrorReportW(
     if(zr==UNZ_OK)
     {
         for(;;)
-        {        
-            zr = unzGetCurrentFileInfo(report_data.m_hZip, 
+        {
+            zr = unzGetCurrentFileInfo(report_data.m_hZip,
                 NULL, szFileName, 1024, NULL, 0, NULL, 0);
             if(zr!=UNZ_OK)
                 break;
@@ -402,8 +402,8 @@ crpOpenErrorReportW(
 
             zr=unzGoToNextFile(report_data.m_hZip);
             if(zr!=UNZ_OK)
-                break;      
-        }    
+                break;
+        }
     }
 
     // Add handle to the list of opened handles
@@ -422,7 +422,7 @@ exit:
         delete report_data.m_pDmpReader;
         Utility::RecycleFile(report_data.m_sMiniDumpTempName, TRUE);
 
-        if(report_data.m_hZip!=0) 
+        if(report_data.m_hZip!=0)
             unzClose(report_data.m_hZip);
     }
 
@@ -440,11 +440,11 @@ crpOpenErrorReportA(
 {
     strconv_t strconv;
     return crpOpenErrorReportW(
-        strconv.a2w(pszFileName), 
-        strconv.a2w(pszMd5Hash), 
-        strconv.a2w(pszSymSearchPath), 
-        dwFlags, 
-        pHandle);  
+        strconv.a2w(pszFileName),
+        strconv.a2w(pszMd5Hash),
+        strconv.a2w(pszSymSearchPath),
+        dwFlags,
+        pHandle);
 }
 
 CRASHRPTPROBE_API(int)
@@ -491,7 +491,7 @@ int ParseDynTableId(CString sTableId, int& index)
 CRASHRPTPROBE_API(int)
 crpGetPropertyW(
                 CrpHandle hReport,
-                LPCWSTR lpszTableId, 
+                LPCWSTR lpszTableId,
                 LPCWSTR lpszColumnId,
                 INT nRowIndex,
                 LPWSTR lpszBuffer,
@@ -504,10 +504,10 @@ crpGetPropertyW(
     if(lpszBuffer!=NULL && cchBuffSize>=1)
         lpszBuffer[0] = 0; // Empty buffer
     if(pcchCount!=NULL)
-        *pcchCount = 0;  
+        *pcchCount = 0;
 
     LPCWSTR pszPropVal = NULL;
-    const int BUFF_SIZE = 4096; 
+    const int BUFF_SIZE = 4096;
     TCHAR szBuff[BUFF_SIZE]; // Internal buffer to store property value
     strconv_t strconv; // String convertor object
 
@@ -546,21 +546,21 @@ crpGetPropertyW(
         sTableId.Compare(CRP_TBL_MDMP_LOAD_LOG)==0 ||
         nDynTable==0 ||
         (pDescReader->m_dwGeneratorVersion==1000 && sTableId.Compare(CRP_TBL_XMLDESC_MISC)==0) )
-    {     
+    {
         // Load the minidump
         int nOpen = pDmpReader->Open(it->second.m_sMiniDumpTempName, it->second.m_sSymSearchPath);
 		if(nOpen!=0)
         {
             crpSetErrorMsg(_T("Could not open minidump file."));
-            return -3;    
+            return -3;
         }
-		
+
         // Walk the stack if this is needed to get the property
         if(nDynTable==0)
         {
             pDmpReader->StackWalk(pDmpReader->m_DumpData.m_Threads[nDynTableIndex].m_dwThreadId);
-        }   
-    }  
+        }
+    }
 
     if(sTableId.Compare(CRP_TBL_XMLDESC_MISC)==0)
     {
@@ -568,39 +568,39 @@ crpGetPropertyW(
         if(nRowIndex!=0)
         {
             crpSetErrorMsg(_T("Invalid row index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
-        {    
+        {
             return 1; // return row count in this table
-        }  
+        }
         else if(sColumnId.Compare(CRP_COL_CRASHRPT_VERSION)==0)
-        {    
+        {
             _ULTOT_S(pDescReader->m_dwGeneratorVersion, szBuff, BUFF_SIZE, 10);
             pszPropVal = szBuff;
-        }  
+        }
         else if(sColumnId.Compare(CRP_COL_CRASH_GUID)==0)
-        { 
+        {
             // We do not support crash GUIDs for older version of CrashRpt
             if(pDescReader->m_dwGeneratorVersion==1000)
             {
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sCrashGUID);    
+            pszPropVal = strconv.t2w(pDescReader->m_sCrashGUID);
         }
         else if(sColumnId.Compare(CRP_COL_APP_NAME)==0)
         {
-            pszPropVal = strconv.t2w(pDescReader->m_sAppName);    
+            pszPropVal = strconv.t2w(pDescReader->m_sAppName);
         }
         else if(sColumnId.Compare(CRP_COL_APP_VERSION)==0)
-        {      
-            pszPropVal = strconv.t2w(pDescReader->m_sAppVersion);    
+        {
+            pszPropVal = strconv.t2w(pDescReader->m_sAppVersion);
         }
         else if(sColumnId.Compare(CRP_COL_IMAGE_NAME)==0)
         {
-            pszPropVal = strconv.t2w(pDescReader->m_sImageName);    
+            pszPropVal = strconv.t2w(pDescReader->m_sImageName);
         }
         else if(sColumnId.Compare(CRP_COL_OPERATING_SYSTEM)==0)
         {
@@ -610,7 +610,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sOperatingSystem);    
+            pszPropVal = strconv.t2w(pDescReader->m_sOperatingSystem);
         }
         else if(sColumnId.Compare(CRP_COL_SYSTEM_TIME_UTC)==0)
         {
@@ -620,34 +620,34 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sSystemTimeUTC);    
+            pszPropVal = strconv.t2w(pDescReader->m_sSystemTimeUTC);
         }
         else if(sColumnId.Compare(CRP_COL_INVPARAM_FUNCTION)==0)
-        {  
+        {
             if(pDescReader->m_dwExceptionType!=CR_CPP_INVALID_PARAMETER)
             {
                 crpSetErrorMsg(_T("This property is supported for invalid parameter errors only."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sInvParamFunction);    
+            pszPropVal = strconv.t2w(pDescReader->m_sInvParamFunction);
         }
         else if(sColumnId.Compare(CRP_COL_INVPARAM_EXPRESSION)==0)
-        {  
+        {
             if(pDescReader->m_dwExceptionType!=CR_CPP_INVALID_PARAMETER)
             {
                 crpSetErrorMsg(_T("This property is supported for invalid parameter errors only."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sInvParamExpression);    
+            pszPropVal = strconv.t2w(pDescReader->m_sInvParamExpression);
         }
         else if(sColumnId.Compare(CRP_COL_INVPARAM_FILE)==0)
-        {      
+        {
             if(pDescReader->m_dwExceptionType!=CR_CPP_INVALID_PARAMETER)
             {
                 crpSetErrorMsg(_T("This property is supported for invalid parameter errors only."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sInvParamFile);    
+            pszPropVal = strconv.t2w(pDescReader->m_sInvParamFile);
         }
         else if(sColumnId.Compare(CRP_COL_INVPARAM_LINE)==0)
         {
@@ -657,7 +657,7 @@ crpGetPropertyW(
                 return -3;
             }
             _ULTOT_S(pDescReader->m_dwInvParamLine, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;            
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_TYPE)==0)
         {
@@ -670,10 +670,10 @@ crpGetPropertyW(
             _ULTOT_S(pDescReader->m_dwExceptionType, szBuff, BUFF_SIZE, 10);
             _TCSCAT_S(szBuff, BUFF_SIZE, _T(" "));
             _TCSCAT_S(szBuff, BUFF_SIZE, exctypes[pDescReader->m_dwExceptionType]);
-            pszPropVal = szBuff;            
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_CODE)==0)
-        { 
+        {
             // We do not support this property for older version of CrashRpt
             if(pDescReader->m_dwGeneratorVersion==1000)
             {
@@ -684,10 +684,10 @@ crpGetPropertyW(
             _TCSCAT_S(szBuff, BUFF_SIZE, _T(" "));
             CString msg = Utility::FormatErrorMsg(pDescReader->m_dwExceptionCode);
             _TCSCAT_S(szBuff, BUFF_SIZE, msg);
-            pszPropVal = szBuff;    
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_FPE_SUBCODE)==0)
-        { 
+        {
             // We do not support this property for older version of CrashRpt
             if(pDescReader->m_dwGeneratorVersion==1000)
             {
@@ -695,8 +695,8 @@ crpGetPropertyW(
                 return -3;
             }
             _ULTOT_S(pDescReader->m_dwFPESubcode, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;        
-        }    
+            pszPropVal = szBuff;
+        }
         else if(sColumnId.Compare(CRP_COL_USER_EMAIL)==0)
         {
             // We do not support this property for older version of CrashRpt
@@ -705,7 +705,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sUserEmail);    
+            pszPropVal = strconv.t2w(pDescReader->m_sUserEmail);
         }
         else if(sColumnId.Compare(CRP_COL_PROBLEM_DESCRIPTION)==0)
         {
@@ -715,7 +715,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sProblemDescription);    
+            pszPropVal = strconv.t2w(pDescReader->m_sProblemDescription);
         }
         else if(sColumnId.Compare(CRP_COL_GUI_RESOURCE_COUNT)==0)
         {
@@ -725,7 +725,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sGUIResourceCount);    
+            pszPropVal = strconv.t2w(pDescReader->m_sGUIResourceCount);
         }
         else if(sColumnId.Compare(CRP_COL_OPEN_HANDLE_COUNT)==0)
         {
@@ -735,7 +735,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sOpenHandleCount);    
+            pszPropVal = strconv.t2w(pDescReader->m_sOpenHandleCount);
         }
         else if(sColumnId.Compare(CRP_COL_MEMORY_USAGE_KBYTES)==0)
         {
@@ -745,7 +745,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sMemoryUsageKbytes);    
+            pszPropVal = strconv.t2w(pDescReader->m_sMemoryUsageKbytes);
         }
         else if(sColumnId.Compare(CRP_COL_OS_IS_64BIT)==0)
         {
@@ -755,8 +755,8 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            _STPRINTF_S(szBuff, BUFF_SIZE, L"%d", pDescReader->m_bOSIs64Bit);    
-            pszPropVal = szBuff;      
+            _STPRINTF_S(szBuff, BUFF_SIZE, L"%d", pDescReader->m_bOSIs64Bit);
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_GEO_LOCATION)==0)
         {
@@ -766,7 +766,7 @@ crpGetPropertyW(
                 crpSetErrorMsg(_T("Invalid column ID is specified."));
                 return -3;
             }
-            pszPropVal = strconv.t2w(pDescReader->m_sGeoLocation);    
+            pszPropVal = strconv.t2w(pDescReader->m_sGeoLocation);
         }
         else
         {
@@ -781,7 +781,7 @@ crpGetPropertyW(
             if(nRowIndex>=(int)it->second.m_ContainedFiles.size())
             {
                 crpSetErrorMsg(_T("Invalid row index specified."));
-                return -4;    
+                return -4;
             }
         }
         else
@@ -789,7 +789,7 @@ crpGetPropertyW(
             if(nRowIndex>=(int)pDescReader->m_aFileItems.size())
             {
                 crpSetErrorMsg(_T("Invalid row index specified."));
-                return -4;    
+                return -4;
             }
         }
 
@@ -799,13 +799,13 @@ crpGetPropertyW(
                 return (int)it->second.m_ContainedFiles.size();
             return (int)pDescReader->m_aFileItems.size();
         }
-        else if( sColumnId.Compare(CRP_COL_FILE_ITEM_NAME)==0 || 
+        else if( sColumnId.Compare(CRP_COL_FILE_ITEM_NAME)==0 ||
             sColumnId.Compare(CRP_COL_FILE_ITEM_DESCRIPTION)==0 )
-        { 
+        {
             if(pDescReader->m_dwGeneratorVersion==1000)
             {
                 if(sColumnId.Compare(CRP_COL_FILE_ITEM_NAME)==0)
-                    pszPropVal = strconv.t2w(it->second.m_ContainedFiles[nRowIndex]);            
+                    pszPropVal = strconv.t2w(it->second.m_ContainedFiles[nRowIndex]);
                 else
                     pszPropVal = _T("");
             }
@@ -816,9 +816,9 @@ crpGetPropertyW(
                 for(i=0; i<nRowIndex; i++) it++;
 
                 if(sColumnId.Compare(CRP_COL_FILE_ITEM_NAME)==0)
-                    pszPropVal = strconv.t2w(it->first);    
+                    pszPropVal = strconv.t2w(it->first);
                 else
-                    pszPropVal = strconv.t2w(it->second);    
+                    pszPropVal = strconv.t2w(it->second);
             }
         }
         else
@@ -832,30 +832,30 @@ crpGetPropertyW(
         if(pDescReader->m_dwGeneratorVersion<1201)
         {
             crpSetErrorMsg(_T("Invalid table ID specified."));
-            return -3;    
+            return -3;
         }
 
         if(nRowIndex>=(int)pDescReader->m_aCustomProps.size())
         {
             crpSetErrorMsg(_T("Invalid row index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
         {
             return (int)pDescReader->m_aCustomProps.size();
         }
-        else if( sColumnId.Compare(CRP_COL_PROPERTY_NAME)==0 || 
+        else if( sColumnId.Compare(CRP_COL_PROPERTY_NAME)==0 ||
             sColumnId.Compare(CRP_COL_PROPERTY_VALUE)==0 )
-        { 
+        {
             std::map<CString, CString>::iterator it = pDescReader->m_aCustomProps.begin();
             int i;
             for(i=0; i<nRowIndex; i++) it++;
 
             if(sColumnId.Compare(CRP_COL_PROPERTY_NAME)==0)
-                pszPropVal = strconv.t2w(it->first);    
+                pszPropVal = strconv.t2w(it->first);
             else
-                pszPropVal = strconv.t2w(it->second);          
+                pszPropVal = strconv.t2w(it->second);
         }
         else
         {
@@ -868,7 +868,7 @@ crpGetPropertyW(
         if(nRowIndex!=0)
         {
             crpSetErrorMsg(_T("Invalid index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
@@ -892,12 +892,12 @@ crpGetPropertyW(
 
             _TCSCAT_S(szBuff, BUFF_SIZE, szDescription);
 
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_CPU_COUNT)==0)
         {
             _ULTOT_S(pDmpReader->m_DumpData.m_uchNumberOfProcessors, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_PRODUCT_TYPE)==0)
         {
@@ -914,72 +914,72 @@ crpGetPropertyW(
 
             _TCSCAT_S(szBuff, BUFF_SIZE, szDescription);
 
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_OS_VER_MAJOR)==0)
-        {      
+        {
             _ULTOT_S(pDmpReader->m_DumpData.m_ulVerMajor, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_OS_VER_MINOR)==0)
         {
             _ULTOT_S(pDmpReader->m_DumpData.m_ulVerMinor, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_OS_VER_BUILD)==0)
         {
             _ULTOT_S(pDmpReader->m_DumpData.m_ulVerBuild, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;        
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_OS_VER_CSD)==0)
-        {      
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_sCSDVer);    
+        {
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_sCSDVer);
         }
         else if(sColumnId.Compare(CRP_COL_EXCPTRS_EXCEPTION_CODE)==0)
-        { 
+        {
             if(!pDmpReader->m_bReadExceptionStream)
             {
                 crpSetErrorMsg(_T("There is no exception information in minidump file."));
                 return -3;
             }
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%x"), pDmpReader->m_DumpData.m_uExceptionCode); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%x"), pDmpReader->m_DumpData.m_uExceptionCode);
             _TCSCAT_S(szBuff, BUFF_SIZE, _T(" "));
             CString msg = Utility::FormatErrorMsg(pDmpReader->m_DumpData.m_uExceptionCode);
             _TCSCAT_S(szBuff, BUFF_SIZE, msg);
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_ADDRESS)==0)
-        {  
+        {
             if(!pDmpReader->m_bReadExceptionStream)
             {
                 crpSetErrorMsg(_T("There is no exception information in minidump file."));
                 return -3;
             }
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_uExceptionAddress); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_uExceptionAddress);
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_THREAD_ROWID)==0)
-        {  
+        {
             if(!pDmpReader->m_bReadExceptionStream)
             {
                 crpSetErrorMsg(_T("There is no exception information in minidump file."));
                 return -3;
             }
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%d"), pDmpReader->GetThreadRowIdByThreadId(pDmpReader->m_DumpData.m_uExceptionThreadId)); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%d"), pDmpReader->GetThreadRowIdByThreadId(pDmpReader->m_DumpData.m_uExceptionThreadId));
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_MODULE_ROWID)==0)
-        {  
+        {
             if(!pDmpReader->m_bReadExceptionStream)
             {
                 crpSetErrorMsg(_T("There is no exception information in minidump file."));
                 return -3;
             }
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%d"), pDmpReader->GetModuleRowIdByAddress(pDmpReader->m_DumpData.m_uExceptionAddress)); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%d"), pDmpReader->GetModuleRowIdByAddress(pDmpReader->m_DumpData.m_uExceptionAddress));
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_EXCEPTION_THREAD_STACK_MD5)==0)
-        {  
+        {
             if(!pDmpReader->m_bReadExceptionStream)
             {
                 crpSetErrorMsg(_T("There is no exception information in minidump file."));
@@ -989,10 +989,10 @@ crpGetPropertyW(
             if(nThreadROWID>=0)
             {
                 pDmpReader->StackWalk(pDmpReader->m_DumpData.m_Threads[nThreadROWID].m_dwThreadId);
-                CString sMD5 = pDmpReader->m_DumpData.m_Threads[nThreadROWID].m_sStackTraceMD5;        
-                _STPRINTF_S(szBuff, BUFF_SIZE, _T("%s"), sMD5.GetBuffer(0));         
+                CString sMD5 = pDmpReader->m_DumpData.m_Threads[nThreadROWID].m_sStackTraceMD5;
+                _STPRINTF_S(szBuff, BUFF_SIZE, _T("%s"), sMD5.GetBuffer(0));
             }
-            pszPropVal = szBuff;      
+            pszPropVal = szBuff;
         }
         else
         {
@@ -1001,11 +1001,11 @@ crpGetPropertyW(
         }
     }
     else if(sTableId.Compare(CRP_TBL_MDMP_MODULES)==0)
-    {  
+    {
         if(nRowIndex>=(int)pDmpReader->m_DumpData.m_Modules.size())
         {
             crpSetErrorMsg(_T("Invalid index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
@@ -1013,45 +1013,45 @@ crpGetPropertyW(
             return (int)pDmpReader->m_DumpData.m_Modules.size();
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_NAME)==0)
-        {      
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sModuleName);    
+        {
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sModuleName);
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_IMAGE_NAME)==0)
-        {      
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sImageName);    
+        {
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sImageName);
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_BASE_ADDRESS)==0)
-        {      
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_Modules[nRowIndex].m_uBaseAddr); 
+        {
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_Modules[nRowIndex].m_uBaseAddr);
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_SIZE)==0)
         {
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%I64u"), pDmpReader->m_DumpData.m_Modules[nRowIndex].m_uImageSize); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("%I64u"), pDmpReader->m_DumpData.m_Modules[nRowIndex].m_uImageSize);
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_LOADED_PDB_NAME)==0)
         {
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sLoadedPdbName);          
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sLoadedPdbName);
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_LOADED_IMAGE_NAME)==0)
         {
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sLoadedImageName);          
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Modules[nRowIndex].m_sLoadedImageName);
         }
         else if(sColumnId.Compare(CRP_COL_MODULE_SYM_LOAD_STATUS)==0)
         {
             CString sSymLoadStatus;
             MdmpModule m = pDmpReader->m_DumpData.m_Modules[nRowIndex];
             if(m.m_bImageUnmatched)
-                sSymLoadStatus = _T("No matching binary found.");          
+                sSymLoadStatus = _T("No matching binary found.");
             else if(m.m_bPdbUnmatched)
-                sSymLoadStatus = _T("No matching PDB file found.");          
+                sSymLoadStatus = _T("No matching PDB file found.");
             else
             {
-                if(m.m_bNoSymbolInfo)            
-                    sSymLoadStatus = _T("No symbols loaded.");          
+                if(m.m_bNoSymbolInfo)
+                    sSymLoadStatus = _T("No symbols loaded.");
                 else
-                    sSymLoadStatus = _T("Symbols loaded.");          
+                    sSymLoadStatus = _T("Symbols loaded.");
             }
 
 #if _MSC_VER < 1400
@@ -1060,8 +1060,8 @@ crpGetPropertyW(
             _tcscpy_s(szBuff, BUFF_SIZE, sSymLoadStatus.GetBuffer(0));
 #endif
 
-            pszPropVal = strconv.t2w(szBuff);          
-        }    
+            pszPropVal = strconv.t2w(szBuff);
+        }
         else
         {
             crpSetErrorMsg(_T("Invalid column ID specified."));
@@ -1069,11 +1069,11 @@ crpGetPropertyW(
         }
     }
     else if(sTableId.Compare(CRP_TBL_MDMP_THREADS)==0)
-    {  
+    {
         if(nRowIndex>=(int)pDmpReader->m_DumpData.m_Threads.size())
         {
             crpSetErrorMsg(_T("Invalid row index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
@@ -1082,27 +1082,27 @@ crpGetPropertyW(
         }
         else if(sColumnId.Compare(CRP_COL_THREAD_ID)==0)
         {
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%x"), pDmpReader->m_DumpData.m_Threads[nRowIndex].m_dwThreadId); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%x"), pDmpReader->m_DumpData.m_Threads[nRowIndex].m_dwThreadId);
             pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_THREAD_STACK_TABLEID)==0)
         {
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("STACK%d"), nRowIndex); 
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("STACK%d"), nRowIndex);
             pszPropVal = szBuff;
-        }    
+        }
         else
         {
             crpSetErrorMsg(_T("Invalid column ID specified."));
             return -2;
         }
 
-    }  
+    }
     else if(sTableId.Compare(CRP_TBL_MDMP_LOAD_LOG)==0)
-    {  
+    {
         if(nRowIndex>=(int)pDmpReader->m_DumpData.m_LoadLog.size())
         {
             crpSetErrorMsg(_T("Invalid row index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
@@ -1111,7 +1111,7 @@ crpGetPropertyW(
         }
         else if(sColumnId.Compare(CRP_COL_LOAD_LOG_ENTRY)==0)
         {
-            _TCSCPY_S(szBuff, BUFF_SIZE, pDmpReader->m_DumpData.m_LoadLog[nRowIndex]); 
+            _TCSCPY_S(szBuff, BUFF_SIZE, pDmpReader->m_DumpData.m_LoadLog[nRowIndex]);
             pszPropVal = szBuff;
         }
         else
@@ -1120,7 +1120,7 @@ crpGetPropertyW(
             return -2;
         }
 
-    }  
+    }
     else if(nDynTable==0)
     {
         int nEntryIndex = nDynTableIndex;
@@ -1131,7 +1131,7 @@ crpGetPropertyW(
         if(nRowIndex>=(int)pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace.size())
         {
             crpSetErrorMsg(_T("Invalid index specified."));
-            return -4;    
+            return -4;
         }
 
         if(sColumnId.Compare(CRP_META_ROW_COUNT)==0)
@@ -1139,32 +1139,32 @@ crpGetPropertyW(
             return (int)pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace.size();
         }
         else if(sColumnId.Compare(CRP_COL_STACK_OFFSET_IN_SYMBOL)==0)
-        {      
-            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_dw64OffsInSymbol);      
-            pszPropVal = szBuff;                  
+        {
+            _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_dw64OffsInSymbol);
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_STACK_ADDR_PC_OFFSET)==0)
-        {       
+        {
             _STPRINTF_S(szBuff, BUFF_SIZE, _T("0x%I64x"), pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_dwAddrPCOffset);
-            pszPropVal = szBuff;                
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_STACK_SOURCE_LINE)==0)
-        {       
+        {
             _ULTOT_S(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_nSrcLineNumber, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;                
-        }  
+            pszPropVal = szBuff;
+        }
         else if(sColumnId.Compare(CRP_COL_STACK_MODULE_ROWID)==0)
-        {  
+        {
             _LTOT_S(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_nModuleRowID, szBuff, BUFF_SIZE, 10);
-            pszPropVal = szBuff;       
+            pszPropVal = szBuff;
         }
         else if(sColumnId.Compare(CRP_COL_STACK_SYMBOL_NAME)==0)
-        {      
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_sSymbolName);    
+        {
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_sSymbolName);
         }
         else if(sColumnId.Compare(CRP_COL_STACK_SOURCE_FILE)==0)
-        {      
-            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_sSrcFileName);    
+        {
+            pszPropVal = strconv.t2w(pDmpReader->m_DumpData.m_Threads[nEntryIndex].m_StackTrace[nRowIndex].m_sSrcFileName);
         }
         else
         {
@@ -1190,7 +1190,7 @@ crpGetPropertyW(
     }
     else
     {
-        // User wants us to return the property value 
+        // User wants us to return the property value
         ULONG uRequiredLen = pszPropVal!=NULL?(ULONG)wcslen(pszPropVal):0;
         if(uRequiredLen>(cchBuffSize))
         {
@@ -1225,19 +1225,19 @@ crpGetPropertyA(
 {
     crpSetErrorMsg(_T("Unspecified error."));
 
-    WCHAR* szBuffer = NULL;  
+    WCHAR* szBuffer = NULL;
     strconv_t strconv;
 
-    if(lpszBuffer!=NULL && cchBuffSize>0) 
+    if(lpszBuffer!=NULL && cchBuffSize>0)
         szBuffer = new WCHAR[cchBuffSize];
 
     int result = crpGetPropertyW(
-        hReport, 
-        strconv.a2w(lpszTableId), 
-        strconv.a2w(lpszColumnId), 
-        nRowIndex, 
-        szBuffer, 
-        cchBuffSize, 
+        hReport,
+        strconv.a2w(lpszTableId),
+        strconv.a2w(lpszColumnId),
+        nRowIndex,
+        szBuffer,
+        cchBuffSize,
         pcchCount);
 
     if(szBuffer!=NULL)
@@ -1260,7 +1260,7 @@ crpExtractFileW(
     crpSetErrorMsg(_T("Unspecified error."));
 
     strconv_t strconv;
-    int zr;  
+    int zr;
     unzFile hZip = 0;
 
     std::map<int, CrpReportData>::iterator it = g_OpenedHandles.find(hReport);
@@ -1296,7 +1296,7 @@ crpExtractFileW(
     {
         crpSetErrorMsg(_T("Error extracting the specified zip item."));
         return -4;
-    }  
+    }
 
     crpSetErrorMsg(_T("Success."));
     return 0;
@@ -1318,7 +1318,7 @@ crpExtractFileA(
 
 CRASHRPTPROBE_API(int)
 crpGetLastErrorMsgW(
-                    LPWSTR pszBuffer, 
+                    LPWSTR pszBuffer,
                     UINT uBuffSize)
 {
     if(pszBuffer==NULL || uBuffSize==0)
@@ -1338,7 +1338,7 @@ crpGetLastErrorMsgW(
         LPCWSTR pwszErrorMsg = strconv.t2w(sErrorMsg.GetBuffer(0));
         int size = min((int)wcslen(pwszErrorMsg), (int)uBuffSize-1);
         WCSNCPY_S(pszBuffer, uBuffSize, pwszErrorMsg, sErrorMsg.GetLength());
-        pszBuffer[uBuffSize-1] = 0;    
+        pszBuffer[uBuffSize-1] = 0;
         g_crp_cs.Unlock();
         return size;
     }
@@ -1346,16 +1346,16 @@ crpGetLastErrorMsgW(
     LPCWSTR pwszErrorMsg = strconv.t2w(it->second.GetBuffer(0));
     int size = min((int)wcslen(pwszErrorMsg), (int)uBuffSize-1);
     WCSNCPY_S(pszBuffer, uBuffSize, pwszErrorMsg, size);
-    pszBuffer[uBuffSize-1] = 0;  
+    pszBuffer[uBuffSize-1] = 0;
     g_crp_cs.Unlock();
     return size;
 }
 
 CRASHRPTPROBE_API(int)
 crpGetLastErrorMsgA(
-                    LPSTR pszBuffer, 
+                    LPSTR pszBuffer,
                     UINT uBuffSize)
-{  
+{
     if(pszBuffer==NULL || uBuffSize==0)
         return -1;
 
@@ -1365,7 +1365,7 @@ crpGetLastErrorMsgA(
 
     int res = crpGetLastErrorMsgW(pwszBuffer, uBuffSize);
 
-    LPCSTR paszBuffer = strconv.w2a(pwszBuffer);  
+    LPCSTR paszBuffer = strconv.w2a(pwszBuffer);
 
     STRCPY_S(pszBuffer, uBuffSize, paszBuffer);
 
@@ -1375,12 +1375,10 @@ crpGetLastErrorMsgA(
 }
 
 int crpSetErrorMsg(PTSTR pszErrorMsg)
-{  
+{
     g_crp_cs.Lock();
     DWORD dwThreadId = GetCurrentThreadId();
     g_crp_sErrorMsg[dwThreadId] = pszErrorMsg;
     g_crp_cs.Unlock();
     return 0;
 }
-
-

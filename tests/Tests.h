@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -29,7 +29,7 @@ public:
     CTestSuite(CTestSuite* pParentSuite=NULL);
 
     // Allocates resources used by tests in this suite
-    virtual void SetUp() = 0;  
+    virtual void SetUp() = 0;
 
     // Frees resources used by tests in this suite
     virtual void TearDown() = 0;
@@ -43,20 +43,20 @@ public:
     // Runs all or some tests from this test suite
     bool Run(std::set<std::string>& SuitesToRun);
 
-    // Returns test list in this test suite 
+    // Returns test list in this test suite
     virtual std::vector<std::string> GetTestList(std::set<std::string>& SuitesToRun, bool bIncludeChildren = false);
 
     // Returns parent test suite
-    CTestSuite* GetParentSuite();  
+    CTestSuite* GetParentSuite();
 
     // Sets parent suite
     void SetParentSuite(CTestSuite* pParent);
 
     // Returns count of child test suites
-    UINT GetChildSuiteCount();  
+    UINT GetChildSuiteCount();
 
     // Returns i-th child test suite
-    CTestSuite* GetChildSuite(UINT i);  
+    CTestSuite* GetChildSuite(UINT i);
 
     // Adds a child test suite
     void AddChildSuite(CTestSuite* pChildSuite);
@@ -69,7 +69,7 @@ public:
     // Adds an error message to the list.
     void AddErrorMsg(const char* szFunction, const char* szAssertion, const char* szMsg, ...);
 
-protected: 
+protected:
 
     bool BeforeTest(const char* szFunction);
     void AfterTest(const char* szFunction);
@@ -130,7 +130,7 @@ public:
 
 class CTestRegistry
 {
-public: 
+public:
 
     static CTestRegistry* GetRegistry();
 
@@ -140,7 +140,7 @@ public:
 
 private:
 
-    CTestSuite* m_pTopSuite; // The top-level test suite.  
+    CTestSuite* m_pTopSuite; // The top-level test suite.
 };
 
 extern CTestSuite* g_pCurTestSuite;
@@ -161,10 +161,10 @@ class CTestSuiteRegistrator
 public:
 
     CTestSuiteRegistrator()
-    {		
-        CTestRegistry* pRegistry = CTestRegistry::GetRegistry();  
+    {
+        CTestRegistry* pRegistry = CTestRegistry::GetRegistry();
         CTestSuite* pTopSuite = pRegistry->GetTopSuite();
-        CTestSuite* pSuite = new T();  
+        CTestSuite* pSuite = new T();
         pSuite->SetParentSuite(pTopSuite);
         pTopSuite->AddChildSuite(pSuite);
     }

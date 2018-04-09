@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -42,7 +42,7 @@ LRESULT CDetailDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     m_linkPrivacyPolicy.SubclassWindow(GetDlgItem(IDC_PRIVACYPOLICY));
 	m_linkPrivacyPolicy.SetHyperLink(pSender->GetCrashInfo()->m_sPrivacyPolicyURL);
 	m_linkPrivacyPolicy.SetLabel(pSender->GetLangStr(_T("DetailDlg"), _T("PrivacyPolicy")));
-		
+
 	if(!pSender->GetCrashInfo()->m_sPrivacyPolicyURL.IsEmpty())
         m_linkPrivacyPolicy.ShowWindow(SW_SHOW);
     else
@@ -50,7 +50,7 @@ LRESULT CDetailDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 	// Set up header text
     CStatic statHeader = GetDlgItem(IDC_HEADERTEXT);
-	statHeader.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("DoubleClickAnItem")));  
+	statHeader.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("DoubleClickAnItem")));
 
 	// Set up the list control
     m_list = GetDlgItem(IDC_FILE_LIST);
@@ -62,23 +62,23 @@ LRESULT CDetailDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	// Init icons for the list
     m_iconList.Create(16, 16, ILC_COLOR32|ILC_MASK, 3, 1);
     m_list.SetImageList(m_iconList, LVSIL_SMALL);
-	    
+
 	FillFileItemList();
-	    
+
     // Init "Preview" static control
     m_statPreview = GetDlgItem(IDC_PREVIEWTEXT);
-	m_statPreview.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Preview")));  
+	m_statPreview.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Preview")));
 
     // Init "OK" button
     m_btnClose = GetDlgItem(IDOK);
-	m_btnClose.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Close")));  
+	m_btnClose.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Close")));
 
     // Init "Export..." button
     m_btnExport = GetDlgItem(IDC_EXPORT);
-	m_btnExport.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Export")));  
+	m_btnExport.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("Export")));
 
     // center the dialog on the screen
-    CenterWindow();  
+    CenterWindow();
 
     return TRUE;
 }
@@ -96,15 +96,15 @@ void CDetailDlg::FillFileItemList()
 	if (!pReport) return;
 
 	// Walk through files included into error report
-	// Insert items to the list        
-	
+	// Insert items to the list
+
 	m_iconList.RemoveAll();
 	m_list.DeleteAllItems();
 
 	int nCount = pReport->GetFileItemCount();
-    int i;	
+    int i;
     for (i = 0; i<nCount; i++)
-    {     
+    {
 		ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
 		CString sDestFile = pfi->m_sDestFile;
         CString sSrcFile = pfi->m_sSrcFile;
@@ -113,7 +113,7 @@ void CDetailDlg::FillFileItemList()
 		CString sTypeName;
 		LONGLONG lFileSize = 0;
 		CString sSize;
-        
+
 		// Get file info
 		if(!pfi->GetFileInfo(hIcon, sTypeName, lFileSize))
 			continue; // Skip not existing/unreadable files
@@ -130,11 +130,11 @@ void CDetailDlg::FillFileItemList()
 		// Insert an item to the list control
         int nItem = m_list.InsertItem(i, sDestFile, iImage);
 		m_list.SetItemData(nItem, i);
-		        
-        m_list.SetItemText(nItem, 1, sFileDesc);    
+
+        m_list.SetItemText(nItem, 1, sFileDesc);
 
 		sSize = Utility::FileSizeToStr(lFileSize);
-		m_list.SetItemText(nItem, 2, sSize);            
+		m_list.SetItemText(nItem, 2, sSize);
     }
 
 	// Select the first list item
@@ -144,7 +144,7 @@ void CDetailDlg::FillFileItemList()
 
 LRESULT CDetailDlg::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
-    LPNMLISTVIEW lpItem = (LPNMLISTVIEW)pnmh; 
+    LPNMLISTVIEW lpItem = (LPNMLISTVIEW)pnmh;
     int iItem = lpItem->iItem;
 
     if (lpItem->uChanged & LVIF_STATE
@@ -165,7 +165,7 @@ LRESULT CDetailDlg::OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 	// This method is called when user double-clicks an item in the list control.
 	// We need to open the file with an appropriate program.
 
-    LPNMLISTVIEW lpItem           = (LPNMLISTVIEW)pnmh; 
+    LPNMLISTVIEW lpItem           = (LPNMLISTVIEW)pnmh;
     int iItem                     = lpItem->iItem;
     DWORD_PTR dwRet               = 0;
 
@@ -180,7 +180,7 @@ LRESULT CDetailDlg::OnItemDblClicked(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(iItem);
 	if(!pFileItem)
 		return 0;
-    
+
 	// Get file name
     CString sFileName = pFileItem->m_sSrcFile;
 
@@ -205,7 +205,7 @@ void CDetailDlg::SelectItem(int iItem)
 	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(iItem);
 	if(!pFileItem)
 		return;
-    
+
 	// Update preview control
     m_previewMode = PREVIEW_AUTO;
     m_textEncoding = ENC_AUTO;
@@ -229,7 +229,7 @@ LRESULT CDetailDlg::OnExport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	if (!pSender)
 		return FALSE;
 
-	// This method is called when user clicks the "Export" button. 
+	// This method is called when user clicks the "Export" button.
 	// We should export crash report contents as a ZIP archive to
 	// user-specified folder.
 
@@ -260,7 +260,7 @@ LRESULT CDetailDlg::OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
 	// We need to display popup menu.
 
 	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
-	
+
     CPoint pt;
     GetCursorPos(&pt);
 
@@ -281,7 +281,7 @@ LRESULT CDetailDlg::OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
 	CString sVideo = pSender->GetLangStr(_T("DetailDlg"), _T("PreviewVideo"));
 	CString sEncoding = pSender->GetLangStr(_T("DetailDlg"), _T("Encoding"));
 
-    mii.dwTypeData = sAuto.GetBuffer(0);  
+    mii.dwTypeData = sAuto.GetBuffer(0);
     submenu.SetMenuItemInfo(ID_PREVIEW_AUTO, FALSE, &mii);
 
     mii.dwTypeData = sHex.GetBuffer(0);
@@ -306,7 +306,7 @@ LRESULT CDetailDlg::OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
 	else if(m_previewMode==PREVIEW_VIDEO)
         uItem = ID_PREVIEW_VIDEO;
 
-    submenu.CheckMenuRadioItem(ID_PREVIEW_AUTO, ID_PREVIEW_VIDEO, uItem, MF_BYCOMMAND); 
+    submenu.CheckMenuRadioItem(ID_PREVIEW_AUTO, ID_PREVIEW_VIDEO, uItem, MF_BYCOMMAND);
 
     if(m_filePreview.GetPreviewMode()!=PREVIEW_TEXT)
     {
@@ -332,7 +332,7 @@ LRESULT CDetailDlg::OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
         else if(m_textEncoding==ENC_UTF16_BE)
             uItem2 = ID_ENCODING_UTF16BE;
 
-        TextEncMenu.CheckMenuRadioItem(ID_ENCODING_AUTO, ID_ENCODING_UTF16BE, uItem2, MF_BYCOMMAND); 
+        TextEncMenu.CheckMenuRadioItem(ID_ENCODING_AUTO, ID_ENCODING_UTF16BE, uItem2, MF_BYCOMMAND);
     }
 
     submenu.TrackPopupMenu(TPM_LEFTBUTTON, pt.x, pt.y, m_hWnd);
@@ -367,15 +367,15 @@ LRESULT CDetailDlg::OnTextEncodingChanged(WORD /*wNotifyCode*/, WORD wID, HWND /
 
     TextEncoding enc = ENC_AUTO;
     if(wID==ID_ENCODING_AUTO)
-        enc = ENC_AUTO; 
+        enc = ENC_AUTO;
     else if(wID==ID_ENCODING_ASCII)
-        enc = ENC_ASCII; 
+        enc = ENC_ASCII;
     else if(wID==ID_ENCODING_UTF8)
-        enc = ENC_UTF8; 
+        enc = ENC_UTF8;
     else if(wID==ID_ENCODING_UTF16)
-        enc = ENC_UTF16_LE; 
+        enc = ENC_UTF16_LE;
     else if(wID==ID_ENCODING_UTF16BE)
-        enc = ENC_UTF16_BE; 
+        enc = ENC_UTF16_BE;
     m_textEncoding = enc;
     m_filePreview.SetTextEncoding(enc);
     return 0;
@@ -397,27 +397,27 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 	CPoint pt;
     GetCursorPos(&pt);
-    CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));  
+    CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
     CMenu submenu = menu.GetSubMenu(6);
 
     strconv_t strconv;
 	CString sOpen = pSender->GetLangStr(_T("DetailDlg"), _T("Open"));
 	CString sDeleteSelected = pSender->GetLangStr(_T("DetailDlg"), _T("DeleteSelected"));
 	CString sAttachMoreFiles = pSender->GetLangStr(_T("DetailDlg"), _T("AttachMoreFiles"));
-	
+
 
     MENUITEMINFO mii;
     memset(&mii, 0, sizeof(MENUITEMINFO));
     mii.cbSize = sizeof(MENUITEMINFO);
     mii.fMask = MIIM_STRING;
 
-    mii.dwTypeData = sOpen.GetBuffer(0);  
+    mii.dwTypeData = sOpen.GetBuffer(0);
     submenu.SetMenuItemInfo(ID_MENU7_OPEN, FALSE, &mii);
-	    
-	mii.dwTypeData = sDeleteSelected.GetBuffer(0);  
+
+	mii.dwTypeData = sDeleteSelected.GetBuffer(0);
     submenu.SetMenuItemInfo(ID_MENU7_DELETESELECTEDFILE, FALSE, &mii);
 
-	mii.dwTypeData = sAttachMoreFiles.GetBuffer(0);  
+	mii.dwTypeData = sAttachMoreFiles.GetBuffer(0);
     submenu.SetMenuItemInfo(ID_MENU7_ATTACHMOREFILES, FALSE, &mii);
 
 	// Get count of selected list items
@@ -441,13 +441,13 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 		if(!pfi->m_bAllowDelete)
 			bAllowDelete = FALSE;
 	}
-	
+
 	submenu.EnableMenuItem(ID_MENU7_OPEN, (nSelected==1)?MF_ENABLED:MF_DISABLED);
-	submenu.EnableMenuItem(ID_MENU7_DELETESELECTEDFILE, (nSelected>0 && bAllowDelete)?MF_ENABLED:MF_DISABLED);	
+	submenu.EnableMenuItem(ID_MENU7_DELETESELECTEDFILE, (nSelected>0 && bAllowDelete)?MF_ENABLED:MF_DISABLED);
 
 	if(!pCI->m_bAllowAttachMoreFiles)
 	{
-		submenu.DeleteMenu(ID_MENU7_ATTACHMOREFILES, MF_BYCOMMAND);	
+		submenu.DeleteMenu(ID_MENU7_ATTACHMOREFILES, MF_BYCOMMAND);
 	}
 
 	submenu.TrackPopupMenu(0, pt.x, pt.y, m_hWnd);
@@ -455,7 +455,7 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 }
 
 LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{	
+{
 	// Kaneva - Added
 	auto pReport = GetReport();
 	if (!pReport) return FALSE;
@@ -471,7 +471,7 @@ LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 		{
 			nItem=i;
 			nSelected++;
-		}		
+		}
 	}
 
 	if(nSelected!=1)
@@ -481,7 +481,7 @@ LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	ERIFileItem* pFileItem = pReport->GetFileItemByIndex(nItem);
 	if(pFileItem==NULL)
 		return 0;
-    
+
 	// Get file name
     CString sFileName = pFileItem->m_sSrcFile;
 
@@ -490,7 +490,7 @@ LRESULT CDetailDlg::OnPopupOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
         0, 0, SW_SHOWNORMAL);
     ATLASSERT(dwRet > 32);
 	dwRet;
-	
+
 	return 0;
 }
 
@@ -518,7 +518,7 @@ LRESULT CDetailDlg::OnPopupDeleteSelected(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 			continue;
 
 		// Determine appropriate file item
-		int nItem = (int)m_list.GetItemData(i);		
+		int nItem = (int)m_list.GetItemData(i);
 		ERIFileItem* pfi = pReport->GetFileItemByIndex(nItem);
 		if(pfi)
 		{
@@ -552,7 +552,7 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	TCHAR szFileName[4096] = _T("\0");   // contains full path name after return
 	OPENFILENAME ofn;
 	memset(&ofn, 0, sizeof(OPENFILENAME)); // initialize structure to 0/NULL
-	ofn.lStructSize = sizeof(OPENFILENAME);	
+	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.lpstrFile = szFileName;
 	ofn.nMaxFile = 4096;
 	ofn.lpstrDefExt = _T("*.*");
@@ -565,10 +565,10 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 
     INT_PTR result = GetOpenFileName(&ofn);
     if(result==IDOK)
-    {		
+    {
 		// Parse the list of files
 		TCHAR* str = szFileName;
-		std::vector<CString> asItems;		
+		std::vector<CString> asItems;
 		CString sItem;
 		int i;
 		for(i=0; ; i++)
@@ -590,12 +590,12 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 		{
 			// Single file to add
 			CString sFileName = asItems[0];
-			
+
 			ERIFileItem fi;
 			fi.m_bAllowDelete = true;
 			fi.m_bMakeCopy = true;
 			fi.m_sDestFile = Utility::GetFileName(sFileName);
-			fi.m_sSrcFile = sFileName;			
+			fi.m_sSrcFile = sFileName;
 			aFiles.push_back(fi);
 		}
 		else if(asItems.size()>1)
@@ -605,12 +605,12 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 			for(j=1; j<asItems.size(); j++)
 			{
 				CString sFileName = asItems[0]+_T("\\")+asItems[j];
-			
+
 				ERIFileItem fi;
-				fi.m_bAllowDelete = true;	
+				fi.m_bAllowDelete = true;
 				fi.m_bMakeCopy = true;
 				fi.m_sDestFile = Utility::GetFileName(sFileName);
-				fi.m_sSrcFile = sFileName;			
+				fi.m_sSrcFile = sFileName;
 				aFiles.push_back(fi);
 			}
 		}
@@ -623,7 +623,7 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 		auto pCI = pSender->GetCrashInfo();
 		if (!pCI)
 			return FALSE;
-		
+
 		pCI->AddFilesToCrashReport(GetCurReportIndex(), aFiles);
 
 		// Update file items list
@@ -634,7 +634,7 @@ LRESULT CDetailDlg::OnPopupAddMoreFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 		if(::IsWindow(hWndParent))
 			::SendMessage(hWndParent, WM_REPORTSIZECHANGED, GetCurReportIndex(), 0);
 	}
-	
+
 	return 0;
 }
 

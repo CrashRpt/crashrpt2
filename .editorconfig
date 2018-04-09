@@ -1,0 +1,22 @@
+# see editorconfig.org
+root = true
+
+# default settings for all file types
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# settings per extension
+[{*.cmake,CMakeLists.txt}]
+indent_size = 2
+indent_style = space
+
+[*.{cpp,h,c,hpp}]
+charset = utf-8
+indent_size = 4
+indent_style = space
+
+[*.py]
+charset = utf-8
+indent_size = 4
+indent_style = space

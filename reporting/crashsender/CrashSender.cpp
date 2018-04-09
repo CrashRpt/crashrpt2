@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -9,7 +9,7 @@ be found in the Authors.txt file in the root of the source tree.
 ***************************************************************************************/
 
 // File: CrashSender.cpp
-// Description: Entry point to the application. 
+// Description: Entry point to the application.
 // Authors: zexspectrum
 // Date: 2010
 
@@ -24,7 +24,7 @@ be found in the Authors.txt file in the root of the source tree.
 CAppModule _Module;             // WTL's application module.
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
-{ 
+{
 	int nRet = 0; // Return code
 	CErrorReportDlg dlgErrorReport; // Error Report dialog
 	CResendDlg dlgResend; // Resend dialog
@@ -46,10 +46,10 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
 		return CErrorReportSender::TerminateAllCrashSenderProcesses();
 	}
 
-	// Extract file mapping name from command line arg.    
+	// Extract file mapping name from command line arg.
     CString sFileMappingName = CString(argv[1]);
-		
-	// Create the sender model that will collect crash report data 
+
+	// Create the sender model that will collect crash report data
 	// and send error report(s).
 	CErrorReportSender* pSender = CErrorReportSender::GetInstance();
 
@@ -57,12 +57,12 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
 	BOOL bInit = pSender->Init(sFileMappingName.GetBuffer(0));
 	if(!bInit)
     {
-		// Failed to init 
+		// Failed to init
 		delete pSender;
         return 0;
-    }      
+    }
 
-	// Determine what to do next 
+	// Determine what to do next
 	// (either run in GUI more or run in silent mode).
 	if(!pSender->GetCrashInfo()->m_bSilentMode)
 	{
@@ -73,27 +73,27 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
 
 		if(!pSender->GetCrashInfo()->m_bSendRecentReports)
 		{
-			// Create "Error Report" dialog			
+			// Create "Error Report" dialog
 			if(dlgErrorReport.Create(NULL) == NULL)
 			{
 				ATLTRACE(_T("Error report dialog creation failed!\n"));
 				delete pSender;
 				return 1;
-			}			
+			}
 		}
 		else
-		{        
-			// Create "Send Error Reports" dialog.					
+		{
+			// Create "Send Error Reports" dialog.
 			if(dlgResend.Create(NULL) == NULL)
 			{
 				ATLTRACE(_T("Resend dialog creation failed!\n"));
 				delete pSender;
 				return 1;
-			}			
+			}
 		}
 
 		// Process window messages.
-		nRet = theLoop.Run();	    
+		nRet = theLoop.Run();
 		_Module.RemoveMessageLoop();
 	}
 	else
@@ -105,7 +105,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
 		// Get return status
 		nRet = pSender->GetStatus();
 	}
-    
+
 	// Delete sender object.
 	delete pSender;
 
@@ -114,9 +114,9 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int /*nCmdShow*/ = SW_SHOWDEFAULT)
 }
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
-{  
+{
     HRESULT hRes = ::CoInitialize(NULL);
-    // If you are running on NT 4.0 or higher you can use the following call instead to 
+    // If you are running on NT 4.0 or higher you can use the following call instead to
     // make the EXE free threaded. This means that calls come in on a random RPC thread.
     //	HRESULT hRes = ::CoInitializeEx(NULL, COINIT_MULTITHREADED);
     ATLASSERT(SUCCEEDED(hRes));

@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,8 +19,8 @@ be found in the Authors.txt file in the root of the source tree.
 class LangFileTests : public CTestSuite
 {
     BEGIN_TEST_MAP(LangFileTests, "CrashRpt language file tests")
-        REGISTER_TEST(Test_lang_file_versions);    
-		REGISTER_TEST(Test_lang_file_strings);    
+        REGISTER_TEST(Test_lang_file_versions);
+		REGISTER_TEST(Test_lang_file_strings);
     END_TEST_MAP()
 
 public:
@@ -59,13 +59,13 @@ void LangFileTests::TearDown()
 }
 
 void LangFileTests::Test_lang_file_versions()
-{ 
+{
     // This test ensures that CrashRptVersion field of all CrashRpt language files
     // equals to CRASHRPT_VER constant value
 
     if(g_bRunningFromUNICODEFolder)
         return; // Skip this test if running from another process
-	    
+
     const int BUFF_SIZE = 1024;
     TCHAR szBuffer[BUFF_SIZE]=_T("");
 
@@ -74,7 +74,7 @@ void LangFileTests::Test_lang_file_versions()
     {
         CString sExePath = Utility::GetModulePath(NULL);
         CString sFileName;
-        sFileName.Format(_T("%s\\.\\crashrpt_lang.ini"), 
+        sFileName.Format(_T("%s\\.\\crashrpt_lang.ini"),
             sExePath.GetBuffer(0));
 
         GetPrivateProfileString(_T("Settings"), _T("CrashRptVersion"), _T(""), szBuffer, BUFF_SIZE, sFileName);
@@ -90,39 +90,39 @@ void LangFileTests::Test_lang_file_versions()
 }
 
 void LangFileTests::Test_lang_file_strings()
-{ 
+{
     // This test ensures that all lang files have the same count of
 	// sections and the same count of strings in each section.
 
     if(g_bRunningFromUNICODEFolder)
         return; // Skip this test if running from another process
-	
+
 	strconv_t strconv;
 	CString sExePath = Utility::GetModulePath(NULL);
 
 	// Use EN lang file as template for comparison
     CString sTemplateFileName;
 #ifndef WIN64
-    sTemplateFileName.Format(_T("%s\\..\\lang_files\\crashrpt_lang_EN.ini"), 
+    sTemplateFileName.Format(_T("%s\\..\\lang_files\\crashrpt_lang_EN.ini"),
             sExePath.GetBuffer(0));
 #else
-    sTemplateFileName.Format(_T("%s\\..\\..\\lang_files\\crashrpt_lang_EN.ini"), 
+    sTemplateFileName.Format(_T("%s\\..\\..\\lang_files\\crashrpt_lang_EN.ini"),
             sExePath.GetBuffer(0));
 #endif //!WIN64
-	
+
     UINT i;
     for(i=0; i<m_asLangAbbr.size(); i++)
     {
 		if(m_asLangAbbr[i]==_T("EN"))
 			continue; // Skip EN file
-    
+
 		// Format i-th file name
         CString sFileName;
 #ifndef WIN64
-        sFileName.Format(_T("%s\\..\\lang_files\\crashrpt_lang_%s.ini"), 
+        sFileName.Format(_T("%s\\..\\lang_files\\crashrpt_lang_%s.ini"),
             sExePath.GetBuffer(0), m_asLangAbbr[i].GetBuffer(0));
 #else
-        sFileName.Format(_T("%s\\..\\..\\lang_files\\crashrpt_lang_%s.ini"), 
+        sFileName.Format(_T("%s\\..\\..\\lang_files\\crashrpt_lang_%s.ini"),
             sExePath.GetBuffer(0), m_asLangAbbr[i].GetBuffer(0));
 #endif //!WIN64
 
@@ -149,13 +149,13 @@ void LangFileTests::Test_lang_file_strings()
 			// Get count of strings in n-th section in i-th file
 			std::vector<CString> asStrings;
 			int nStringCount = TestUtils::EnumINIFileStrings(sFileName, asTemplateSections[nSection], asStrings);
-						
+
 			// Compare string names
 			size_t nStr;
 			for(nStr=0; nStr<MIN(asTemplateStrings.size(), asStrings.size()); nStr++)
 			{
 				// Ensure string names are the same
-				TEST_ASSERT_MSG(asTemplateStrings[nStr]==asStrings[nStr], "Names of INI strings #%d in section %s are different in lang files EN and %s : %s and %s", 
+				TEST_ASSERT_MSG(asTemplateStrings[nStr]==asStrings[nStr], "Names of INI strings #%d in section %s are different in lang files EN and %s : %s and %s",
 					nStr, strconv.t2a(asTemplateSections[nSection]), strconv.t2a(m_asLangAbbr[i]), strconv.t2a(asTemplateStrings[nStr]), strconv.t2a(asStrings[nStr]));
 			}
 

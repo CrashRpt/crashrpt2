@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -39,7 +39,7 @@ CMailMsg::~CMailMsg()
 
 
 void CMailMsg::SetFrom(CString sAddress)
-{  
+{
     strconv_t strconv;
     LPCSTR lpszAddress = strconv.t2a(sAddress.GetBuffer(0));
     m_from = lpszAddress;
@@ -59,7 +59,7 @@ void CMailMsg::SetSubject(CString sSubject)
     m_sSubject = lpszSubject;
 }
 
-void CMailMsg::SetMessage(CString sMessage) 
+void CMailMsg::SetMessage(CString sMessage)
 {
     strconv_t strconv;
     LPCSTR lpszMessage = strconv.t2a(sMessage.GetBuffer(0));
@@ -71,7 +71,7 @@ void CMailMsg::AddAttachment(CString sAttachment, CString sTitle)
     strconv_t strconv;
     LPCSTR lpszAttachment = strconv.t2a(sAttachment.GetBuffer(0));
     LPCSTR lpszTitle = strconv.t2a(sTitle.GetBuffer(0));
-    m_attachments[lpszAttachment] = lpszTitle;  
+    m_attachments[lpszAttachment] = lpszTitle;
 }
 
 BOOL CMailMsg::DetectMailClient(CString& sMailClientName)
@@ -88,7 +88,7 @@ BOOL CMailMsg::DetectMailClient(CString& sMailClientName)
     }
 
     if(lResult==ERROR_SUCCESS)
-    {    
+    {
         buf_size = 1023;
 #pragma warning(disable:4996)
         LONG result = regKey.QueryValue(buf, _T(""), &buf_size);
@@ -96,10 +96,10 @@ BOOL CMailMsg::DetectMailClient(CString& sMailClientName)
         if(result==ERROR_SUCCESS)
         {
             sMailClientName = buf;
-            return TRUE;  
+            return TRUE;
         }
 
-        regKey.Close();  
+        regKey.Close();
     }
     else
     {
@@ -110,19 +110,19 @@ BOOL CMailMsg::DetectMailClient(CString& sMailClientName)
 }
 
 BOOL CMailMsg::MAPIInitialize()
-{   
+{
     // Determine if there is default email program
 
     CString sMailClientName;
     if(!DetectMailClient(sMailClientName))
     {
-        m_sErrorMsg = _T("Error detecting E-mail client");     
+        m_sErrorMsg = _T("Error detecting E-mail client");
         return FALSE;
     }
     else
     {
         m_sErrorMsg = _T("Detected E-mail client ") + sMailClientName;
-    }   
+    }
 
     // Load MAPI.dll
 
@@ -163,7 +163,7 @@ BOOL CMailMsg::Send()
         return FALSE;
 
     TStrStrMap::iterator p;
-    int                  nIndex = 0;   
+    int                  nIndex = 0;
     MapiRecipDesc*       pRecipients = NULL;
     int                  nAttachments = 0;
     MapiFileDesc*        pAttachments = NULL;
@@ -219,7 +219,7 @@ BOOL CMailMsg::Send()
 	}
 
     // add attachments
-    nIndex=0;   
+    nIndex=0;
     for (p = m_attachments.begin(), nIndex = 0;
         p != m_attachments.end(); p++, nIndex++)
     {
@@ -244,11 +244,11 @@ BOOL CMailMsg::Send()
     message.nFileCount                        = nAttachments;
     message.lpFiles                           = nAttachments ? pAttachments : NULL;
 
-    status = m_lpMapiSendMail(hMapiSession, 0, &message, 0/*MAPI_DIALOG*/, 0);    
+    status = m_lpMapiSendMail(hMapiSession, 0, &message, 0/*MAPI_DIALOG*/, 0);
 
     if(status!=SUCCESS_SUCCESS)
     {
-        m_sErrorMsg.Format(_T("MAPISendMail has failed with code %X."), status);      
+        m_sErrorMsg.Format(_T("MAPISendMail has failed with code %X."), status);
     }
 
     m_lpMapiLogoff(hMapiSession, NULL, 0, 0);
