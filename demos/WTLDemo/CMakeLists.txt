@@ -19,7 +19,7 @@ fix_default_compiler_settings_()
 
 # Add include dir
 include_directories(${CMAKE_SOURCE_DIR}/include
-					${CMAKE_SOURCE_DIR}/thirdparty/wtl)
+          ${CMAKE_SOURCE_DIR}/thirdparty/wtl)
 
 # Add executable build target
 add_executable(WTLDemo WIN32 ${source_files} ${header_files})
@@ -46,8 +46,8 @@ ADD_CUSTOM_COMMAND(
 )
 
 INSTALL(TARGETS WTLDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
-						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
-						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+             ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+             RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.ini DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.log DESTINATION ${CRASHRPT_INSTALLDIR_BIN})

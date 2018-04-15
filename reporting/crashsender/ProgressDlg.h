@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -15,37 +15,37 @@ be found in the Authors.txt file in the root of the source tree.
 
 #define WM_COMPLETECOLLECT (WM_APP+1)
 
-class CProgressDlg : 
+class CProgressDlg :
 	public CDialogImpl<CProgressDlg>,
     public CDialogResize<CProgressDlg>
 {
 public:
 
     enum { IDD = IDD_PROGRESSDLG };
-		
+
     enum ActionOnCancel
 	{
-		DONT_CLOSE, 
-		CLOSE_MYSELF, 
+		DONT_CLOSE,
+		CLOSE_MYSELF,
 		CLOSE_MYSELF_AND_PARENT
 	};
 
     CProgressBarCtrl m_prgProgress;
     CListViewCtrl m_listView;
     CButton m_btnCancel;
-    CStatic m_statText;    
+    CStatic m_statText;
 
     BEGIN_DLGRESIZE_MAP(CProgressDlg)
         DLGRESIZE_CONTROL(IDC_PROGRESS, DLSZ_SIZE_X)
         DLGRESIZE_CONTROL(IDC_LIST, DLSZ_SIZE_X|DLSZ_SIZE_Y)
-        DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_Y)    
+        DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_Y)
     END_DLGRESIZE_MAP()
 
     BEGIN_MSG_MAP(CProgressDlg)
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_CLOSE, OnClose)
-        MESSAGE_HANDLER(WM_TIMER, OnTimer)        
-        COMMAND_ID_HANDLER(IDCANCEL, OnCancel)    
+        MESSAGE_HANDLER(WM_TIMER, OnTimer)
+        COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
         COMMAND_ID_HANDLER(ID_MENU1_COPYSEL, OnCopySel)
         COMMAND_ID_HANDLER(ID_MENU1_COPYLOG, OnCopyLog)
         NOTIFY_HANDLER(IDC_LIST, NM_RCLICK, OnListRClick)
@@ -62,9 +62,9 @@ public:
     LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
-    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
-    LRESULT OnCopySel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
-    LRESULT OnCopyLog(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);  
+    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnCopySel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnCopyLog(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	// Displays the dialog and starts the timer.
     void Start(BOOL bCollectInfo, BOOL bMakeVisible=TRUE);

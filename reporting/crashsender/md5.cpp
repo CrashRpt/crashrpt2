@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -13,9 +13,9 @@ be found in the Authors.txt file in the root of the source tree.
 * 	Algorithm desrcipted in RFC 1321.
 * 	I translated the C code from this RFC to C++.
 * 	There is no warranty.
-* 
+*
 * 	Feb. 12. 2005
-* 	Benjamin Grüdelbach
+* 	Benjamin GrÃ¼delbach
 */
 
 /*
@@ -137,7 +137,7 @@ void MD5::MD5Update (MD5_CTX *context, unsigned char *input, unsigned int inputL
     /*
     * Transform as many times as possible.
     */
-    if (inputLen >= partLen) 
+    if (inputLen >= partLen)
     {
         MD5_memcpy ((POINTER)&context->buffer[index], (POINTER)input, partLen);
         MD5Transform (context->state, context->buffer);
@@ -147,7 +147,7 @@ void MD5::MD5Update (MD5_CTX *context, unsigned char *input, unsigned int inputL
 
         index = 0;
     }
-    else 
+    else
         i = 0;
 
     /* Buffer remaining input */
@@ -168,7 +168,7 @@ void MD5::MD5Final (unsigned char digest[16], MD5_CTX *context)
     /* Save number of bits */
     Encode (bits, context->count, 8);
 
-    /* 
+    /*
     * Pad out to 56 mod 64.
     */
     index = (unsigned int)((context->count[0] >> 3) & 0x3f);
@@ -274,13 +274,13 @@ void MD5::MD5Transform (unsigned long int state[4], unsigned char block[64])
     state[2] += c;
     state[3] += d;
 
-    /* 
+    /*
     * Zeroize sensitive information.
     */
     MD5_memset ((POINTER)x, 0, sizeof (x));
 }
 
-/* 
+/*
 * Encodes input (unsigned long int) into output (unsigned char). Assumes len is
 * a multiple of 4.
 */
@@ -305,7 +305,7 @@ void MD5::Decode (unsigned long int *output, unsigned char *input, unsigned int 
     unsigned int i, j;
 
     for (i = 0, j = 0; j < len; i++, j += 4)
-        output[i] = ((unsigned long int)input[j]) | 
+        output[i] = ((unsigned long int)input[j]) |
         (((unsigned long int)input[j+1]) << 8) |
         (((unsigned long int)input[j+2]) << 16) |
         (((unsigned long int)input[j+3]) << 24);

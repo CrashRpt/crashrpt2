@@ -15,17 +15,19 @@ add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp )
 add_definitions(-D_UNICODE )
 
 if(NOT CRASHRPT_BUILD_SHARED_LIBS)
-	add_definitions(-DCRASHRPT_LIB )
+  add_definitions(-DCRASHRPT_LIB )
 endif(NOT CRASHRPT_BUILD_SHARED_LIBS)
 
 fix_default_compiler_settings_()
 
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG") 
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG")
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include 
-                     ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
-					 ${CMAKE_SOURCE_DIR}/thirdparty/wtl )
+include_directories(
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
+  ${CMAKE_SOURCE_DIR}/thirdparty/wtl
+)
 
 # Add executable build target
 add_executable(Tests ${source_files} ${header_files})
@@ -35,6 +37,8 @@ target_link_libraries(Tests CrashRpt CrashRptProbe)
 
 set_target_properties(Tests PROPERTIES DEBUG_POSTFIX d )
 
-INSTALL(TARGETS Tests LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
-						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
-						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+INSTALL(TARGETS Tests 
+  LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
+  ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+  RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
+)

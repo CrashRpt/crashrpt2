@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -15,7 +15,7 @@ be found in the Authors.txt file in the root of the source tree.
 
 #pragma once
 #include "stdafx.h"
-#include "CrashRpt.h"      
+#include "CrashRpt.h"
 #include "Utility.h"
 #include "CritSec.h"
 #include "SharedMem.h"
@@ -33,7 +33,7 @@ struct ThreadExceptionHandlers
         m_prevSigSEGV = NULL;
     }
 
-    terminate_handler m_prevTerm;        // Previous terminate handler   
+    terminate_handler m_prevTerm;        // Previous terminate handler
     unexpected_handler m_prevUnexp;      // Previous unexpected handler
     void (__cdecl *m_prevSigFPE)(int);   // Previous FPE handler
     void (__cdecl *m_prevSigILL)(int);   // Previous SIGILL handler
@@ -52,7 +52,7 @@ struct FileItem
 		m_bAllowDelete = FALSE;
 	}
 
-    CString m_sSrcFilePath; // Path to the original file. 
+    CString m_sSrcFilePath; // Path to the original file.
     CString m_sDstFileName; // Destination file name (as seen in ZIP archive).
     CString m_sDescription; // Description.
     BOOL m_bMakeCopy;       // Should we make a copy of this file on crash?
@@ -76,7 +76,7 @@ struct RegKeyInfo
 
 // This class is used to set exception handlers, catch exceptions
 // and launch crash report sender process.
-class CCrashHandler  
+class CCrashHandler
 {
 	struct Locker
 	{
@@ -109,8 +109,8 @@ public:
         __in_opt LPCTSTR lpcszAppName = NULL,
         __in_opt LPCTSTR lpcszAppVersion = NULL,
         __in_opt LPCTSTR lpcszCrashSenderPath = NULL,
-        __in_opt LPGETLOGFILE lpfnCallback = NULL,           
-        __in_opt LPCTSTR lpcszTo = NULL,             
+        __in_opt LPGETLOGFILE lpfnCallback = NULL,
+        __in_opt LPCTSTR lpcszTo = NULL,
         __in_opt LPCTSTR lpcszSubject = NULL,
         __in_opt LPCTSTR lpcszUrl = NULL,
         __in_opt UINT (*puPriorities)[5] = NULL,
@@ -140,9 +140,9 @@ public:
 
 	// Sets crash callback function (multi-byte version).
 	int SetCrashCallbackA(PFNCRASHCALLBACKA pfnCallback, LPVOID pUserParam);
-	
+
     // Adds a file to the crash report.
-    int AddFile(__in_z LPCTSTR lpFile, __in_opt LPCTSTR lpDestFile, 
+    int AddFile(__in_z LPCTSTR lpFile, __in_opt LPCTSTR lpDestFile,
 				__in_opt LPCTSTR lpDesc, DWORD dwFlags);
 
     // Adds a named text property to the report.
@@ -151,14 +151,14 @@ public:
     // Adds desktop screenshot of crash into error report.
     int AddScreenshot(DWORD dwFlags, int nJpegQuality);
 
-	// Starts a video recording of desktop state; 
+	// Starts a video recording of desktop state;
 	// if crash will happen sometime, the video will be included into crash report.
 	int AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval, SIZE* pDesiredFrameSize, HWND hWndParent);
 
     // Adds a registry key to crash report.
     int AddRegKey(__in_z LPCTSTR szRegKey, __in_z LPCTSTR szDstFileName, DWORD dwFlags);
 
-    // Generates error report	
+    // Generates error report
     int GenerateErrorReport(__in_opt PCR_EXCEPTION_INFO pExceptionInfo = NULL);
 
     // Sets/unsets exception handlers for the entire process
@@ -166,7 +166,7 @@ public:
     int UnSetProcessExceptionHandlers();
 
     // Sets/unsets exception handlers for the caller thread
-    int SetThreadExceptionHandlers(DWORD dwFlags);   
+    int SetThreadExceptionHandlers(DWORD dwFlags);
     int UnSetThreadExceptionHandlers();
 
 	// Returns flags.
@@ -174,7 +174,7 @@ public:
 
     // Returns the crash handler object (singleton).
     static CCrashHandler* GetCurrentProcessCrashHandler();
-	
+
 	// Releases the singleton of this crash handler object.
     static void ReleaseCurrentProcessCrashHandler();
 
@@ -191,7 +191,7 @@ public:
 #if _MSC_VER>=1300
 	// C++ pure virtual call handler
     static void __cdecl PureCallHandler();
-#endif 
+#endif
 
 #if _MSC_VER>=1300 && _MSC_VER<1400
 	// Buffer overrun handler (deprecated in newest versions of Visual C++).
@@ -200,7 +200,7 @@ public:
 
 #if _MSC_VER>=1400
 	// C++ Invalid parameter handler.
-    static void __cdecl InvalidParameterHandler(const wchar_t* expression, 
+    static void __cdecl InvalidParameterHandler(const wchar_t* expression,
         const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t pReserved);
 #endif
 
@@ -221,7 +221,7 @@ public:
 
     // Collects current state of CPU registers.
     void GetExceptionPointers(
-        DWORD dwExceptionCode, 
+        DWORD dwExceptionCode,
         EXCEPTION_POINTERS* pExceptionPointers);
 
     // Packs crash description into shared memory.
@@ -234,12 +234,12 @@ public:
     DWORD PackProperty(CString sName, CString sValue);
     // Packs a registry key.
     DWORD PackRegKey(CString sKeyName, RegKeyInfo& rki);
-		
+
     // Launches the CrashSender.exe process.
     int LaunchCrashSender(
-        LPCTSTR szCmdLineParams, 
-        BOOL bWait, 
-        __out_opt HANDLE* phProcess); 
+        LPCTSTR szCmdLineParams,
+        BOOL bWait,
+        __out_opt HANDLE* phProcess);
 
 	// Returns TRUE if CrashSender.exe process is still alive.
 	BOOL IsSenderProcessAlive();
@@ -262,10 +262,10 @@ public:
     /* Private member variables. */
 
 	// Singleton of the CCrashHandler class.
-    static CCrashHandler* m_pProcessCrashHandler; 
+    static CCrashHandler* m_pProcessCrashHandler;
 
 	// Previous SEH exception filter.
-    LPTOP_LEVEL_EXCEPTION_FILTER  m_oldSehHandler;  
+    LPTOP_LEVEL_EXCEPTION_FILTER  m_oldSehHandler;
 
 #if _MSC_VER>=1300
     _purecall_handler m_prevPurec;   // Previous pure virtual call exception filter.
@@ -280,7 +280,7 @@ public:
     _secerr_handler_func m_prevSec; // Previous security exception filter.
 #endif
 
-    void (__cdecl *m_prevSigABRT)(int); // Previous SIGABRT handler.  
+    void (__cdecl *m_prevSigABRT)(int); // Previous SIGABRT handler.
     void (__cdecl *m_prevSigINT)(int);  // Previous SIGINT handler.
     void (__cdecl *m_prevSigTERM)(int); // Previous SIGTERM handler.
 
@@ -288,9 +288,9 @@ public:
     std::map<DWORD, ThreadExceptionHandlers> m_ThreadExceptionHandlers;
     CCritSec m_csThreadExceptionHandlers; // Synchronization lock for m_ThreadExceptionHandlers.
 
-    BOOL m_bInitialized;           // Flag telling if this object was initialized.  
+    BOOL m_bInitialized;           // Flag telling if this object was initialized.
     CString m_sAppName;            // Application name.
-    CString m_sAppVersion;         // Application version.  
+    CString m_sAppVersion;         // Application version.
     CString m_sCrashGUID;          // Crash GUID.
     CString m_sImageName;          // Process image name.
     DWORD m_dwFlags;               // Flags.
@@ -298,7 +298,7 @@ public:
     CString m_sRestartCmdLine;     // App restart command line.
 	int m_nRestartTimeout;         // Restart timeout.
     int m_nMaxReportsPerDay;       // Maximum number of crash reports that will be sent per calendar day.
-    CString m_sUrl;                // Url to use when sending error report over HTTP.  
+    CString m_sUrl;                // Url to use when sending error report over HTTP.
     CString m_sEmailTo;            // E-mail recipient.
     int m_nSmtpPort;               // SMTP port.
     CString m_sSmtpProxyServer;    // SMTP proxy.
@@ -326,11 +326,11 @@ public:
     CString m_sCustomSenderIcon;   // Resource name that can be used as custom Error Report dialog icon.
     std::map<CString, FileItem> m_files; // File items to include.
     std::map<CString, CString> m_props;  // User-defined properties to include.
-    std::map<CString, RegKeyInfo> m_RegKeys; // Registry keys to dump.  
-    CCritSec m_csCrashLock;        // Critical section used to synchronize thread access to this object. 
+    std::map<CString, RegKeyInfo> m_RegKeys; // Registry keys to dump.
+    CCritSec m_csCrashLock;        // Critical section used to synchronize thread access to this object.
     HANDLE m_hEvent;               // Event used to synchronize CrashRpt.dll with CrashSender.exe.
 	HANDLE m_hEvent2;              // Another event used to synchronize CrashRpt.dll with CrashSender.exe.
-    CSharedMem m_SharedMem;        // Shared memory.  
+    CSharedMem m_SharedMem;        // Shared memory.
     CRASH_DESCRIPTION* m_pCrashDesc; // Pointer to crash description shared mem view.
     CSharedMem* m_pTmpSharedMem;   // Used temporarily
     CRASH_DESCRIPTION* m_pTmpCrashDesc; // Used temporarily

@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -11,7 +11,7 @@ be found in the Authors.txt file in the root of the source tree.
 // File: Utility.cpp
 // Description: Miscellaneous helper functions
 // Authors: mikecarruth, zexspectrum
-// Date: 
+// Date:
 
 #include "stdafx.h"
 #include "Utility.h"
@@ -64,12 +64,12 @@ int Utility::getTempDirectory(CString& strTemp)
     errno_t err = _tdupenv_s(&pszTempVar, &len, _T("TEMP"));
     if(err!=0)
     {
-        // Couldn't get environment variable TEMP    
+        // Couldn't get environment variable TEMP
         return 1;
     }
     strTemp = CString(pszTempVar);
     free(pszTempVar);
-#endif    
+#endif
 
     return 0;
 }
@@ -140,7 +140,7 @@ int Utility::GenerateGUID(CString& sGUID)
 
     // Create GUID
 
-    UCHAR *pszUuid = 0; 
+    UCHAR *pszUuid = 0;
     GUID *pguid = NULL;
     pguid = new GUID;
     if(pguid!=NULL)
@@ -151,13 +151,13 @@ int Utility::GenerateGUID(CString& sGUID)
             // Convert the GUID to a string
             hr = UuidToStringA(pguid, &pszUuid);
             if(SUCCEEDED(hr) && pszUuid!=NULL)
-            { 
+            {
                 status = 0;
                 sGUID = strconv.a2t((char*)pszUuid);
                 RpcStringFreeA(&pszUuid);
             }
         }
-        delete pguid; 
+        delete pguid;
     }
 
     return status;
@@ -169,7 +169,7 @@ int Utility::GetOSFriendlyName(CString& sOSName)
     CRegKey regKey;
     LONG lResult = regKey.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"), KEY_READ);
     if(lResult==ERROR_SUCCESS)
-    {    
+    {
         TCHAR buf[1024];
         ULONG buf_size = 0;
 
@@ -201,7 +201,7 @@ int Utility::GetOSFriendlyName(CString& sOSName)
 
 #pragma warning(default:4996)
 
-        regKey.Close();    
+        regKey.Close();
         return 0;
     }
 
@@ -222,7 +222,7 @@ BOOL Utility::IsOS64Bit()
     HMODULE hKernel32 = LoadLibrary(_T("kernel32.dll"));
     if(hKernel32!=NULL)
     {
-        PFNISWOW64PROCESS pfnIsWow64Process = 
+        PFNISWOW64PROCESS pfnIsWow64Process =
             (PFNISWOW64PROCESS)GetProcAddress(hKernel32, "IsWow64Process");
         if(pfnIsWow64Process==NULL)
         {
@@ -249,18 +249,18 @@ int Utility::GetGeoLocation(CString& sGeoLocation)
     HMODULE hKernel32 = LoadLibrary(_T("kernel32.dll"));
     if(hKernel32!=NULL)
     {
-        PFNGETUSERGEOID pfnGetUserGeoID = 
+        PFNGETUSERGEOID pfnGetUserGeoID =
             (PFNGETUSERGEOID)GetProcAddress(hKernel32, "GetUserGeoID");
-        PFNGETGEOINFOW pfnGetGeoInfoW = 
+        PFNGETGEOINFOW pfnGetGeoInfoW =
             (PFNGETGEOINFOW)GetProcAddress(hKernel32, "GetGeoInfoW");
-        if(pfnGetUserGeoID==NULL || 
+        if(pfnGetUserGeoID==NULL ||
             pfnGetGeoInfoW==NULL)
             return -1;
 
         GEOID GeoLocation = pfnGetUserGeoID(GEOCLASS_NATION);
         if(GeoLocation!=GEOID_NOT_AVAILABLE)
-        { 
-            WCHAR szGeoInfo[1024] = _T("");    
+        {
+            WCHAR szGeoInfo[1024] = _T("");
             int n = pfnGetGeoInfoW(GeoLocation, GEO_RFC1766, szGeoInfo, 1024, 0);
             if(n!=0)
             {
@@ -270,7 +270,7 @@ int Utility::GetGeoLocation(CString& sGeoLocation)
             }
         }
 
-        FreeLibrary(hKernel32);    
+        FreeLibrary(hKernel32);
     }
 
     return -1;
@@ -306,7 +306,7 @@ int Utility::RecycleFile(CString sFilePath, bool bPermanentDelete)
     SHFILEOPSTRUCT fop;
     memset(&fop, 0, sizeof(SHFILEOPSTRUCT));
 
-    TCHAR szFrom[_MAX_PATH];  
+    TCHAR szFrom[_MAX_PATH];
     memset(szFrom, 0, sizeof(TCHAR)*(_MAX_PATH));
     _TCSCPY_S(szFrom, _MAX_PATH, sFilePath.GetBuffer(0));
     szFrom[sFilePath.GetLength()+1] = 0;
@@ -317,22 +317,22 @@ int Utility::RecycleFile(CString sFilePath, bool bPermanentDelete)
     fop.wFunc = FO_DELETE;                   // REQUIRED: delete operation
     fop.pFrom = szFrom;                      // REQUIRED: which file(s)
     fop.pTo = NULL;                          // MUST be NULL
-    if (bPermanentDelete) 
-    { 
+    if (bPermanentDelete)
+    {
         // if delete requested..
         fop.fFlags &= ~FOF_ALLOWUNDO;   // ..don't use Recycle Bin
-    } 
-    else 
+    }
+    else
     {                                 // otherwise..
         fop.fFlags |= FOF_ALLOWUNDO;    // ..send to Recycle Bin
     }
 
-    return SHFileOperation(&fop); // do it!  
+    return SHFileOperation(&fop); // do it!
 }
 
 CString Utility::GetINIString(LPCTSTR pszFile, LPCTSTR pszSection, LPCTSTR pszName)
-{  
-    TCHAR szBuffer[1024] = _T("");  
+{
+    TCHAR szBuffer[1024] = _T("");
     GetPrivateProfileString(pszSection, pszName, _T(""), szBuffer, 1024, pszFile);
 
     CString sResult = szBuffer;
@@ -342,7 +342,7 @@ CString Utility::GetINIString(LPCTSTR pszFile, LPCTSTR pszSection, LPCTSTR pszNa
 }
 
 void Utility::SetINIString(LPCTSTR pszFile, LPCTSTR pszSection, LPCTSTR pszName, LPCTSTR pszValue)
-{   
+{
     WritePrivateProfileString(pszSection, pszName, pszValue, pszFile);
 }
 
@@ -360,18 +360,18 @@ void Utility::SetLayoutRTL(HWND hWnd)
 
     HWND hWndChild = GetWindow(hWnd, GW_CHILD);
     while(hWndChild!=NULL)
-    {    
+    {
         SetLayoutRTL(hWndChild);
 
         CRect rc;
-        ::GetWindowRect(hWndChild, &rc);    
+        ::GetWindowRect(hWndChild, &rc);
         ::MapWindowPoints(0, hWnd, (LPPOINT)&rc, 2);
         ::MoveWindow(hWndChild, rcWnd.Width()-rc.right, rc.top, rc.Width(), rc.Height(), TRUE);
 
         SetLayout(GetDC(hWndChild), LAYOUT_RTL);
 
         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);
-    }  
+    }
 }
 
 CString Utility::FormatErrorMsg(DWORD dwErrorCode)
@@ -430,10 +430,10 @@ CString Utility::GetFileExtension(CString sFileName)
 
 CString Utility::GetProductVersion(CString sModuleName)
 {
-    CString sProductVer; 
+    CString sProductVer;
 
     DWORD dwBuffSize = GetFileVersionInfoSize(sModuleName, 0);
-    LPBYTE pBuff = (LPBYTE)GlobalAlloc(GPTR, dwBuffSize);  
+    LPBYTE pBuff = (LPBYTE)GlobalAlloc(GPTR, dwBuffSize);
 
     if(NULL!=pBuff && 0!=GetFileVersionInfo(sModuleName, 0, dwBuffSize, pBuff))
     {
@@ -446,9 +446,9 @@ CString Utility::GetProductVersion(CString sModuleName)
         WORD dwPatchLevel = HIWORD(fi->dwProductVersionLS);
         WORD dwVerBuild = LOWORD(fi->dwProductVersionLS);
 
-        sProductVer.Format(_T("%u.%u.%u.%u"), 
-            dwVerMajor, dwVerMinor, dwPatchLevel, dwVerBuild);    
-    } 
+        sProductVer.Format(_T("%u.%u.%u.%u"),
+            dwVerMajor, dwVerMinor, dwPatchLevel, dwVerBuild);
+    }
 
     GlobalFree((HGLOBAL)pBuff);
 
@@ -458,15 +458,15 @@ CString Utility::GetProductVersion(CString sModuleName)
 // Creates a folder. If some intermediate folders in the path do not exist,
 // it creates them.
 BOOL Utility::CreateFolder(CString sFolderName)
-{  
+{
     CString sIntermediateFolder;
 
     // Skip disc drive name "X:\" if presents
     int start = sFolderName.Find(':', 0);
     if(start>=0)
-        start+=2; 
+        start+=2;
 
-    int pos = start;  
+    int pos = start;
     for(;;)
     {
         pos = sFolderName.Find('\\', pos);
@@ -519,9 +519,9 @@ CString Utility::FileSizeToStr(ULONG64 uFileSize)
         float fSizeKbytes = (float)uFileSize/(float)1024;
         TCHAR szStr[64];
 #if _MSC_VER<1400
-        _stprintf(szStr, _T("%0.1f KB"), fSizeKbytes);    
+        _stprintf(szStr, _T("%0.1f KB"), fSizeKbytes);
 #else
-        _stprintf_s(szStr, 64, _T("%0.1f KB"), fSizeKbytes);    
+        _stprintf_s(szStr, 64, _T("%0.1f KB"), fSizeKbytes);
 #endif
         sFileSize = szStr;
     }
@@ -534,9 +534,9 @@ CString Utility::FileSizeToStr(ULONG64 uFileSize)
         float fSizeMbytes = (float)uFileSize/(float)(1024*1024);
         TCHAR szStr[64];
 #if _MSC_VER<1400
-        _stprintf(szStr, _T("%0.1f MB"), fSizeMbytes);    
+        _stprintf(szStr, _T("%0.1f MB"), fSizeMbytes);
 #else
-        _stprintf_s(szStr, 64, _T("%0.1f MB"), fSizeMbytes);    
+        _stprintf_s(szStr, 64, _T("%0.1f MB"), fSizeMbytes);
 #endif
         sFileSize = szStr;
     }
@@ -553,7 +553,7 @@ CString Utility::AddEllipsis(LPCTSTR szString, int nMaxLength)
 	if(sResult.GetLength()>nMaxLength)
 	{
 		if(nMaxLength>=3)
-			sResult = sResult.Mid(0, nMaxLength-3)+_T("...");		
+			sResult = sResult.Mid(0, nMaxLength-3)+_T("...");
 	}
 
 	return sResult;
@@ -563,13 +563,13 @@ std::vector<CString> Utility::ExplodeStr(LPCTSTR szString, LPCTSTR szSeparators)
 {
 	std::vector<CString> aTokens;
 
-	CString copy = szString;	
+	CString copy = szString;
 	TCHAR  *context = 0;
-	TCHAR  *token = _tcstok_s(const_cast<LPTSTR>((LPCTSTR)copy), szSeparators, &context);	
-	while (token != 0) 
+	TCHAR  *token = _tcstok_s(const_cast<LPTSTR>((LPCTSTR)copy), szSeparators, &context);
+	while (token != 0)
 	{
 		aTokens.push_back(token);
-		token=_tcstok_s(NULL, szSeparators, &context);		
+		token=_tcstok_s(NULL, szSeparators, &context);
 	};
 
 	return aTokens;
@@ -596,8 +596,8 @@ BOOL Utility::IsFileSearchPattern(CString sFileName)
 	if(sFileName.Left(4).Compare(_T("\\\\?\\"))==0)
 		sFileName = sFileName.Mid(4);
 
-	// Check if the file name is a search template.		
-	BOOL bSearchPattern = FALSE;	
+	// Check if the file name is a search template.
+	BOOL bSearchPattern = FALSE;
 	int nPos = sFileName.FindOneOf(_T("*?"));
 	if(nPos>=0)
 		bSearchPattern = true;

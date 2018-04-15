@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -29,28 +29,28 @@ CScreenCapture::~CScreenCapture()
 	// Free used resources
 }
 
-BOOL CScreenCapture::TakeDesktopScreenshot(	
+BOOL CScreenCapture::TakeDesktopScreenshot(
 			LPCTSTR szSaveToDir,
-			ScreenshotInfo& ssi, 
-			SCREENSHOT_TYPE type, 
+			ScreenshotInfo& ssi,
+			SCREENSHOT_TYPE type,
 			DWORD dwProcessId,
-			SCREENSHOT_IMAGE_FORMAT fmt, 
+			SCREENSHOT_IMAGE_FORMAT fmt,
 			int nJpegQuality,
 			BOOL bGrayscale,
 			int nIdStartFrom)
-{   
+{
 	// This method takes the desktop screenshot (screenshot of entire virtual screen
-	// or screenshot of the main window, or screenshot of all process windows). 
+	// or screenshot of the main window, or screenshot of all process windows).
 
 	// First, we need to calculate the area rectangle to capture
     std::vector<CRect> wnd_list; // List of window rectangles
 
     if(type==SCREENSHOT_TYPE_MAIN_WINDOW) // We need to capture the main window
-    {     
+    {
         // Take screenshot of the main window
-        std::vector<WindowInfo> aWindows; 
-        FindWindows(dwProcessId, FALSE, &aWindows);           
-        
+        std::vector<WindowInfo> aWindows;
+        FindWindows(dwProcessId, FALSE, &aWindows);
+
 		if(aWindows.size()>0)
         {
             wnd_list.push_back(aWindows[0].m_rcWnd);
@@ -58,10 +58,10 @@ BOOL CScreenCapture::TakeDesktopScreenshot(
         }
     }
     else if(type==SCREENSHOT_TYPE_ALL_PROCESS_WINDOWS) // Capture all process windows
-    {          
-        std::vector<WindowInfo> aWindows; 
+    {
+        std::vector<WindowInfo> aWindows;
         FindWindows(dwProcessId, TRUE, &aWindows);
-            
+
         int i;
         for(i=0; i<(int)aWindows.size(); i++)
             wnd_list.push_back(aWindows[i].m_rcWnd);
@@ -71,48 +71,48 @@ BOOL CScreenCapture::TakeDesktopScreenshot(
     {
         // Take screenshot of the entire desktop
         CRect rcScreen;
-        GetScreenRect(&rcScreen);    
+        GetScreenRect(&rcScreen);
         wnd_list.push_back(rcScreen);
     }
 
 	// Mark screenshot information as valid
     ssi.m_bValid = TRUE;
 	// Save virtual screen rect
-    GetScreenRect(&ssi.m_rcVirtualScreen);  
+    GetScreenRect(&ssi.m_rcVirtualScreen);
 
 	// Save current timestamp
 	time(&ssi.m_CreateTime);
 
-	// Capture screen rectangle	
+	// Capture screen rectangle
     BOOL bTakeScreenshot = CaptureScreenRect(
-		wnd_list, 
-        szSaveToDir, 
-        nIdStartFrom, 
-		fmt, 
-		nJpegQuality, 
-		bGrayscale, 
+		wnd_list,
+        szSaveToDir,
+        nIdStartFrom,
+		fmt,
+		nJpegQuality,
+		bGrayscale,
         ssi.m_aMonitors);
     if(bTakeScreenshot==FALSE)
     {
         return FALSE;
     }
-	    
+
     // Done
     return TRUE;
 }
 
 BOOL CScreenCapture::CaptureScreenRect(
-                                       std::vector<CRect> arcCapture,  
-                                       CString sSaveDirName,   
-                                       int nIdStartFrom, 
+                                       std::vector<CRect> arcCapture,
+                                       CString sSaveDirName,
+                                       int nIdStartFrom,
                                        SCREENSHOT_IMAGE_FORMAT fmt,
                                        int nJpegQuality,
                                        BOOL bGrayscale,
                                        std::vector<MonitorInfo>& monitor_list)
-{	
+{
     // Init output variables
     monitor_list.clear();
-    
+
     // Set internal variables
     m_nIdStartFrom = nIdStartFrom;
     m_sSaveDirName = sSaveDirName;
@@ -128,7 +128,7 @@ BOOL CScreenCapture::CaptureScreenRect(
     GetCursorInfo(&m_CursorInfo);
 
     // Perform actual capture task inside of EnumMonitorsProc
-    EnumDisplayMonitors(NULL, NULL, EnumMonitorsProc, (LPARAM)this);	
+    EnumDisplayMonitors(NULL, NULL, EnumMonitorsProc, (LPARAM)this);
 
     // Return
     monitor_list = m_monitor_list;
@@ -137,11 +137,11 @@ BOOL CScreenCapture::CaptureScreenRect(
 
 // This function is used for monitor enumeration
 BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonitor*/, LPRECT lprcMonitor, LPARAM dwData)
-{	  
+{
     CScreenCapture* psc = (CScreenCapture*)dwData;
 
     MONITORINFOEX mi;
-    HDC hDC = NULL;  
+    HDC hDC = NULL;
     HDC hCompatDC = NULL;
     HBITMAP hBitmap = NULL;
     BITMAPINFO bmi;
@@ -161,7 +161,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
     GetMonitorInfo(hMonitor, &mi);
 
     // Get the device context for this monitor
-    hDC = CreateDC(_T("DISPLAY"), mi.szDevice, NULL, NULL); 
+    hDC = CreateDC(_T("DISPLAY"), mi.szDevice, NULL, NULL);
     if(hDC==NULL)
         goto cleanup;
 
@@ -182,7 +182,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
         CRect rcIntersect;
         if(IntersectRect(&rcIntersect, lprcMonitor, &rc))
         {
-            BOOL bBitBlt = BitBlt(hCompatDC, rc.left-lprcMonitor->left, rc.top-lprcMonitor->top, 
+            BOOL bBitBlt = BitBlt(hCompatDC, rc.left-lprcMonitor->left, rc.top-lprcMonitor->top,
                 rc.Width(), rc.Height(), hDC, rc.left-lprcMonitor->left, rc.top-lprcMonitor->top, SRCCOPY|CAPTUREBLT);
             if(!bBitBlt)
                 goto cleanup;
@@ -191,7 +191,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
 
     // Draw mouse cursor.
     if(PtInRect(lprcMonitor, psc->m_ptCursorPos))
-    {						
+    {
         if(psc->m_CursorInfo.flags == CURSOR_SHOWING)
         {
             ICONINFO IconInfo;
@@ -201,7 +201,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
             DrawIcon(hCompatDC, x, y, (HICON)psc->m_CursorInfo.hCursor);
             DeleteObject(IconInfo.hbmMask);
             DeleteObject(IconInfo.hbmColor);
-        }				
+        }
     }
 
     /* Write screenshot bitmap to an image file. */
@@ -228,7 +228,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
 		sFileName.Format(_T("%s\\screenshot%d.bmp"), (LPCTSTR) psc->m_sSaveDirName, psc->m_nIdStartFrom++);
         BOOL bInit = psc->BmpInit(nWidth, nHeight, psc->m_bGrayscale, (LPCTSTR) sFileName);
         if(!bInit)
-            goto cleanup;		
+            goto cleanup;
     }
 
     // We will get bitmap bits row by row
@@ -239,20 +239,20 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
         goto cleanup;
 
     memset(&bmi.bmiHeader, 0, sizeof(BITMAPINFOHEADER));
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = nWidth;
     bmi.bmiHeader.biHeight = -nHeight;
     bmi.bmiHeader.biBitCount = 24;
-    bmi.bmiHeader.biPlanes = 1;  
+    bmi.bmiHeader.biPlanes = 1;
 
     //int i;
 	if(psc->m_fmt==SCREENSHOT_FORMAT_BMP)
 		i=0;
 	else
 		i=nHeight-1;
-	
+
     for(;;)
-    {    
+    {
         int nFetched = GetDIBits(hCompatDC, hBitmap, i, 1, pRowBits, &bmi, DIB_RGB_COLORS);
         if(nFetched!=1)
             break;
@@ -261,20 +261,20 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
         {
             BOOL bWrite = psc->PngWriteRow(pRowBits, nRowWidth, psc->m_bGrayscale);
             if(!bWrite)
-                goto cleanup;   
+                goto cleanup;
         }
         else if(psc->m_fmt==SCREENSHOT_FORMAT_JPG)
-        {    
+        {
             BOOL bWrite = psc->JpegWriteRow(pRowBits, nRowWidth, psc->m_bGrayscale);
             if(!bWrite)
-                goto cleanup;   
+                goto cleanup;
         }
         else if(psc->m_fmt==SCREENSHOT_FORMAT_BMP)
         {
 			BOOL bWrite = psc->BmpWriteRow(pRowBits, nRowWidth, psc->m_bGrayscale);
             if(!bWrite)
-                goto cleanup;  
-        }      
+                goto cleanup;
+        }
 
 		if(psc->m_fmt==SCREENSHOT_FORMAT_BMP)
 		{
@@ -295,7 +295,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
         psc->PngFinalize();
     }
     else if(psc->m_fmt==SCREENSHOT_FORMAT_JPG)
-    {    
+    {
         psc->JpegFinalize();
     }
     else if(psc->m_fmt==SCREENSHOT_FORMAT_BMP)
@@ -306,7 +306,7 @@ BOOL CALLBACK CScreenCapture::EnumMonitorsProc(HMONITOR hMonitor, HDC /*hdcMonit
     {
         ATLASSERT(0); // Invalid format
         goto cleanup;
-    }  
+    }
 
     monitor_info.m_rcMonitor = mi.rcMonitor;
     monitor_info.m_sDeviceID = mi.szDevice;
@@ -345,7 +345,7 @@ void CScreenCapture::GetScreenRect(LPRECT rcScreen)
 }
 
 BOOL CScreenCapture::PngInit(int nWidth, int nHeight, BOOL bGrayscale, CString sFileName)
-{  
+{
     m_fp = NULL;
     m_png_ptr = NULL;
     m_info_ptr = NULL;
@@ -357,11 +357,11 @@ BOOL CScreenCapture::PngInit(int nWidth, int nHeight, BOOL bGrayscale, CString s
 #endif
 
     if (!m_fp)
-    {    
+    {
         return FALSE;
     }
 
-    m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 
+    m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
         (png_voidp)NULL, NULL, NULL);
     if (!m_png_ptr)
         return FALSE;
@@ -394,14 +394,14 @@ BOOL CScreenCapture::PngInit(int nWidth, int nHeight, BOOL bGrayscale, CString s
     png_set_compression_buffer_size(m_png_ptr, 8192);
 
     png_set_IHDR(
-        m_png_ptr, 
-        m_info_ptr, 
-        nWidth, //width, 
+        m_png_ptr,
+        m_info_ptr,
+        nWidth, //width,
         nHeight, //height,
         8, // bit_depth
         bGrayscale?PNG_COLOR_TYPE_GRAY:PNG_COLOR_TYPE_RGB, // color_type
         PNG_INTERLACE_NONE, // interlace_type
-        PNG_COMPRESSION_TYPE_DEFAULT, 
+        PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
     png_set_bgr(m_png_ptr);
@@ -426,7 +426,7 @@ BOOL CScreenCapture::PngWriteRow(LPBYTE pRow, int nRowLen, BOOL bGrayscale)
     }
     else
     {
-        pRow2 = pRow;    
+        pRow2 = pRow;
     }
 
     png_bytep rows[1] = {pRow2};
@@ -452,10 +452,10 @@ BOOL CScreenCapture::PngFinalize()
 }
 
 BOOL CScreenCapture::JpegInit(int nWidth, int nHeight, BOOL bGrayscale, int nQuality, CString sFileName)
-{   
+{
     /* Step 1: allocate and initialize JPEG compression object */
 
-    m_cinfo.err = jpeg_std_error(&m_jerr);  
+    m_cinfo.err = jpeg_std_error(&m_jerr);
     jpeg_create_compress(&m_cinfo);
 
     /* Step 2: specify data destination (eg, a file) */
@@ -501,7 +501,7 @@ BOOL CScreenCapture::JpegWriteRow(LPBYTE pRow, int nRowLen, BOOL bGrayscale)
     {
         pRow2 = new BYTE[nRowLen];
         for(i=0; i<nRowLen/3; i++)
-        {    
+        {
             pRow2[i*3+0] = pRow[i*3+2];
             pRow2[i*3+1] = pRow[i*3+1];
             pRow2[i*3+2] = pRow[i*3+0];
@@ -560,23 +560,23 @@ BOOL CScreenCapture::BmpInit(int nWidth, int nHeight, BOOL bGrayscale, CString s
 	int paddedsize = nWidth*(bGrayscale?1:3);
 	paddedsize+=paddedsize%4;
 	paddedsize*=nHeight;
-	bmfh.bfSize = sizeof(BITMAPFILEHEADER) + 
+	bmfh.bfSize = sizeof(BITMAPFILEHEADER) +
 		sizeof(BITMAPINFOHEADER) + paddedsize;
 	bmfh.bfOffBits = 0x36;
 
 	info.biSize = sizeof(BITMAPINFOHEADER);
 	info.biWidth = nWidth;
 	info.biHeight = nHeight;
-	info.biPlanes = 1;	
+	info.biPlanes = 1;
 	info.biBitCount = bGrayscale?8:24;
-	info.biCompression = BI_RGB;	
+	info.biCompression = BI_RGB;
 	info.biSizeImage = 0;
-	info.biXPelsPerMeter = 0x0ec4;  
-	info.biYPelsPerMeter = 0x0ec4;     
-	info.biClrUsed = 0;	
-	info.biClrImportant = 0; 
-		
-	if(1!=fwrite(&bmfh, sizeof ( BITMAPFILEHEADER ), 1, m_fp)) 
+	info.biXPelsPerMeter = 0x0ec4;
+	info.biYPelsPerMeter = 0x0ec4;
+	info.biClrUsed = 0;
+	info.biClrImportant = 0;
+
+	if(1!=fwrite(&bmfh, sizeof ( BITMAPFILEHEADER ), 1, m_fp))
 	{
 		return FALSE;
 	}
@@ -636,21 +636,21 @@ BOOL CALLBACK CScreenCapture::EnumWndProc(HWND hWnd, LPARAM lParam)
 
         // Compare window process ID to our process ID
         if(dwProcessId == dwMyProcessId)
-        {     
+        {
             DWORD dwStyle = GetWindowLong(hWnd, GWL_STYLE);
             if((dwStyle&WS_CHILD)==0) // Get only non-child windows
             {
                 DWORD dwExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
                 WindowInfo wi;
                 TCHAR szTitle[1024];
-                GetWindowText(hWnd, szTitle, 1024);            
+                GetWindowText(hWnd, szTitle, 1024);
                 wi.m_sTitle = szTitle;
                 GetWindowRect(hWnd, &wi.m_rcWnd);
                 wi.dwStyle = dwStyle;
                 wi.dwExStyle = dwExStyle;
                 pFWD->paWindows->push_back(wi);
 
-                return TRUE;          
+                return TRUE;
             }
         }
     }
@@ -666,20 +666,20 @@ BOOL CScreenCapture::FindWindows(DWORD dwProcessId, BOOL bAllProcessWindows, std
     fwd.paWindows = paWindows;
     EnumWindows(EnumWndProc, (LPARAM)&fwd);
 
-    if(!bAllProcessWindows) 
-    {    
+    if(!bAllProcessWindows)
+    {
         // Find only the main window
-        // The main window should have caption, system menu and WS_EX_APPWINDOW style.  
+        // The main window should have caption, system menu and WS_EX_APPWINDOW style.
         WindowInfo MainWnd;
         BOOL bMainWndFound = FALSE;
 
         size_t i;
         for(i=0; i<paWindows->size(); i++)
         {
-            if(((*paWindows)[i].dwExStyle&WS_EX_APPWINDOW) && 
-                ((*paWindows)[i].dwStyle&WS_CAPTION) && 
+            if(((*paWindows)[i].dwExStyle&WS_EX_APPWINDOW) &&
+                ((*paWindows)[i].dwStyle&WS_CAPTION) &&
                 ((*paWindows)[i].dwStyle&WS_SYSMENU))
-            {      
+            {
                 // Match!
                 bMainWndFound = TRUE;
                 MainWnd = (*paWindows)[i];

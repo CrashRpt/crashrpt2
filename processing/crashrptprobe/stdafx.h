@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -21,9 +21,9 @@ be found in the Authors.txt file in the root of the source tree.
 #define WINVER 0x0501		// Change this to the appropriate value to target other versions of Windows.
 #endif
 
-#ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.                   
+#ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.
 #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
-#endif						
+#endif
 
 #ifndef _WIN32_WINDOWS		// Allow use of features specific to Windows 98 or later.
 #define _WIN32_WINDOWS 0x0410 // Change this to the appropriate value to target Windows Me or later.
@@ -48,7 +48,7 @@ be found in the Authors.txt file in the root of the source tree.
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #pragma conform(forScope, off)
-#pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")  
+#pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
 #endif // _WTL_SUPPORT_SDK_ATL3
 
 #include <atlbase.h>
@@ -97,6 +97,3 @@ extern CAppModule _Module;
 #endif
 
 int _STPRINTF_S(TCHAR* buffer, size_t sizeOfBuffer, const TCHAR* format, ... );
-
-
-

@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,7 +19,7 @@ enum PreviewMode
     PREVIEW_AUTO = -1,  // Auto
     PREVIEW_HEX  = 0,   // Hex
     PREVIEW_TEXT = 1,   // Text
-    PREVIEW_IMAGE = 2,  // Image    
+    PREVIEW_IMAGE = 2,  // Image
 	PREVIEW_VIDEO = 3   // OGG Theora-encoded video
 };
 
@@ -39,8 +39,8 @@ class CFileMemoryMapping
 public:
 
     // Construction/destruction
-    CFileMemoryMapping();  
-    ~CFileMemoryMapping();  
+    CFileMemoryMapping();
+    ~CFileMemoryMapping();
 
     // Initializes the object
     BOOL Init(LPCTSTR szFileName);
@@ -50,17 +50,17 @@ public:
     // Returns memory size
     ULONG64 GetSize();
 
-    // Creates a view 
+    // Creates a view
     LPBYTE CreateView(DWORD dwOffset, DWORD dwLength);
 
 private:
 
     HANDLE m_hFile;		          // Handle to current file
     HANDLE m_hFileMapping;		  // Memory mapped object
-    DWORD m_dwAllocGranularity; // System allocation granularity  	  
-    ULONG64 m_uFileLength;		  // Size of the file.		
+    DWORD m_dwAllocGranularity; // System allocation granularity
+    ULONG64 m_uFileLength;		  // Size of the file.
     CCritSec m_csLock;          // Synchronization object
-    std::map<DWORD, LPBYTE> m_aViewStartPtrs; // Base of the view of the file.    
+    std::map<DWORD, LPBYTE> m_aViewStartPtrs; // Base of the view of the file.
 };
 
 // Line info
@@ -96,7 +96,7 @@ public:
     // Cancels loading
     void Cancel();
     // Returns TRUE if image is valid, otherwise returns FALSE
-    BOOL IsValid();  
+    BOOL IsValid();
     // Draws the image on the device context
     void Draw(HDC hDC, LPRECT prcDraw);
 
@@ -107,7 +107,7 @@ private:
     BOOL LoadBitmapFromJPEGFile(LPTSTR szFileName);
 
     CCritSec m_csLock;      // Critical section
-    HBITMAP m_hBitmap;      // Handle to the bitmap.  
+    HBITMAP m_hBitmap;      // Handle to the bitmap.
     HPALETTE m_hPalette;    // Palette
     BOOL m_bLoadCancelled;  // Load cancel flag
 };
@@ -157,7 +157,7 @@ private:
 	BOOL CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits);
 
 	// Converts an YV12 image to RGB24 image.
-	void YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth, 
+	void YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth,
 				int nFrameHeight, int nRGBStride, th_ycbcr_buffer raw );
 
 	CCritSec m_csLock;      // Critical section
@@ -167,7 +167,7 @@ private:
 	LPVOID m_pFrameBits;    // Frame buffer.
 	LPBITMAPINFO m_pDIB;    // Bitmap info.
 	HDC m_hDC;              // Device context.
-	HBITMAP m_hOldBitmap;   //	
+	HBITMAP m_hOldBitmap;   //
 	ogg_sync_state m_state;
 	char* m_buf;
 	ogg_page m_page;
@@ -176,7 +176,7 @@ private:
 	th_info m_info;
 	th_comment m_comment;
 	th_setup_info* m_psetup;
-	th_dec_ctx* m_pctx;	
+	th_dec_ctx* m_pctx;
 	ogg_int64_t m_pos;
 	th_ycbcr_buffer m_raw;
 	int m_nFrameWidth;
@@ -200,9 +200,9 @@ public:
 
     DECLARE_WND_SUPERCLASS(NULL, CWindow::GetWndClassName())
 
-    BEGIN_MSG_MAP(CFilePreviewCtrl)  
-        if (uMsg == WM_NCHITTEST || 
-            uMsg == WM_NCLBUTTONDOWN || 
+    BEGIN_MSG_MAP(CFilePreviewCtrl)
+        if (uMsg == WM_NCHITTEST ||
+            uMsg == WM_NCLBUTTONDOWN ||
             uMsg == WM_NCLBUTTONDBLCLK ||
             uMsg == WM_NCMBUTTONDOWN ||
             uMsg == WM_NCXBUTTONDOWN)
@@ -220,7 +220,7 @@ public:
             MESSAGE_HANDLER(WM_HSCROLL, OnHScroll)
             MESSAGE_HANDLER(WM_VSCROLL, OnVScroll)
             MESSAGE_HANDLER(WM_TIMER, OnTimer)
-            MESSAGE_HANDLER(WM_FPC_COMPLETE, OnComplete)			
+            MESSAGE_HANDLER(WM_FPC_COMPLETE, OnComplete)
             MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
             MESSAGE_HANDLER(WM_RBUTTONUP, OnRButtonUp)
             MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
@@ -263,7 +263,7 @@ public:
     LRESULT OnHScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnVScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-    LRESULT OnComplete(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	
+    LRESULT OnComplete(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnRButtonUp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -271,7 +271,7 @@ public:
     void SetupScrollbars();
     CString FormatHexLine(LPBYTE pData, int nBytesInLine, ULONG64 uLineOffset);
     void DrawHexLine(HDC hdc, DWORD nLineNo);
-    void DrawTextLine(HDC hdc, DWORD nLineNo);  
+    void DrawTextLine(HDC hdc, DWORD nLineNo);
     void DoPaintEmpty(HDC hDC);
     void DoPaintText(HDC hDC);
     void DoPaintBitmap(HDC hDC);
@@ -279,7 +279,7 @@ public:
     void DoPaint(HDC hDC);
 
     // Used internally to performs some work assynchronously
-    static DWORD WINAPI WorkerThread(LPVOID lpParam);  
+    static DWORD WINAPI WorkerThread(LPVOID lpParam);
     void DoInWorkerThread();
 
     // Parses text file assynchronously
@@ -294,23 +294,23 @@ public:
     CString m_sFileName;         // File name.
     PreviewMode m_PreviewMode;   // File preview mode.
     TextEncoding m_TextEncoding; // Text encoding (if in text preview mode).
-    int m_nEncSignatureLen;      // Length of the text encoding signature. 
+    int m_nEncSignatureLen;      // Length of the text encoding signature.
     CCritSec m_csLock;           // Sync object.
-    CFileMemoryMapping m_fm;     // File mapping object.  
-    HFONT m_hFont;               // Font in use.  
+    CFileMemoryMapping m_fm;     // File mapping object.
+    HFONT m_hFont;               // Font in use.
     int m_xChar;                 // Size of character in x direction.
     int m_yChar;                 // Size of character in y direction.
     int m_nMaxColsPerPage;       // Maximum columns per page.
     int m_nMaxLinesPerPage;      // Maximum count of lines per one page.
     int m_nMaxDisplayWidth;      // Maximum display width
-    ULONG64 m_uNumLines;         // Number of lines in the file.	
+    ULONG64 m_uNumLines;         // Number of lines in the file.
     int m_nBytesPerLine;         // Count of displayed bytes per line.
     int m_cchTabLength;          // Length of the tab, in characters
     CString m_sEmptyMsg;         // Text to display when file is empty
     int m_nHScrollPos;           // Horizontal scroll position.
     int m_nHScrollMax;           // Max horizontal scroll position.
     int m_nVScrollPos;           // Vertical scrolling position.
-    int m_nVScrollMax;           // Maximum vertical scrolling position.  
+    int m_nVScrollMax;           // Maximum vertical scrolling position.
     std::vector<DWORD> m_aTextLines; // The array of lines of text file.
     HANDLE m_hWorkerThread;      // Handle to the worker thread.
     BOOL m_bCancelled;           // Is worker thread cancelled?

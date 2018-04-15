@@ -236,18 +236,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#include ""atlres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\0"
 END
@@ -286,7 +286,7 @@ BEGIN
     VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
-    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
 END
 
@@ -353,7 +353,7 @@ BEGIN
     IDS_HEADER              "{\\bnsi\\bnsicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fswiss\\fcharset0 Microsoft Sans Serif;}}\n{\\*\\generator Msftedit 5.41.15.1503;}\\viewkind4\\uc1\\pard\\f0\\fs30 %s has stopped working}\n "
     IDS_INVALID_EMAIL       "Please enter a valid E-mail address. For example, name@hotmail.com."
     IDS_ZIP_FILTER          "Zip Files (*.zip)"
-    IDS_HTTP_HEADER_CONTENT_TYPE 
+    IDS_HTTP_HEADER_CONTENT_TYPE
                             "Content-Type: Multipart/form-data; boundary=%s"
     IDS_HTTP_HEADER_BOUNDARY "-----------------7d31389b0426"
 END

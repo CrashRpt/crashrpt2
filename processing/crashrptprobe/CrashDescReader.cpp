@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -52,7 +52,7 @@ int CCrashDescReader::Load(CString sFileName)
     if(f==NULL)
         return -1; // File can't be opened
 
-    // Open XML document  
+    // Open XML document
     bool bLoaded = doc.LoadFile(f);
     if(!bLoaded)
     {
@@ -69,7 +69,7 @@ int CCrashDescReader::Load(CString sFileName)
         {
             fclose(f);
             return 0;
-        }  
+        }
 
         return -3; // Invalid XML structure
     }
@@ -85,78 +85,78 @@ int CCrashDescReader::Load(CString sFileName)
     // Get CrashGUID
     TiXmlHandle hCrashGUID = hRoot.ToElement()->FirstChild("CrashGUID");
     if(hCrashGUID.ToElement())
-    {    
-        TiXmlText* pTextElem = hCrashGUID.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hCrashGUID.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sCrashGUID = strconv.utf82t(text);    
-        }    
+                m_sCrashGUID = strconv.utf82t(text);
+        }
     }
 
     // Get AppName
     TiXmlHandle hAppName = hRoot.ToElement()->FirstChild("AppName");
     if(hAppName.ToElement())
-    {    
-        TiXmlText* pTextElem = hAppName.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hAppName.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sAppName = strconv.utf82t(text);        
+                m_sAppName = strconv.utf82t(text);
         }
     }
 
     // Get AppVersion
     TiXmlHandle hAppVersion = hRoot.ToElement()->FirstChild("AppVersion");
     if(hAppVersion.ToElement())
-    {    
-        TiXmlText* pTextElem = hAppVersion.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hAppVersion.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sAppVersion = strconv.utf82t(text);    
+                m_sAppVersion = strconv.utf82t(text);
         }
     }
 
     // Get ImageName
     TiXmlHandle hImageName = hRoot.ToElement()->FirstChild("ImageName");
     if(hImageName.ToElement())
-    {    
-        TiXmlText* pTextElem = hImageName.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hImageName.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sImageName = strconv.utf82t(text);        
+                m_sImageName = strconv.utf82t(text);
         }
     }
 
     // Get OperatingSystem
     TiXmlHandle hOperatingSystem = hRoot.ToElement()->FirstChild("OperatingSystem");
     if(hOperatingSystem.ToElement())
-    {    
-        TiXmlText* pTextElem = hOperatingSystem.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hOperatingSystem.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sOperatingSystem = strconv.utf82t(text);        
+                m_sOperatingSystem = strconv.utf82t(text);
         }
     }
 
     // Get GeoLocation
     TiXmlHandle hGeoLocation = hRoot.ToElement()->FirstChild("GeoLocation");
     if(hGeoLocation.ToElement())
-    {    
-        TiXmlText* pTextElem = hGeoLocation.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hGeoLocation.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sGeoLocation = strconv.utf82t(text);        
+                m_sGeoLocation = strconv.utf82t(text);
         }
     }
 
@@ -164,52 +164,52 @@ int CCrashDescReader::Load(CString sFileName)
     m_bOSIs64Bit = FALSE;
     TiXmlHandle hOSIs64Bit = hRoot.ToElement()->FirstChild("OSIs64Bit");
     if(hOSIs64Bit.ToElement())
-    {    
-        TiXmlText* pTextElem = hOSIs64Bit.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hOSIs64Bit.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_bOSIs64Bit = atoi(text);        
+                m_bOSIs64Bit = atoi(text);
         }
     }
 
     // Get SystemTimeUTC
     TiXmlHandle hSystemTimeUTC = hRoot.ToElement()->FirstChild("SystemTimeUTC");
     if(hSystemTimeUTC.ToElement())
-    {    
-        TiXmlText* pTextElem = hSystemTimeUTC.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hSystemTimeUTC.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sSystemTimeUTC = strconv.utf82t(text);        
+                m_sSystemTimeUTC = strconv.utf82t(text);
         }
     }
 
     // Get ExceptionType
     TiXmlHandle hExceptionType = hRoot.ToElement()->FirstChild("ExceptionType");
     if(hExceptionType.ToElement())
-    {    
-        TiXmlText* pTextElem = hExceptionType.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hExceptionType.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_dwExceptionType = atoi(text);        
+                m_dwExceptionType = atoi(text);
         }
     }
 
     // Get UserEmail
     TiXmlHandle hUserEmail = hRoot.ToElement()->FirstChild("UserEmail");
     if(hUserEmail.ToElement())
-    {    
-        TiXmlText* pTextElem = hUserEmail.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hUserEmail.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sUserEmail = strconv.utf82t(text);    
+                m_sUserEmail = strconv.utf82t(text);
         }
     }
 
@@ -217,96 +217,96 @@ int CCrashDescReader::Load(CString sFileName)
     TiXmlHandle hProblemDescription = hRoot.ToElement()->FirstChild("ProblemDescription");
     if(hProblemDescription.ToElement())
     {
-        TiXmlText* pTextElem = hProblemDescription.FirstChild().Text();     
+        TiXmlText* pTextElem = hProblemDescription.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sProblemDescription = strconv.utf82t(text);    
+                m_sProblemDescription = strconv.utf82t(text);
         }
     }
 
     // Get ExceptionCode (for SEH exceptions only)
     if(m_dwExceptionType==CR_SEH_EXCEPTION)
-    {    
+    {
         TiXmlHandle hExceptionCode = hRoot.ToElement()->FirstChild("ExceptionCode");
         if(hExceptionCode.ToElement())
-        {      
-            TiXmlText* pTextElem = hExceptionCode.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hExceptionCode.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_dwExceptionCode = atoi(text);    
+                    m_dwExceptionCode = atoi(text);
             }
         }
     }
 
     // Get FPESubcode (for FPE exceptions only)
     if(m_dwExceptionType==CR_CPP_SIGFPE)
-    {    
+    {
         TiXmlHandle hFPESubcode = hRoot.ToElement()->FirstChild("FPESubcode");
         if(hFPESubcode.ToElement())
-        {      
-            TiXmlText* pTextElem = hFPESubcode.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hFPESubcode.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_dwFPESubcode = atoi(text);          
+                    m_dwFPESubcode = atoi(text);
             }
         }
     }
 
-    // Get InvParamExpression, InvParamFunction, InvParamFile, InvParamLine 
+    // Get InvParamExpression, InvParamFunction, InvParamFile, InvParamLine
     // (for invalid parameter exceptions only)
     if(m_dwExceptionType==CR_CPP_INVALID_PARAMETER)
-    {    
+    {
         TiXmlHandle hInvParamExpression = hRoot.ToElement()->FirstChild("InvParamExpression");
         if(hInvParamExpression.ToElement())
-        {      
-            TiXmlText* pTextElem = hInvParamExpression.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hInvParamExpression.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_sInvParamExpression = strconv.utf82t(text);          
+                    m_sInvParamExpression = strconv.utf82t(text);
             }
         }
 
         TiXmlHandle hInvParamFunction = hRoot.ToElement()->FirstChild("InvParamFunction");
         if(hInvParamFunction.ToElement())
-        {      
-            TiXmlText* pTextElem = hInvParamFunction.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hInvParamFunction.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_sInvParamFunction = strconv.utf82t(text);          
+                    m_sInvParamFunction = strconv.utf82t(text);
             }
         }
 
         TiXmlHandle hInvParamFile = hRoot.ToElement()->FirstChild("InvParamFile");
         if(hInvParamFile.ToElement())
-        {      
-            TiXmlText* pTextElem = hInvParamFile.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hInvParamFile.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_sInvParamFile = strconv.utf82t(text);          
+                    m_sInvParamFile = strconv.utf82t(text);
             }
         }
 
         TiXmlHandle hInvParamLine = hRoot.ToElement()->FirstChild("InvParamLine");
         if(hInvParamLine.ToElement())
-        {      
-            TiXmlText* pTextElem = hInvParamLine.FirstChild().Text();     
+        {
+            TiXmlText* pTextElem = hInvParamLine.FirstChild().Text();
             if(pTextElem)
             {
                 const char* text = pTextElem->Value();
                 if(text)
-                    m_dwInvParamLine = atoi(text);          
+                    m_dwInvParamLine = atoi(text);
             }
         }
     }
@@ -314,39 +314,39 @@ int CCrashDescReader::Load(CString sFileName)
     // Get GUI resource count
     TiXmlHandle hGUIResourceCount = hRoot.ToElement()->FirstChild("GUIResourceCount");
     if(hGUIResourceCount.ToElement())
-    {      
-        TiXmlText* pTextElem = hGUIResourceCount.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hGUIResourceCount.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sGUIResourceCount = strconv.utf82t(text);          
+                m_sGUIResourceCount = strconv.utf82t(text);
         }
     }
 
     // Get open handle count
     TiXmlHandle hOpenHandleCount = hRoot.ToElement()->FirstChild("OpenHandleCount");
     if(hOpenHandleCount.ToElement())
-    {      
-        TiXmlText* pTextElem = hOpenHandleCount.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hOpenHandleCount.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sOpenHandleCount = strconv.utf82t(text);          
+                m_sOpenHandleCount = strconv.utf82t(text);
         }
     }
 
     // Get memory usage in KB
     TiXmlHandle hMemoryUsageKbytes = hRoot.ToElement()->FirstChild("MemoryUsageKbytes");
     if(hMemoryUsageKbytes.ToElement())
-    {      
-        TiXmlText* pTextElem = hMemoryUsageKbytes.FirstChild().Text();     
+    {
+        TiXmlText* pTextElem = hMemoryUsageKbytes.FirstChild().Text();
         if(pTextElem)
         {
             const char* text = pTextElem->Value();
             if(text)
-                m_sMemoryUsageKbytes = strconv.utf82t(text);          
+                m_sMemoryUsageKbytes = strconv.utf82t(text);
         }
     }
 
@@ -367,9 +367,9 @@ int CCrashDescReader::Load(CString sFileName)
 
             CString _sFileName, _sFileDescription;
             if(szFileName!=NULL)
-                _sFileName = strconv.utf82t(szFileName);    
+                _sFileName = strconv.utf82t(szFileName);
             if(szFileName!=NULL)
-                _sFileDescription = strconv.utf82t(szFileDescription);    
+                _sFileDescription = strconv.utf82t(szFileDescription);
 
             m_aFileItems[_sFileName]=_sFileDescription;
 
@@ -389,9 +389,9 @@ int CCrashDescReader::Load(CString sFileName)
 
             CString sName, sValue;
             if(szName!=NULL)
-                sName = strconv.utf82t(szName);    
+                sName = strconv.utf82t(szName);
             if(szValue!=NULL)
-                sValue = strconv.utf82t(szValue);    
+                sValue = strconv.utf82t(szValue);
 
             m_aCustomProps[sName]=sValue;
 
@@ -401,7 +401,7 @@ int CCrashDescReader::Load(CString sFileName)
 
     fclose(f);
 
-    // OK  
+    // OK
     m_bLoaded = true;
     return 0;
 }
@@ -431,7 +431,7 @@ int CCrashDescReader::LoadXmlv10(TiXmlHandle hDoc)
 
             m_sAppName = Utility::GetBaseFileName(szImageName);
         }
-    }  
+    }
 
     // OK
     m_bLoaded = true;

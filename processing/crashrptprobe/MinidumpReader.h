@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -21,10 +21,10 @@ struct MdmpModule
 {
     ULONG64 m_uBaseAddr;   // Base address
     ULONG64 m_uImageSize;  // Size of module
-    CString m_sModuleName; // Module name  
-    CString m_sImageName;  // The image name. The name may or may not contain a full path. 
-    CString m_sLoadedImageName; // The full path and file name of the file from which symbols were loaded. 
-    CString m_sLoadedPdbName;   // The full path and file name of the .pdb file.     
+    CString m_sModuleName; // Module name
+    CString m_sImageName;  // The image name. The name may or may not contain a full path.
+    CString m_sLoadedImageName; // The full path and file name of the file from which symbols were loaded.
+    CString m_sLoadedPdbName;   // The full path and file name of the .pdb file.
     BOOL m_bImageUnmatched;     // If TRUE than there wasn't matching binary found.
     BOOL m_bPdbUnmatched;       // If TRUE than there wasn't matching PDB file found.
     BOOL m_bNoSymbolInfo;       // If TRUE than no symbols were generated for this module.
@@ -41,7 +41,7 @@ struct MdmpStackFrame
         m_nSrcLineNumber = -1;
     }
 
-    DWORD64 m_dwAddrPCOffset; 
+    DWORD64 m_dwAddrPCOffset;
     int m_nModuleRowID;         // ROWID of the record in CPR_MDMP_MODULES table.
     CString m_sSymbolName;      // Name of symbol
     DWORD64 m_dw64OffsInSymbol; // Offset in symbol
@@ -76,7 +76,7 @@ struct MdmpMemRange
 
 // Minidump data
 struct MdmpData
-{   
+{
     MdmpData()
     {
         m_hProcess = INVALID_HANDLE_VALUE;
@@ -84,7 +84,7 @@ struct MdmpData
         m_uchProductType = 0;
         m_ulVerMajor = 0;
         m_ulVerMinor = 0;
-        m_ulVerBuild = 0;    
+        m_ulVerBuild = 0;
         m_uExceptionCode = 0;
         m_uExceptionAddress = 0;
         m_uExceptionThreadId = 0;
@@ -103,14 +103,14 @@ struct MdmpData
 
     ULONG32 m_uExceptionCode;        // Structured exception's code
     ULONG64 m_uExceptionAddress;     // Exception address
-    ULONG32 m_uExceptionThreadId;    // Exceptions thread ID 
+    ULONG32 m_uExceptionThreadId;    // Exceptions thread ID
     CONTEXT* m_pExceptionThreadContext; // Thread context
 
     std::vector<MdmpThread> m_Threads;       // The list of threads.
     std::map<DWORD, size_t> m_ThreadIndex;   // <thread_id, thread_entry_index> pairs
     std::vector<MdmpModule> m_Modules;       // The list of loaded modules.
     std::map<DWORD64, size_t> m_ModuleIndex; // <base_addr, module_entry_index> pairs
-    std::vector<MdmpMemRange> m_MemRanges;   // The list of memory ranges.  
+    std::vector<MdmpMemRange> m_MemRanges;   // The list of memory ranges.
     std::vector<CString> m_LoadLog; // Load log
 };
 
@@ -129,7 +129,7 @@ public:
     int Open(CString sFileName, CString sSymSearchPath);
 
     // Retreives stack trace for specified thread ID
-    int StackWalk(DWORD dwThreadId);  
+    int StackWalk(DWORD dwThreadId);
 
     // Closes the opened minidump file
     void Close();
@@ -147,7 +147,7 @@ public:
     BOOL m_bReadExceptionStream;  // Was exception stream read?
     BOOL m_bReadModuleListStream; // Was module list stream read?
     BOOL m_bReadMemoryListStream; // Was memory list stream read?
-    BOOL m_bReadThreadListStream; // Was thread list stream read?  
+    BOOL m_bReadThreadListStream; // Was thread list stream read?
 
 private:
 
@@ -177,7 +177,7 @@ private:
     CString m_sSymSearchPath; // The list of symbol search dirs passed.
     HANDLE m_hFileMiniDump; // Handle to opened .DMP file
     HANDLE m_hFileMapping;  // Handle to memory mapping object
-    LPVOID m_pMiniDumpStartPtr; // Pointer to the biginning of memory-mapped minidump  
+    LPVOID m_pMiniDumpStartPtr; // Pointer to the biginning of memory-mapped minidump
 
 };
 

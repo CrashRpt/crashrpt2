@@ -7,7 +7,7 @@ set (CRASHRPT_VER 1500)
 
 # Check supported generators
 if(NOT MSVC OR ${MSVC_VERSION} LESS 1600)
-	message(FATAL_ERROR "This version of Visual Studio is not supported: ${CMAKE_GENERATOR}.")
+  message(FATAL_ERROR "This version of Visual Studio is not supported: ${CMAKE_GENERATOR}.")
 endif(NOT MSVC OR ${MSVC_VERSION} LESS 1600)
 
 # Build options
@@ -42,17 +42,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/lib)
 
 # Set installation directories
 IF(CMAKE_CL_64)
-	SET(AMD_INSTALL_SUFFIX "x64/")
-	SET(AMD_3RD_SUFFIX "amd64/")
+  SET(AMD_INSTALL_SUFFIX "x64/")
+  SET(AMD_3RD_SUFFIX "amd64/")
 ENDIF()
 
 SET(CRASHRPT_INSTALLDIR_BIN ${CMAKE_INSTALL_PREFIX}/bin/${AMD_INSTALL_SUFFIX})
 SET(CRASHRPT_INSTALLDIR_LIB ${CMAKE_INSTALL_PREFIX}/lib/${AMD_INSTALL_SUFFIX})
-	
+
 # Precompiled headers stuff (CMake doesn't have a standard command for enabling precompiled headers,
 # so we have to use a macro)
 MACRO(ADD_MSVC_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
-  IF(MSVC)	
+  IF(MSVC)
     GET_FILENAME_COMPONENT(PrecompiledBasename ${PrecompiledHeader} NAME_WE)
     SET(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${PrecompiledBasename}.pch")
     SET(Sources ${${SourcesVar}})
@@ -62,7 +62,7 @@ MACRO(ADD_MSVC_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar
                                            OBJECT_OUTPUTS "${PrecompiledBinary}")
     SET_SOURCE_FILES_PROPERTIES(${Sources}
                                 PROPERTIES COMPILE_FLAGS "/Yu\"${PrecompiledBinary}\" /FI\"${PrecompiledBinary}\" /Fp\"${PrecompiledBinary}\""
-                                           OBJECT_DEPENDS "${PrecompiledBinary}")  
+                                           OBJECT_DEPENDS "${PrecompiledBinary}")
     # Add precompiled header to SourcesVar
     LIST(APPEND ${SourcesVar} ${PrecompiledSource})
   ENDIF(MSVC)
@@ -70,26 +70,24 @@ ENDMACRO(ADD_MSVC_PRECOMPILED_HEADER)
 
 # Modifies CMake's default compiler/linker settings.
 macro(fix_default_compiler_settings_)
-	if (MSVC)
-		
-		# For MSVC, CMake sets certain flags to defaults we want to override.
-		# This replacement code is taken from sample in the CMake Wiki at
-		# http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
-		foreach (flag_var
-				CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-				CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE )
-			if (NOT CRASHRPT_LINK_CRT_AS_DLL)     					
-				string(REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")			  
-			endif(NOT CRASHRPT_LINK_CRT_AS_DLL)        
-								
-		endforeach()
-    endif(MSVC)
-  
+  if (MSVC)
+    # For MSVC, CMake sets certain flags to defaults we want to override.
+    # This replacement code is taken from sample in the CMake Wiki at
+    # http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
+    foreach (flag_var
+        CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE )
+      if (NOT CRASHRPT_LINK_CRT_AS_DLL)
+        string(REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+      endif(NOT CRASHRPT_LINK_CRT_AS_DLL)
+
+    endforeach()
+   endif(MSVC)
 endmacro()
 
 fix_default_compiler_settings_()
 
-# Other CMakeLists are located in project subdirectories 
+# Other CMakeLists are located in project subdirectories
 
 IF(CRASHRPT_BUILD_DEMOS)
 add_subdirectory("demos/ConsoleDemo")

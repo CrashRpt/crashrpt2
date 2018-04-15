@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -53,7 +53,7 @@ struct ERIRegKey
 
 // Error report delivery statuses.
 enum DELIVERY_STATUS
-{  
+{
     PENDING    = 0,  // Status pending.
 	INPROGRESS = 1,  // Error report is being sent.
     DELIVERED  = 2,  // Error report was delivered ok.
@@ -69,11 +69,11 @@ class CErrorReportInfo
 public:
 
 	// Constructor.
-    CErrorReportInfo();    
+    CErrorReportInfo();
 
 	// Destructor.
 	~CErrorReportInfo();
-	
+
 	// Returns count of file in error report.
 	int GetFileItemCount();
 
@@ -83,7 +83,7 @@ public:
 	// Returns file item by its name.
 	// Kaneva - Bug Fix - Use Source File Full Path
 	ERIFileItem* GetFileItemByName(LPCTSTR szName);
-	
+
 	// Adds/replaces a file to crash report.
 	void AddFileItem(ERIFileItem* pfi);
 
@@ -95,7 +95,7 @@ public:
 
 	// Method that retrieves a property by zero-based index.
 	BOOL GetPropByIndex(int nItem, CString& sName, CString& sVal);
-	
+
 	// Adds/replaces a property in crash report.
 	void AddProp(LPCTSTR szName, LPCTSTR szVal);
 
@@ -104,7 +104,7 @@ public:
 
 	// Method that retrieves a registry key by zero-based index.
 	BOOL GetRegKeyByIndex(int nItem, CString& sKeyName, ERIRegKey& rki);
-	
+
 	// Adds/replaces a reg key in crash report.
 	void AddRegKey(LPCTSTR szKeyName, ERIRegKey& rki);
 
@@ -191,13 +191,13 @@ public:
 
 	// Sets desktop screenshot parameters.
 	void SetScreenshotInfo(ScreenshotInfo &si);
-			
+
 private:
-	
+
 	// Calculates total size of files included into error report.
 	LONG64 CalcUncompressedReportSize();
-	
-	/* Internal variables */ 
+
+	/* Internal variables */
 
     CString         m_sErrorReportDirName; // Name of the directory where error report files are located.
     CString         m_sCrashGUID;          // Crash GUID.
@@ -210,7 +210,7 @@ private:
 	ULONG64         m_dwExceptionAddress;  // Exception address (taken from exception info structure).
 	CString         m_sExceptionModule;    // Module where exception occurred.
 	CString         m_sExceptionModuleVersion; // File version of the module where exception occurred
-	ULONG64         m_dwExceptionModuleBase; // Base address of the exception module.    
+	ULONG64         m_dwExceptionModuleBase; // Base address of the exception module.
     DWORD           m_dwGuiResources;      // GUI resource count.
     DWORD           m_dwProcessHandleCount; // Process handle count.
     CString         m_sMemUsage;           // Memory usage.
@@ -224,13 +224,13 @@ private:
 
     // Kaneva - Bug Fix - Now Using Full SrcPath Instead of DestFileName Only
 	std::map<CString, ERIFileItem>  m_FileItems; // The list of files that are included into this error report.
-   
+
 	std::map<CString, ERIRegKey> m_RegKeys; // The list of registry keys included into this error report.
     std::map<CString, CString> m_Props;   // The list of custom properties included into this error report.
 };
 
 // Remind policy. Defines the way user is notified about recently queued crash reports.
-enum REMIND_POLICY 
+enum REMIND_POLICY
 {
     REMIND_LATER,   // Remind later.
     NEVER_REMIND    // Never remind.
@@ -257,7 +257,7 @@ public:
     int         m_nSmtpProxyPort;       // SMTP proxy port.
 	CString     m_sSmtpLogin;           // SMTP login.
 	CString     m_sSmtpPassword;        // SMTP password.
-    CString     m_sUrl;                 // URL (used for HTTP connection).    
+    CString     m_sUrl;                 // URL (used for HTTP connection).
     BOOL        m_bSilentMode;          // Should we show GUI?
     BOOL        m_bSendErrorReport;     // Should we send error report now?
 	BOOL		m_bSendMandatory;       // Disable "Close" and "Other actions.." buttons on Error Report dialog.
@@ -277,7 +277,7 @@ public:
     DWORD       m_dwScreenshotFlags;    // Screenshot taking options.
     int         m_nJpegQuality;         // Jpeg image quality (used when taking screenshot).
     CPoint      m_ptCursorPos;          // Mouse cursor position on crash.
-    CRect       m_rcAppWnd;             // Rectangle of the application's main window.  
+    CRect       m_rcAppWnd;             // Rectangle of the application's main window.
 	BOOL        m_bAddVideo;            // Wether to add video recording.
 	DWORD       m_dwVideoFlags;         // Flags for video recording.
 	int         m_nVideoDuration;       // Video duration.
@@ -303,7 +303,7 @@ public:
 
 	// Constructor
 	CCrashInfoReader();
-	
+
     // Gets crash info from shared memory.
     int Init(LPCTSTR szFileMappingName);
 
@@ -315,7 +315,7 @@ public:
 
     // Returns count of error reports.
     int GetReportCount();
-		
+
 	// Deletes n-th report.
 	void DeleteReport(int nIndex);
 
@@ -330,10 +330,10 @@ public:
 
     // Updates last remind date.
     BOOL SetLastRemindDateToday();
-	    
+
 	// Returns last error message.
 	CString GetErrorMsg();
-	
+
 	// Validates and updates user Email and and problem description.
 	// Returns TRUE if validated successfully, otherwise FALSE.
     BOOL UpdateUserInfo(CString sEmail, CString sDesc);
@@ -349,18 +349,18 @@ public:
 
 	// Removes several files by names.
 	BOOL RemoveFilesFromCrashReport(int nReport, std::vector<CString> FilesToRemove);
-	
-    // Gets the number of crash reports sent per calendar day.  
+
+    // Gets the number of crash reports sent per calendar day.
     int GetDailyReportCount();
 
-    // Sets the number of crash reports sent per calendar day.  
+    // Sets the number of crash reports sent per calendar day.
     void SetDailyReportCount(int nReports);
 
 private:
 
     // Retrieves some crash info from crash description XML.
-    int ParseCrashDescription(CString sFileName, BOOL bParseFileItems, CErrorReportInfo& eri);  
-	    
+    int ParseCrashDescription(CString sFileName, BOOL bParseFileItems, CErrorReportInfo& eri);
+
 	// Adds user information.
     BOOL AddUserInfoToCrashDescriptionXML(CString sEmail, CString sDesc);
 
@@ -379,7 +379,7 @@ private:
     // Collects misc info about the crash.
     void CollectMiscCrashInfo(CErrorReportInfo& eri);
 
-    // Gets the list of file items. 
+    // Gets the list of file items.
     int ParseFileList(TiXmlHandle& hRoot, CErrorReportInfo& eri);
 
     // Gets the list of registry keys.
@@ -388,7 +388,7 @@ private:
     // Calculates size of an uncompressed error report.
     LONG64 GetUncompressedReportSize(CErrorReportInfo& eri);
 
-    std::vector<CErrorReportInfo> m_Reports; // Array of error reports.   
+    std::vector<CErrorReportInfo> m_Reports; // Array of error reports.
     CString m_sINIFile;                     // Path to ~CrashRpt.ini file.
     CSharedMem m_SharedMem;                 // Shared memory
     CRASH_DESCRIPTION* m_pCrashDesc;        // Pointer to crash descritpion

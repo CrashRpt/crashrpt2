@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -54,7 +54,7 @@ void CEmailMessage::SetSenderAddress(LPCTSTR szEmailAddress)
 	// Set E-mail sender address.
 	m_sFrom = szEmailAddress;
 }
-	
+
 void CEmailMessage::AddRecipient(LPCTSTR szEmailAddress)
 {
 	// Add a recipient address.
@@ -138,7 +138,7 @@ CSmtpClient::CSmtpClient()
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 	// Ensure result is success
-    ATLASSERT(iResult==0); 
+    ATLASSERT(iResult==0);
     iResult;
 
 	// Default proxy port is 25
@@ -175,7 +175,7 @@ int CSmtpClient::SetAuthParams(LPCTSTR szLogin, LPCTSTR szPassword)
 
 int CSmtpClient::SendEmailAssync(CEmailMessage* msg,  AssyncNotification* scn)
 {
-	// This method starts worker thread that will send the E-mail in 
+	// This method starts worker thread that will send the E-mail in
 	// assynchronous mode.
 
 	// Save the notification object
@@ -186,7 +186,7 @@ int CSmtpClient::SendEmailAssync(CEmailMessage* msg,  AssyncNotification* scn)
     HANDLE hThread = CreateThread(NULL, 0, WorkerThread, (void*)this, 0, NULL);
     if(hThread==NULL)
         return 1; // Error creating thread
-	
+
 	// OK
     return 0;
 }
@@ -194,8 +194,8 @@ int CSmtpClient::SendEmailAssync(CEmailMessage* msg,  AssyncNotification* scn)
 DWORD WINAPI CSmtpClient::WorkerThread(VOID* pParam)
 {
 	// Redirect to SendMail method
-    CSmtpClient* pSmtpClient = (CSmtpClient*)pParam;	    
-    int nResult = pSmtpClient->SendEmail(pSmtpClient->m_msg);	    
+    CSmtpClient* pSmtpClient = (CSmtpClient*)pParam;
+    int nResult = pSmtpClient->SendEmail(pSmtpClient->m_msg);
 	// Notify the caller about completion
 	pSmtpClient->m_scn->SetCompleted(nResult);
     return 0;
@@ -207,11 +207,11 @@ int CSmtpClient::SendEmail(CEmailMessage* msg)
 
     std::map<WORD, CString> host_list;
 
-	// Check whether to use proxy server or to resolve SMTP server 
+	// Check whether to use proxy server or to resolve SMTP server
 	// address from MX record of domain.
     if(!m_sServer.IsEmpty())
     {
-		// Use proxy server 
+		// Use proxy server
         host_list[0] = m_sServer;
     }
     else
@@ -230,7 +230,7 @@ int CSmtpClient::SendEmail(CEmailMessage* msg)
     for(it=host_list.begin(); it!=host_list.end(); it++)
     {
 		// Check if operation cancelled by user
-        if(m_scn->IsCancelled())    
+        if(m_scn->IsCancelled())
             return 2;
 
 		// Send E-mail to current SMTP server
@@ -250,7 +250,7 @@ int CSmtpClient::SendEmail(CEmailMessage* msg)
     }
 
 	// Failed to send E-mail
-    m_scn->SetProgress(_T("Error sending email."), 100, false);	
+    m_scn->SetProgress(_T("Error sending email."), 100, false);
     return 1;
 }
 
@@ -275,7 +275,7 @@ int CSmtpClient::ResolveSmtpServerName(LPCTSTR szEmailAddress, std::map<WORD, CS
 
 	// Resolve the domain name(s) of the SMTP servers associated with
 	// the E-mail address. Use MX record of DNS.
-    int r = DnsQuery(sServer, DNS_TYPE_MX, DNS_QUERY_STANDARD, 
+    int r = DnsQuery(sServer, DNS_TYPE_MX, DNS_QUERY_STANDARD,
         NULL, (PDNS_RECORD*)&apResult, NULL);
 
     PDNS_RECORD pRecOrig = apResult;
@@ -286,10 +286,10 @@ int CSmtpClient::ResolveSmtpServerName(LPCTSTR szEmailAddress, std::map<WORD, CS
         while(apResult!=NULL)
         {
 			// Look for MX record
-            if(apResult->wType==DNS_TYPE_MX)        
+            if(apResult->wType==DNS_TYPE_MX)
             {
 				// Save domain name to our list
-                CString sServerName = CString(apResult->Data.MX.pNameExchange);        
+                CString sServerName = CString(apResult->Data.MX.pNameExchange);
                 host_list[apResult->Data.MX.wPreference] = sServerName;
             }
 
@@ -302,7 +302,7 @@ int CSmtpClient::ResolveSmtpServerName(LPCTSTR szEmailAddress, std::map<WORD, CS
 
 		// Done
         return 0;
-    } 
+    }
 
 	// Failed to resolve the address
     sStatusMsg.Format(_T("DNS query failed with code %d"), r);
@@ -318,37 +318,37 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 
     int status = 1; // Resulting status.
     strconv_t strconv; // String convertor
-    struct addrinfo *result = NULL; 
+    struct addrinfo *result = NULL;
     struct addrinfo *ptr = NULL;
     struct addrinfo hints;
 	std::string sEncodedLogin;
-	std::string sEncodedPassword;	
+	std::string sEncodedPassword;
 	CString sBodyTo; //Vojtech: Lines of the "To:" and "Cc:" lines, that will become part of the e-mail header.
-    int iResult = -1;  
+    int iResult = -1;
     CString sPostServer;
-	CString sServiceName;	
+	CString sServiceName;
 	SOCKET sock = INVALID_SOCKET;
     CString sMsg, str;
     std::set<CString>::iterator it;
     CString sStatusMsg;
 	const int RESPONSE_BUFF_SIZE = 4096;
-	char response[RESPONSE_BUFF_SIZE];	
-	int res = SOCKET_ERROR;    
+	char response[RESPONSE_BUFF_SIZE];
+	int res = SOCKET_ERROR;
     std::string sEncodedFileData;
 	bool bESMTP = false;
 
 	// Convert port number to string
-    sServiceName.Format(_T("%d"), 
-        m_sServer.IsEmpty()?25:m_nPort);  
-    
-    // Prepare message text (we need to replace "\n" by "\r\n" and remove . from message). 
+    sServiceName.Format(_T("%d"),
+        m_sServer.IsEmpty()?25:m_nPort);
+
+    // Prepare message text (we need to replace "\n" by "\r\n" and remove . from message).
 	CString sMessageText = msg->GetText();
     sMessageText.Replace(_T("\n"),_T("\r\n"));
     sMessageText.Replace(_T("\r\n.\r\n"), _T("\r\n*\r\n"));
     LPCWSTR lpwszMessageText = strconv.t2w(sMessageText.GetBuffer(0));
 	// Convert the text to UTF-8 encoding
     std::string sUTF8Text = UTF16toUTF8(lpwszMessageText);
-	
+
 	// Check that all attachments exist
 	int i;
 	for(i=0; i<msg->GetAttachmentCount(); i++)
@@ -366,12 +366,12 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 	// Add a message to log
     sStatusMsg.Format(_T("Getting address info of %s port %s"), (LPCTSTR) sSmtpServer, (LPCTSTR) CString(sServiceName));
     m_scn->SetProgress(sStatusMsg, 1);
-	
+
 	// Prepare to open socket
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;  
+    hints.ai_protocol = IPPROTO_TCP;
 
     LPCSTR lpszSmtpServer = strconv.t2a(sSmtpServer);
     LPCSTR lpszServiceName = strconv.t2a(sServiceName);
@@ -380,7 +380,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         goto exit;
 
 	// For each interface do
-    for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) 
+    for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
     {
 		// Check if cancelled
         if(m_scn->IsCancelled()) {status = 2; goto exit;}
@@ -404,7 +404,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		// Connect socket
         res = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
         if(res!=SOCKET_ERROR)
-            break; // If successfull, break the loop    
+            break; // If successfull, break the loop
 
 		// Close socket
         closesocket(sock);
@@ -426,9 +426,9 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
     if(m_scn->IsCancelled()) {status = 2; goto exit;}
 
 	m_scn->SetProgress(_T("Waiting for greeting message from SMTP server..."), 1);
-	
+
 	// Wait until server send us greeting message, for example:
-	// 220 mail.company.tld ESMTP CommuniGate Pro 5.1.4i is glad to see you!    
+	// 220 mail.company.tld ESMTP CommuniGate Pro 5.1.4i is glad to see you!
 	res=SendMsg(sock, NULL, response, RESPONSE_BUFF_SIZE);
     if(res==SOCKET_ERROR)
     {
@@ -437,19 +437,19 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         m_scn->SetProgress(sStatusMsg, 1);
         goto exit;
     }
-	
+
 	// Check the code server returned (expect code 220).
-    if(220!=GetMessageCode(response)) 
+    if(220!=GetMessageCode(response))
     {
 		// Invalid greeting
 		m_scn->SetProgress(_T("Invalid greeting message."), 1);
         goto exit;
     }
-	    
+
 	// Add a message to log
     sStatusMsg.Format(_T("Sending EHLO"));
     m_scn->SetProgress(sStatusMsg, 1);
-	    
+
     res=SendMsg(sock, _T("EHLO CrashSender\r\n"), response, RESPONSE_BUFF_SIZE);
 	// Check return code (expect code 250)
     if(res==250)
@@ -457,7 +457,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		sStatusMsg = CString(_T("EHLO command not supported"));
 		bESMTP = true;
 	}
-	
+
 	if(!bESMTP)
 	{
 		// Server may not understand EHLO, try HELO
@@ -470,11 +470,11 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		{
 			// Add a message to log
 			sStatusMsg = CString(_T("HELO command not supported"));
-			m_scn->SetProgress(sStatusMsg, 0);   
+			m_scn->SetProgress(sStatusMsg, 0);
 			goto exit;
 		}
-    }	
-		
+    }
+
 	// Check whether to perform authorization procedure
 	if(!m_sLogin.IsEmpty())
 	{
@@ -488,9 +488,9 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		m_scn->SetProgress(sStatusMsg, 1);
 
 		// SMTP authorization
-		// AUTH <SP> LOGIN <CRLF>		
-		res=SendMsg(sock, _T("AUTH LOGIN\r\n"), response, RESPONSE_BUFF_SIZE);		
-				
+		// AUTH <SP> LOGIN <CRLF>
+		res=SendMsg(sock, _T("AUTH LOGIN\r\n"), response, RESPONSE_BUFF_SIZE);
+
     	if(res!=334)
 		{
 			m_scn->SetProgress(_T("Unexpected server response"), 0);
@@ -506,17 +506,17 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		sEncodedLogin = base64_encode(reinterpret_cast<const unsigned char*>(lpszLogin),(int)strlen(lpszLogin));
 		sEncodedLogin+="\r\n";
 		LPCTSTR lpwszLogin = strconv.a2t((LPCSTR)(sEncodedLogin.c_str()));
-		memset(response,0,1024);   
+		memset(response,0,1024);
 		// Send it
 		res=SendMsg(sock, lpwszLogin, response, 1024);
 		// Check return code - expect 334
 		if (res!=334)
 		{
 			sStatusMsg = _T("Login not accepted");
-			m_scn->SetProgress(sStatusMsg, 0);    
+			m_scn->SetProgress(sStatusMsg, 0);
 			goto exit;
 		}
-    
+
 		// Send password
 		sStatusMsg.Format(_T("Sending password"));
 		m_scn->SetProgress(sStatusMsg, 1);
@@ -532,25 +532,25 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 		if(res!=235)
 		{
 			sStatusMsg = _T("Authorization failed");
-			m_scn->SetProgress(sStatusMsg, 0); 
+			m_scn->SetProgress(sStatusMsg, 0);
 		}
     }
-  
+
 	// Next send sender and recipient info
     sStatusMsg.Format(_T("Sending sender and recipient information"));
     m_scn->SetProgress(sStatusMsg, 1);
 
 	// Send MAIL FROM
-	sMsg.Format(_T("MAIL FROM:<%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());	
+	sMsg.Format(_T("MAIL FROM:<%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());
     res=SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
 	if (res!=250)
 	{
         sStatusMsg = _T("Unexpected status code");
-        m_scn->SetProgress(sStatusMsg, 0);    
+        m_scn->SetProgress(sStatusMsg, 0);
         goto exit;
     }
 
-	// Process multiple e-mail recipients.		
+	// Process multiple e-mail recipients.
 	for(i=0; i<msg->GetRecipientCount(); i++)
 	{
 		sMsg.Format(i==0 ? _T("To: <%s>\r\n") : _T("Cc: <%s>\r\n"), (LPCTSTR) msg->GetRecipientAddress(i));
@@ -564,16 +564,16 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 			goto exit;
 		}
 	}
-		
+
     sStatusMsg.Format(_T("Start sending email data"));
     m_scn->SetProgress(sStatusMsg, 1);
 
-    // Send DATA	
+    // Send DATA
     res=SendMsg(sock, _T("DATA\r\n"), response, RESPONSE_BUFF_SIZE);
 	if (res!=354)
 	{
         sStatusMsg = _T("Unexpected status code");
-        m_scn->SetProgress(sStatusMsg, 0);    
+        m_scn->SetProgress(sStatusMsg, 0);
         goto exit;
     }
 
@@ -581,7 +581,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
     time_t cur_time;
     time(&cur_time);
     char szDateTime[64] = "";
-    
+
 #if _MSC_VER >= 1400
 	struct tm ltimeinfo;
     localtime_s(&ltimeinfo, &cur_time );
@@ -590,7 +590,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 	struct tm* ltimeinfo = localtime(&cur_time );
 	strftime(szDateTime, 64,  "%a, %d %b %Y %H:%M:%S", ltimeinfo);
 #endif
-        
+
     TIME_ZONE_INFORMATION tzi;
     GetTimeZoneInformation(&tzi);
 
@@ -622,7 +622,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 
     sMsg =  "--KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
     sMsg += "Content-Type: text/plain; charset=UTF-8\r\n";
-    sMsg += "\r\n";  
+    sMsg += "\r\n";
     sMsg += sUTF8Text.c_str();
     sMsg += "\r\n";
     res = SendMsg(sock, sMsg);
@@ -634,7 +634,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 
     /* Attachments. */
 	for(i=0; i<msg->GetAttachmentCount(); i++)
-    {    
+    {
 		CString sFileName = msg->GetAttachment(i);
         sFileName.Replace('/', '\\');
         CString sDisplayName = sFileName.Mid(sFileName.ReverseFind('\\')+1);
@@ -663,7 +663,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         }
 
         // Send encoded data
-        sMsg = sEncodedFileData.c_str();        
+        sMsg = sEncodedFileData.c_str();
         res = SendMsg(sock, sMsg);
         if(res!=sMsg.GetLength())
             goto exit;
@@ -676,14 +676,14 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
     if(res!=sMsg.GetLength())
         goto exit;
 
-    // End of message marker	
+    // End of message marker
     res = SendMsg(sock, _T("\r\n.\r\n"), response, RESPONSE_BUFF_SIZE);
 	if (res!=250)
 	{
         goto exit;
     }
 
-    // Quit	
+    // Quit
     res = SendMsg(sock, _T("QUIT\r\n"), response, RESPONSE_BUFF_SIZE);
 	// Expect code 221
 	if(res!=221)
@@ -696,7 +696,7 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
 
 exit:
 
-    if(m_scn->IsCancelled()) 
+    if(m_scn->IsCancelled())
         status = 2;
 
     sStatusMsg.Format(_T("Finished with error code %d"), status);
@@ -704,7 +704,7 @@ exit:
 
     // Clean up
     closesocket(sock);
-    freeaddrinfo(result);  
+    freeaddrinfo(result);
     return status;
 }
 
@@ -712,7 +712,7 @@ int CSmtpClient::GetMessageCode(LPSTR msg)
 {
 	// This method extracts the return code from string.
 	// For example, passing "220 Success" will return 220.
-	// The SMTP server may return intermediate result in case of PIPELINING command,	
+	// The SMTP server may return intermediate result in case of PIPELINING command,
 	// for example, passing "250-ENHANCEDSTATUSCODES" is an intermediate result.
 	// For intermediate results, this function returns -1 indicating
 	// more information should be received from server.
@@ -744,7 +744,7 @@ int CSmtpClient::GetMessageCode(LPSTR msg)
 			return -1;
 		}
 	}
-	
+
 	// Message format is invalid.
 	return -2;
 }
@@ -752,7 +752,7 @@ int CSmtpClient::GetMessageCode(LPSTR msg)
 int CSmtpClient::CheckAddressSyntax(CString addr)
 {
 	// Validates E-mail address syntax
-    if(addr=="") 
+    if(addr=="")
 		return FALSE;
 
 	// TODO: add more checks
@@ -767,8 +767,8 @@ std::string CSmtpClient::UTF16toUTF8(LPCWSTR utf16)
     std::string utf8;
     int len = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, 0, 0);
     if (len>1)
-    { 
-        char* buf = new char[len+1];	  
+    {
+        char* buf = new char[len+1];
         WideCharToMultiByte(CP_UTF8, 0, utf16, -1, buf, len, 0, 0);
         utf8 = buf;
         delete [] buf;
@@ -778,7 +778,7 @@ std::string CSmtpClient::UTF16toUTF8(LPCWSTR utf16)
 }
 
 int CSmtpClient::SendMsg(SOCKET sock, LPCTSTR pszMessage, LPSTR pszResponse, UINT uResponseSize)
-{		
+{
 	// This method sends a message using the specified socket and
 	// waits for response.
 
@@ -786,7 +786,7 @@ int CSmtpClient::SendMsg(SOCKET sock, LPCTSTR pszMessage, LPSTR pszResponse, UIN
 
 	// Check if cancelled
     if(m_scn->IsCancelled()) {return -1;}
-		
+
 	if(pszMessage!=NULL)
 	{
 		// Determine message length.
@@ -796,24 +796,24 @@ int CSmtpClient::SendMsg(SOCKET sock, LPCTSTR pszMessage, LPSTR pszResponse, UIN
 		LPCSTR lpszMessageA = strconv.t2a((TCHAR*)pszMessage);
 
 		// Send the message
-		int res = send(sock, lpszMessageA, msg_len, 0);	
-		if(res == SOCKET_ERROR) 
+		int res = send(sock, lpszMessageA, msg_len, 0);
+		if(res == SOCKET_ERROR)
 		{
 			ATLASSERT(0);
 			CString sMsg;
 			sMsg.Format(_T("Send error: %d"), res);
-			m_scn->SetProgress(sMsg, 0);    
-			
+			m_scn->SetProgress(sMsg, 0);
+
 			// Print last socket error message
 			CString sLastSocketError;
 			//sLastSocketError.FormatMessage(WSAGetLastError());
-			m_scn->SetProgress(sLastSocketError, 0);				
+			m_scn->SetProgress(sLastSocketError, 0);
 		}
 
 		// Check if the caller wants to get response
-		if(pszResponse==NULL) 
+		if(pszResponse==NULL)
 			return res; // Return now
-	}    
+	}
 
 	for(;;)
 	{
@@ -823,14 +823,14 @@ int CSmtpClient::SendMsg(SOCKET sock, LPCTSTR pszMessage, LPSTR pszResponse, UIN
 		// Check result
 		if(br==SOCKET_ERROR)
 		{
-			m_scn->SetProgress(_T("Receive error"), 0);    
+			m_scn->SetProgress(_T("Receive error"), 0);
 			return br; // Failed
 		}
 
 		// Add a message to log
 		CString sStatusMsg = CString(pszResponse);
-		m_scn->SetProgress(sStatusMsg, 0);    
-	
+		m_scn->SetProgress(sStatusMsg, 0);
+
 		// Determine status returned
 		int nStatusCode = GetMessageCode(pszResponse);
 		if(nStatusCode==-1)
@@ -839,14 +839,14 @@ int CSmtpClient::SendMsg(SOCKET sock, LPCTSTR pszMessage, LPSTR pszResponse, UIN
 			return -1; // Invalid response format
 		else
 			return nStatusCode; // Ready
-	}	
+	}
 }
 
 int CSmtpClient::CheckAttachmentOK(CString sFileName)
 {
 	// This method checks if the given file presents.
 
-    struct _stat st;  
+    struct _stat st;
 
     int nResult = _tstat(sFileName, &st);
     if(nResult != 0)
@@ -856,18 +856,18 @@ int CSmtpClient::CheckAttachmentOK(CString sFileName)
     return 0;
 }
 
-int CSmtpClient::Base64EncodeAttachment(CString sFileName, 
+int CSmtpClient::Base64EncodeAttachment(CString sFileName,
                                         std::string& sEncodedFileData)
 {
 	// This method encodes the file into BASE-64 encoding.
 	// It is suitable for small files only, because it reads
 	// entire file contents into memory.
 
-    strconv_t strconv;  
+    strconv_t strconv;
     int uFileSize = 0;
-    BYTE* uchFileData = NULL;  
-    
-	// Check if file exists.	
+    BYTE* uchFileData = NULL;
+
+	// Check if file exists.
 	long lFileSize = Utility::GetFileSize(sFileName);
     if(lFileSize<0)
         return 1;  // File not found.
@@ -881,8 +881,8 @@ int CSmtpClient::Base64EncodeAttachment(CString sFileName,
 #if _MSC_VER<1400
     f = _tfopen(sFileName, _T("rb"));
 #else
-    _tfopen_s(&f, sFileName, _T("rb"));  
-#endif 
+    _tfopen_s(&f, sFileName, _T("rb"));
+#endif
 
 	// Read file data to buffer
     if(!f || fread(uchFileData, uFileSize, 1, f)!=1)

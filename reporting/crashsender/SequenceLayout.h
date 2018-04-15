@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -17,8 +17,8 @@ be found in the Authors.txt file in the root of the source tree.
 #include "stdafx.h"
 
 // class CSequenceLayout
-// Implements vertical layout to position controls 
-// on the dialog one below another. Some layout items 
+// Implements vertical layout to position controls
+// on the dialog one below another. Some layout items
 // can be hidden/shown, and controls are automatically repositioned by the class.
 // The layout class can also resize the container window to accomodate all the layout itmes.
 class CSequenceLayout
@@ -61,24 +61,24 @@ public:
 
 	// Updates item positions
     void Update()
-    { 
+    {
         int nDeltaY = 0;
 
 		// Walk through items
         int i;
         for(i=0; i<(int)m_aItems.size(); i++)
-        {      
+        {
 			// Get i-th item
             ItemInfo ii = m_aItems[i];
             if(GetWindowLong(ii.m_hWnd, GWL_STYLE)&WS_VISIBLE) // Skip invisible items
-            {        
+            {
 				// Position the item appropriately
                 CWindow wnd = ii.m_hWnd;
                 CRect rc = ii.m_rcInitial;
                 rc.OffsetRect(0, nDeltaY);
                 wnd.MoveWindow(&rc);
             }
-            else 
+            else
             {
 				// Skip secondary items
                 if(ii.m_bSecondary)
@@ -92,7 +92,7 @@ public:
 				// Update vertical offset
                 ItemInfo nextItem = m_aItems[nNext];
                 nDeltaY -= nextItem.m_rcInitial.top - ii.m_rcInitial.top;
-            }    
+            }
         }
 
 		// Resize the container to accomodate all the layout items

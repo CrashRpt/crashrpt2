@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,7 +19,7 @@ be found in the Authors.txt file in the root of the source tree.
 #include "ErrorReportSender.h"
 
 LRESULT CVideoRecDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{  	
+{
 	m_statText = GetDlgItem(IDC_TEXT);
 	m_btnAllow = GetDlgItem(IDOK);
 	m_btnCancel = GetDlgItem(IDCANCEL);
@@ -28,7 +28,7 @@ LRESULT CVideoRecDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 	// Set dialog caption.
 	CString sMsg;
-	sMsg.Format(pSender->GetLangStr(_T("VideoRecDlg"), _T("DlgCaption")), 
+	sMsg.Format(pSender->GetLangStr(_T("VideoRecDlg"), _T("DlgCaption")),
 		(LPCTSTR) pSender->GetCrashInfo()->m_sAppName);
     SetWindowText(sMsg);
 
@@ -42,18 +42,18 @@ LRESULT CVideoRecDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
     // Center the dialog on the screen.
     CenterWindow();
-	   
+
     return TRUE;
 }
 
 LRESULT CVideoRecDlg::OnOK(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{   
+{
 	EndDialog(IDOK);
     return 0;
 }
 
 LRESULT CVideoRecDlg::OnCancel(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{   
+{
 	EndDialog(IDCANCEL);
     return 0;
 }

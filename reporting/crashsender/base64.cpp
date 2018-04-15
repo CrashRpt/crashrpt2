@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -8,7 +8,7 @@ tree. All contributing project authors may
 be found in the Authors.txt file in the root of the source tree.
 ***************************************************************************************/
 
-/* 
+/*
    base64.cpp and base64.h
 
    Copyright (C) 2004-2008 Rene' Nyffenegger
@@ -38,7 +38,7 @@ be found in the Authors.txt file in the root of the source tree.
 #include "base64.h"
 #include <iostream>
 
-static const std::string base64_chars = 
+static const std::string base64_chars =
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
              "abcdefghijklmnopqrstuvwxyz"
              "0123456789+/";

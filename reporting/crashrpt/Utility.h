@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -11,14 +11,14 @@ be found in the Authors.txt file in the root of the source tree.
 // File: Utility.h
 // Description: Miscellaneous helper functions
 // Authors: mikecarruth, zexspectrum
-// Date: 
+// Date:
 
 #ifndef _UTILITY_H_
 #define _UTILITY_H_
 
 #include "stdafx.h"
 
-namespace Utility  
+namespace Utility
 {
     // Returns base name of the EXE file that launched current process.
     CString getAppName();
@@ -36,19 +36,19 @@ namespace Utility
     CString GetModuleName(HMODULE hModule);
 
     // Generates unique identifier (GUID)
-    int GenerateGUID(CString& sGUID);  
+    int GenerateGUID(CString& sGUID);
 
     // Returns current system time as string (uses UTC time format).
-    int GetSystemTimeUTC(CString& sTime); 
+    int GetSystemTimeUTC(CString& sTime);
 
     // Converts UTC string to local time.
     void UTC2SystemTime(CString sUTC, SYSTEMTIME& st);
 
     // Returns friendly name of operating system (name, version, service pack)
-    int GetOSFriendlyName(CString& sOSName);  
+    int GetOSFriendlyName(CString& sOSName);
 
     // Returns TRUE if Windows is 64-bit
-    BOOL IsOS64Bit();  
+    BOOL IsOS64Bit();
 
     // Retrieves current geographic location
     int GetGeoLocation(CString& sGeoLocation);
@@ -97,7 +97,7 @@ namespace Utility
     ULONG64 SystemTimeToULONG64( const SYSTEMTIME& st );
 
     // Formats a string of file size
-    CString FileSizeToStr(ULONG64 uFileSize); 
+    CString FileSizeToStr(ULONG64 uFileSize);
 
 	// This helper function checks if the string is too long and truncates it with ellipsis (...).
 	CString AddEllipsis(LPCTSTR szString, int nMaxLength);

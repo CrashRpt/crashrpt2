@@ -14,7 +14,7 @@ mkdir %SAVE_RESULTS_TO_DIR%
 
 for /R %INPUT_DIR% %%f in ( %INPUT_FILE_PATTERN% ) do call :process_report "%%f"
 erase temp.txt
-exit 
+exit
 
 :process_report
 
@@ -24,7 +24,7 @@ exit
   rem Get application name from the crash report file and write it to "temp.txt"
   %CRPROBER_PATH% /f %1 /o "temp.txt" /get XmlDescMisc AppName 0
   if not %errorlevel%==0 goto failed
- 
+
   set /p app_name=<temp.txt
   if "%app_name%"==%ACCEPTABLE_APPNAME% goto appname_ok
   goto done
@@ -35,7 +35,7 @@ exit
   rem Get application version from the crash report file and write it to "temp.txt"
   %CRPROBER_PATH% /f %1 /o "temp.txt" /get XmlDescMisc AppVersion 0
   if not %errorlevel%==0 goto failed
- 
+
   set /p app_version=<temp.txt
   if "%app_version%"==%ACCEPTABLE_APPVERSION% goto appversion_ok
 
@@ -54,10 +54,10 @@ exit
 :save_results
 
   mkdir %SAVE_RESULTS_TO_DIR%%stack_md5%
-  
+
 
   rem Process report and write results to text file
-  %CRPROBER_PATH% /f %1 /o %1.txt /sym %SYM_SEARCH_DIRS% 
+  %CRPROBER_PATH% /f %1 /o %1.txt /sym %SYM_SEARCH_DIRS%
   echo Return code=%errorlevel%
   if not %errorlevel%==0 goto failed
 
@@ -70,8 +70,8 @@ exit
 
  mkdir %SAVE_INVALID_REPORTS_TO_DIR%
  move %1 %SAVE_INVALID_REPORTS_TO_DIR%
- 
+
 :done
-  
+
 rem Return from subroutine
 goto :eof

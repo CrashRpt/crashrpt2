@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -11,7 +11,7 @@ be found in the Authors.txt file in the root of the source tree.
 // File: CrashHandler.cpp
 // Description: Exception handling and report generation functionality.
 // Authors: mikecarruth, zexspectrum
-// Date: 
+// Date:
 
 #include "stdafx.h"
 #include "CrashHandler.h"
@@ -28,11 +28,11 @@ be found in the Authors.txt file in the root of the source tree.
 #define EXTERNC
 #endif
 
-// _ReturnAddress and _AddressOfReturnAddress should be prototyped before use 
+// _ReturnAddress and _AddressOfReturnAddress should be prototyped before use
 EXTERNC void * _AddressOfReturnAddress(void);
 EXTERNC void * _ReturnAddress(void);
 
-#endif 
+#endif
 
 extern HANDLE g_hModuleCrashRpt;
 CCrashHandler* CCrashHandler::m_pProcessCrashHandler = NULL;
@@ -40,15 +40,15 @@ CCrashHandler* CCrashHandler::m_pProcessCrashHandler = NULL;
 CCrashHandler::CCrashHandler()
 {
     // Init member variables to their defaults
-    m_bInitialized = FALSE;  
+    m_bInitialized = FALSE;
     m_dwFlags = 0;
-    m_MinidumpType = MiniDumpNormal;    
+    m_MinidumpType = MiniDumpNormal;
     m_nSmtpPort = 25;
     m_nSmtpProxyPort = 2525;
-    memset(&m_uPriorities, 0, 3*sizeof(UINT));    
+    memset(&m_uPriorities, 0, 3*sizeof(UINT));
     m_lpfnCallback = NULL;
-	m_bAddScreenshot = FALSE;	
-    m_dwScreenshotFlags = 0;    
+	m_bAddScreenshot = FALSE;
+    m_dwScreenshotFlags = 0;
     m_nJpegQuality = 95;
 	m_bAddVideo = FALSE;
 	m_dwVideoFlags = 0;
@@ -56,13 +56,13 @@ CCrashHandler::CCrashHandler()
 	m_nVideoFrameInterval = 500; // 500 msec
 	m_DesiredFrameSize.cx = 0; // default video frame size
 	m_DesiredFrameSize.cy = 0;
-	m_hWndVideoParent = NULL; 
-    m_hEvent = NULL;  
+	m_hWndVideoParent = NULL;
+    m_hEvent = NULL;
 	m_hEvent2 = NULL;
     m_pCrashDesc = NULL;
 	m_hSenderProcess = NULL;
 	m_pfnCallback2W = NULL;
-	m_pfnCallback2A = NULL;    
+	m_pfnCallback2A = NULL;
 	m_pCallbackParam = NULL;
 	m_nCallbackRetCode = CR_CB_NOTIFY_NEXT_STAGE;
 	m_bContinueExecution = TRUE;
@@ -81,8 +81,8 @@ int CCrashHandler::Init(
         LPCTSTR lpcszAppName,
         LPCTSTR lpcszAppVersion,
         LPCTSTR lpcszCrashSenderPath,
-        LPGETLOGFILE lpfnCallback, 
-        LPCTSTR lpcszTo, 
+        LPGETLOGFILE lpfnCallback,
+        LPCTSTR lpcszTo,
         LPCTSTR lpcszSubject,
         LPCTSTR lpcszUrl,
         UINT (*puPriorities)[5],
@@ -100,8 +100,8 @@ int CCrashHandler::Init(
 		LPCTSTR lpcszSmtpPassword,
 		int nRestartTimeout,
 		int nMaxReportsPerDay)
-{ 
-	// This method initializes configuration parameters, 
+{
+	// This method initializes configuration parameters,
 	// creates shared memory buffer and saves the configuration parameters there,
 	// installs process-wide exception handlers.
 
@@ -110,12 +110,12 @@ int CCrashHandler::Init(
 	// Save flags
     m_dwFlags = dwFlags;
 
-    // Save minidump type  
+    // Save minidump type
     m_MinidumpType = MiniDumpType;
 
     // Save user supplied callback (obsolete)
     m_lpfnCallback = lpfnCallback;
-	
+
     // Save application name
     m_sAppName = lpcszAppName;
 
@@ -136,7 +136,7 @@ int CCrashHandler::Init(
         m_sAppVersion = Utility::GetProductVersion(sImageName);
         if(m_sAppVersion.IsEmpty())
         {
-            // If product version missing, return error.      
+            // If product version missing, return error.
             crSetErrorMsg(_T("Application version is not specified."));
             return 1;
         }
@@ -155,21 +155,21 @@ int CCrashHandler::Init(
         CString sIconIndex;
         int nIconIndex = 0;
 
-        int nComma = m_sCustomSenderIcon.ReverseFind(',');    
+        int nComma = m_sCustomSenderIcon.ReverseFind(',');
         if(nComma>=0)
         {
-            sResourceFile = m_sCustomSenderIcon.Left(nComma);      
+            sResourceFile = m_sCustomSenderIcon.Left(nComma);
             sIconIndex = m_sCustomSenderIcon.Mid(nComma+1);
             sIconIndex.TrimLeft();
             sIconIndex.TrimRight();
-            nIconIndex = _ttoi(sIconIndex);      
+            nIconIndex = _ttoi(sIconIndex);
         }
         else
         {
             sResourceFile = m_sCustomSenderIcon;
         }
 
-        sResourceFile.TrimRight();        
+        sResourceFile.TrimRight();
 
         if(nIconIndex==-1)
         {
@@ -219,7 +219,7 @@ int CCrashHandler::Init(
     m_nSmtpProxyPort = 25;
     if(lpcszSmtpProxy!=NULL)
     {
-        m_sSmtpProxyServer = lpcszSmtpProxy;      
+        m_sSmtpProxyServer = lpcszSmtpProxy;
         int pos2 = m_sSmtpProxyServer.ReverseFind(':');
         if(pos2>=0)
         {
@@ -281,13 +281,13 @@ int CCrashHandler::Init(
     // Save path to CrashSender.exe
     if(lpcszCrashSenderPath==NULL)
     {
-        // By default assume that CrashSender.exe is located in the same dir as CrashRpt.dll    
-        m_sPathToCrashSender = Utility::GetModulePath((HMODULE)g_hModuleCrashRpt);    
+        // By default assume that CrashSender.exe is located in the same dir as CrashRpt.dll
+        m_sPathToCrashSender = Utility::GetModulePath((HMODULE)g_hModuleCrashRpt);
     }
     else
     {
-        // Save user-specified path    
-        m_sPathToCrashSender = CString(lpcszCrashSenderPath);    
+        // Save user-specified path
+        m_sPathToCrashSender = CString(lpcszCrashSenderPath);
     }
 
     // Get CrashSender EXE name
@@ -301,18 +301,18 @@ int CCrashHandler::Init(
 
     // Check that CrashSender.exe file exists
     if(m_sPathToCrashSender.Right(1)!='\\')
-        m_sPathToCrashSender+="\\";    
+        m_sPathToCrashSender+="\\";
 
-    HANDLE hFile = CreateFile(m_sPathToCrashSender+sCrashSenderName, FILE_GENERIC_READ, 
-        FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);  
+    HANDLE hFile = CreateFile(m_sPathToCrashSender+sCrashSenderName, FILE_GENERIC_READ,
+        FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
     if(hFile==INVALID_HANDLE_VALUE)
-    { 
+    {
         crSetErrorMsg(_T("CrashSender.exe is not found in the specified path."));
         return 1;
     }
     else
     {
-        CloseHandle(hFile);   
+        CloseHandle(hFile);
     }
 
     // Determine where to look for language file.
@@ -333,7 +333,7 @@ int CCrashHandler::Init(
     CString sLangFileVer = Utility::GetINIString(m_sLangFileName, _T("Settings"), _T("CrashRptVersion"));
     int lang_file_ver = _ttoi(sLangFileVer);
     if(lang_file_ver!=CRASHRPT_VER)
-    {    
+    {
         crSetErrorMsg(_T("Missing language file or wrong language file version."));
         return 1; // Language INI file has wrong version!
     }
@@ -341,21 +341,21 @@ int CCrashHandler::Init(
 	// If path to dbghelp.dll not provided, use the default one
     if(lpcszDebugHelpDLLPath==NULL)
     {
-        // By default assume that debughlp.dll is located in the same dir as CrashRpt.dll    
-        m_sPathToDebugHelpDll = Utility::GetModulePath((HMODULE)g_hModuleCrashRpt);       
+        // By default assume that debughlp.dll is located in the same dir as CrashRpt.dll
+        m_sPathToDebugHelpDll = Utility::GetModulePath((HMODULE)g_hModuleCrashRpt);
     }
     else
     {
-        m_sPathToDebugHelpDll = CString(lpcszDebugHelpDLLPath);        
-    }  
+        m_sPathToDebugHelpDll = CString(lpcszDebugHelpDLLPath);
+    }
 
-    CString sDebugHelpDLL_name = "dbghelp.dll";  
+    CString sDebugHelpDLL_name = "dbghelp.dll";
 
     if(m_sPathToDebugHelpDll.Right(1)!='\\')
         m_sPathToDebugHelpDll+="\\";
 
 	// Load dbghelp.dll library
-    HANDLE hDbgHelpDll = LoadLibrary(m_sPathToDebugHelpDll+sDebugHelpDLL_name);    
+    HANDLE hDbgHelpDll = LoadLibrary(m_sPathToDebugHelpDll+sDebugHelpDLL_name);
 	// and check result
     if(!hDbgHelpDll)
     {
@@ -363,10 +363,10 @@ int CCrashHandler::Init(
         m_sPathToDebugHelpDll = _T("");
         hDbgHelpDll = LoadLibrary(sDebugHelpDLL_name);
         if(!hDbgHelpDll)
-        {     
-            crSetErrorMsg(_T("Couldn't load dbghelp.dll."));      
+        {
+            crSetErrorMsg(_T("Couldn't load dbghelp.dll."));
             return 1;
-        }    
+        }
     }
 
     m_sPathToDebugHelpDll += sDebugHelpDLL_name;
@@ -376,7 +376,7 @@ int CCrashHandler::Init(
         FreeLibrary((HMODULE)hDbgHelpDll);
         hDbgHelpDll = NULL;
     }
-	
+
 	// Determine the directory where to save error reports
     if(lpcszErrorReportSaveDir==NULL)
     {
@@ -384,32 +384,32 @@ int CCrashHandler::Init(
         CString sLocalAppDataFolder;
         DWORD dwCSIDL = CSIDL_LOCAL_APPDATA;
         Utility::GetSpecialFolder(dwCSIDL, sLocalAppDataFolder);
-        m_sUnsentCrashReportsFolder.Format(_T("%s\\CrashRpt\\UnsentCrashReports\\%s_%s"), 
+        m_sUnsentCrashReportsFolder.Format(_T("%s\\CrashRpt\\UnsentCrashReports\\%s_%s"),
 			(LPCTSTR)sLocalAppDataFolder, (LPCTSTR)m_sAppName, (LPCTSTR)m_sAppVersion);
     }
     else
-    {    
+    {
         m_sUnsentCrashReportsFolder = lpcszErrorReportSaveDir;
     }
-	
+
     BOOL bCreateDir = Utility::CreateFolder(m_sUnsentCrashReportsFolder);
     if(!bCreateDir)
     {
         ATLASSERT(0);
         crSetErrorMsg(_T("Couldn't create crash report directory."));
-        return 1; 
+        return 1;
     }
 
 	// Create directory where we will store recent crash logs
-	CString sLogDir = m_sUnsentCrashReportsFolder + _T("\\Logs");	
+	CString sLogDir = m_sUnsentCrashReportsFolder + _T("\\Logs");
 	bCreateDir = Utility::CreateFolder(sLogDir);
     if(!bCreateDir)
     {
         ATLASSERT(0);
         crSetErrorMsg(_T("Couldn't create logs directory."));
-        return 1; 
+        return 1;
     }
-		
+
 	// Init some fields that should be reinitialized before each new crash.
 	if(0!=PerCrashInit())
 		return 1;
@@ -421,7 +421,7 @@ int CCrashHandler::Init(
     InitPrevExceptionHandlerPointers();
 
     // Set exception handlers that work on per-process basis
-    int nSetProcessHandlers = SetProcessExceptionHandlers(dwFlags);   
+    int nSetProcessHandlers = SetProcessExceptionHandlers(dwFlags);
     if(nSetProcessHandlers!=0)
     {
         ATLASSERT(nSetProcessHandlers==0);
@@ -437,13 +437,13 @@ int CCrashHandler::Init(
         crSetErrorMsg(_T("Couldn't set C++ exception handlers for main execution thread."));
         return 1;
     }
-	    
+
     // If user wants us to send pending error reports that were queued recently,
     // launch the CrashSender.exe and make it to alert user and send the reports.
     if(dwFlags&CR_INST_SEND_QUEUED_REPORTS)
     {
         // Create temporary shared mem.
-        CSharedMem tmpSharedMem;    
+        CSharedMem tmpSharedMem;
         CRASH_DESCRIPTION* pCrashDesc = PackCrashInfoIntoSharedMem(&tmpSharedMem, TRUE);
         pCrashDesc->m_bSendRecentReports = TRUE;
         if(0!=LaunchCrashSender(tmpSharedMem.GetName(), TRUE, NULL))
@@ -467,18 +467,18 @@ int CCrashHandler::Init(
 	HMODULE hKernel32 = LoadLibrary(_T("kernel32.dll"));
 	if(hKernel32!=NULL)
 	{
-		SETPROCESSUSERMODEEXCEPTIONPOLICY pfnSetProcessUserModeExceptionPolicy = 
+		SETPROCESSUSERMODEEXCEPTIONPOLICY pfnSetProcessUserModeExceptionPolicy =
 			(SETPROCESSUSERMODEEXCEPTIONPOLICY)GetProcAddress(hKernel32, "SetProcessUserModeExceptionPolicy");
-		GETPROCESSUSERMODEEXCEPTIONPOLICY pfnGetProcessUserModeExceptionPolicy = 
+		GETPROCESSUSERMODEEXCEPTIONPOLICY pfnGetProcessUserModeExceptionPolicy =
 			(GETPROCESSUSERMODEEXCEPTIONPOLICY)GetProcAddress(hKernel32, "GetProcessUserModeExceptionPolicy");
 
-		if(pfnSetProcessUserModeExceptionPolicy!=NULL && 
+		if(pfnSetProcessUserModeExceptionPolicy!=NULL &&
 			pfnGetProcessUserModeExceptionPolicy!=NULL)
 		{
 			DWORD _dwFlags = 0;
 			if(pfnGetProcessUserModeExceptionPolicy(&_dwFlags))
 			{
-				pfnSetProcessUserModeExceptionPolicy(_dwFlags & ~PROCESS_CALLBACK_FILTER_ENABLED); 
+				pfnSetProcessUserModeExceptionPolicy(_dwFlags & ~PROCESS_CALLBACK_FILTER_ENABLED);
 			}
 		}
 
@@ -495,7 +495,7 @@ int CCrashHandler::SetCrashCallbackW(PFNCRASHCALLBACKW pfnCallback, LPVOID pUser
 {
 	m_pfnCallback2W = pfnCallback;
 	m_pCallbackParam = pUserParam;
-	
+
 	return 0;
 }
 
@@ -503,7 +503,7 @@ int CCrashHandler::SetCrashCallbackA(PFNCRASHCALLBACKA pfnCallback, LPVOID pUser
 {
 	m_pfnCallback2A = pfnCallback;
 	m_pCallbackParam = pUserParam;
-	
+
 	return 0;
 }
 
@@ -515,7 +515,7 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
     CString sSharedMemName;
     if(bTempMem)
         sSharedMemName.Format(_T("%s-tmp"), (LPCTSTR)m_sCrashGUID);
-    else 
+    else
         sSharedMemName = m_sCrashGUID;
 
 	if(!pSharedMem->IsInitialized())
@@ -526,32 +526,32 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
 		{
 			ATLASSERT(0);
 			crSetErrorMsg(_T("Couldn't initialize shared memory."));
-			return NULL; 
+			return NULL;
 		}
 	}
 
     // Create memory view.
-    m_pTmpCrashDesc = 
-        (CRASH_DESCRIPTION*)pSharedMem->CreateView(0, sizeof(CRASH_DESCRIPTION));  
+    m_pTmpCrashDesc =
+        (CRASH_DESCRIPTION*)pSharedMem->CreateView(0, sizeof(CRASH_DESCRIPTION));
     if(m_pTmpCrashDesc==NULL)
     {
         ATLASSERT(0);
         crSetErrorMsg(_T("Couldn't create shared memory view."));
-        return NULL; 
+        return NULL;
     }
 
     // Pack config information to shared memory
     memset(m_pTmpCrashDesc, 0, sizeof(CRASH_DESCRIPTION));
-    memcpy(m_pTmpCrashDesc->m_uchMagic, "CRD", 3);  
+    memcpy(m_pTmpCrashDesc->m_uchMagic, "CRD", 3);
     m_pTmpCrashDesc->m_wSize = sizeof(CRASH_DESCRIPTION);
-    m_pTmpCrashDesc->m_dwTotalSize = sizeof(CRASH_DESCRIPTION);  
+    m_pTmpCrashDesc->m_dwTotalSize = sizeof(CRASH_DESCRIPTION);
     m_pTmpCrashDesc->m_dwCrashRptVer = CRASHRPT_VER;
     m_pTmpCrashDesc->m_dwInstallFlags = m_dwFlags;
     m_pTmpCrashDesc->m_MinidumpType = m_MinidumpType;
     m_pTmpCrashDesc->m_nSmtpPort = m_nSmtpPort;
     m_pTmpCrashDesc->m_nSmtpProxyPort = m_nSmtpProxyPort;
     m_pTmpCrashDesc->m_bAddScreenshot = m_bAddScreenshot;
-    m_pTmpCrashDesc->m_dwScreenshotFlags = m_dwScreenshotFlags;      
+    m_pTmpCrashDesc->m_dwScreenshotFlags = m_dwScreenshotFlags;
 	m_pTmpCrashDesc->m_nJpegQuality = m_nJpegQuality;
     memcpy(m_pTmpCrashDesc->m_uPriorities, m_uPriorities, sizeof(UINT)*3);
 	m_pTmpCrashDesc->m_bAddVideo = m_bAddVideo;
@@ -569,15 +569,15 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
     m_pTmpCrashDesc->m_dwPathToDebugHelpDllOffs = PackString(m_sPathToDebugHelpDll);
     m_pTmpCrashDesc->m_dwRestartCmdLineOffs = PackString(m_sRestartCmdLine);
     m_pTmpCrashDesc->m_dwPrivacyPolicyURLOffs = PackString(m_sPrivacyPolicyURL);
-    m_pTmpCrashDesc->m_dwUnsentCrashReportsFolderOffs = PackString(m_sUnsentCrashReportsFolder);  
+    m_pTmpCrashDesc->m_dwUnsentCrashReportsFolderOffs = PackString(m_sUnsentCrashReportsFolder);
     m_pTmpCrashDesc->m_dwCustomSenderIconOffs = PackString(m_sCustomSenderIcon);
-    m_pTmpCrashDesc->m_dwUrlOffs = PackString(m_sUrl);    
+    m_pTmpCrashDesc->m_dwUrlOffs = PackString(m_sUrl);
     m_pTmpCrashDesc->m_dwEmailToOffs = PackString(m_sEmailTo);
     m_pTmpCrashDesc->m_dwEmailSubjectOffs = PackString(m_sEmailSubject);
-    m_pTmpCrashDesc->m_dwEmailTextOffs = PackString(m_sEmailText);  
-    m_pTmpCrashDesc->m_dwSmtpProxyServerOffs = PackString(m_sSmtpProxyServer);    
-	m_pTmpCrashDesc->m_dwSmtpLoginOffs = PackString(m_sSmtpLogin);    
-	m_pTmpCrashDesc->m_dwSmtpPasswordOffs = PackString(m_sSmtpPassword);    
+    m_pTmpCrashDesc->m_dwEmailTextOffs = PackString(m_sEmailText);
+    m_pTmpCrashDesc->m_dwSmtpProxyServerOffs = PackString(m_sSmtpProxyServer);
+	m_pTmpCrashDesc->m_dwSmtpLoginOffs = PackString(m_sSmtpLogin);
+	m_pTmpCrashDesc->m_dwSmtpPasswordOffs = PackString(m_sSmtpPassword);
 
 	// Pack file items
 	std::map<CString, FileItem>::iterator fit;
@@ -592,7 +592,7 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
 	// Pack custom props
 	std::map<CString, CString>::iterator pit;
 	for(pit=m_props.begin(); pit!=m_props.end(); pit++)
-	{		
+	{
 		// Pack this prop into shared mem.
 		PackProperty(pit->first, pit->second);
 	}
@@ -600,7 +600,7 @@ CRASH_DESCRIPTION* CCrashHandler::PackCrashInfoIntoSharedMem(CSharedMem* pShared
 	// Pack reg keys
 	std::map<CString, RegKeyInfo>::iterator rit;
 	for(rit=m_RegKeys.begin(); rit!=m_RegKeys.end(); rit++)
-	{		
+	{
 		RegKeyInfo& rki = rit->second;
 
 		// Pack this reg key into shared mem.
@@ -617,11 +617,11 @@ DWORD CCrashHandler::PackString(CString str)
     int nStrLen = str.GetLength()*sizeof(TCHAR);
     WORD wLength = (WORD)(sizeof(STRING_DESC)+nStrLen);
 
-    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);  
+    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);
     STRING_DESC* pStrDesc = (STRING_DESC*)pView;
     memcpy(pStrDesc->m_uchMagic, "STR", 3);
     pStrDesc->m_wSize = wLength;
-    memcpy(pView+sizeof(STRING_DESC), str.GetBuffer(0), nStrLen); 
+    memcpy(pView+sizeof(STRING_DESC), str.GetBuffer(0), nStrLen);
 
     m_pTmpCrashDesc->m_dwTotalSize += wLength;
 
@@ -637,10 +637,10 @@ DWORD CCrashHandler::PackFileItem(FileItem& fi)
     m_pTmpCrashDesc->m_dwTotalSize += wLength;
     m_pTmpCrashDesc->m_uFileItems++;
 
-    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);    
+    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);
     FILE_ITEM* pFileItem = (FILE_ITEM*)pView;
 
-    memcpy(pFileItem->m_uchMagic, "FIL", 3);  
+    memcpy(pFileItem->m_uchMagic, "FIL", 3);
     pFileItem->m_dwSrcFilePathOffs = PackString(fi.m_sSrcFilePath);
     pFileItem->m_dwDstFileNameOffs = PackString(fi.m_sDstFileName);
     pFileItem->m_dwDescriptionOffs = PackString(fi.m_sDescription);
@@ -660,10 +660,10 @@ DWORD CCrashHandler::PackProperty(CString sName, CString sValue)
     m_pTmpCrashDesc->m_dwTotalSize += wLength;
     m_pTmpCrashDesc->m_uCustomProps++;
 
-    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);    
+    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);
     CUSTOM_PROP* pProp = (CUSTOM_PROP*)pView;
 
-    memcpy(pProp->m_uchMagic, "CPR", 3); 
+    memcpy(pProp->m_uchMagic, "CPR", 3);
     pProp->m_dwNameOffs = PackString(sName);
     pProp->m_dwValueOffs = PackString(sValue);
     pProp->m_wSize = (WORD)(m_pTmpCrashDesc->m_dwTotalSize-dwTotalSize);
@@ -680,10 +680,10 @@ DWORD CCrashHandler::PackRegKey(CString sKeyName, RegKeyInfo& rki)
     m_pTmpCrashDesc->m_dwTotalSize += wLength;
     m_pTmpCrashDesc->m_uRegKeyEntries++;
 
-    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);    
+    LPBYTE pView = m_pTmpSharedMem->CreateView(dwTotalSize, wLength);
     REG_KEY* pKey = (REG_KEY*)pView;
 
-    memcpy(pKey->m_uchMagic, "REG", 3); 
+    memcpy(pKey->m_uchMagic, "REG", 3);
 	pKey->m_bAllowDelete = rki.m_bAllowDelete;
     pKey->m_dwRegKeyNameOffs = PackString(sKeyName);
 	pKey->m_dwDstFileNameOffs = PackString(rki.m_sDstFileName);
@@ -708,7 +708,7 @@ int CCrashHandler::Destroy()
     {
         crSetErrorMsg(_T("Can't destroy not initialized crash handler."));
         return 1;
-    }  
+    }
 
 	// If we are recording video, we need to notify the CrashSender.exe about
 	// our exit.
@@ -718,7 +718,7 @@ int CCrashHandler::Destroy()
 		SetEvent(m_hEvent2);
 
 		// Wait until CrashSender.exe completes its task
-		WaitForSingleObject(m_hEvent, INFINITE);		
+		WaitForSingleObject(m_hEvent, INFINITE);
 	}
 
 	// Free handle to CrashSender.exe process.
@@ -744,15 +744,15 @@ int CCrashHandler::Destroy()
 
     m_oldSehHandler = NULL;
 
-    // All installed per-thread C++ exception handlers should be uninstalled 
+    // All installed per-thread C++ exception handlers should be uninstalled
     // using crUninstallFromCurrentThread() before calling Destroy()
 
     {
         CAutoLock lock(&m_csThreadExceptionHandlers);
-        ATLASSERT(m_ThreadExceptionHandlers.size()==0);          
+        ATLASSERT(m_ThreadExceptionHandlers.size()==0);
     }
 
-	// 
+	//
     m_pProcessCrashHandler = NULL;
 
     // OK.
@@ -771,22 +771,22 @@ void CCrashHandler::InitPrevExceptionHandlerPointers()
     m_prevNewHandler = NULL;
 #endif
 
-#if _MSC_VER>=1300 && _MSC_VER<1400    
+#if _MSC_VER>=1300 && _MSC_VER<1400
     m_prevSec = NULL;
 #endif
 
 #if _MSC_VER>=1400
     m_prevInvpar = NULL;
-#endif  
+#endif
 
-    m_prevSigABRT = NULL;  
-    m_prevSigINT = NULL;  
+    m_prevSigABRT = NULL;
+    m_prevSigINT = NULL;
     m_prevSigTERM = NULL;
 }
 
 // Returns singleton of the crash handler
 CCrashHandler* CCrashHandler::GetCurrentProcessCrashHandler()
-{   
+{
     return m_pProcessCrashHandler;
 }
 
@@ -813,7 +813,7 @@ int CCrashHandler::SetProcessExceptionHandlers(DWORD dwFlags)
     if(dwFlags&CR_INST_STRUCTURED_EXCEPTION_HANDLER)
     {
         // Install top-level SEH handler
-        m_oldSehHandler = SetUnhandledExceptionFilter(SehHandler);    
+        m_oldSehHandler = SetUnhandledExceptionFilter(SehHandler);
     }
 
     _set_error_mode(_OUT_TO_STDERR);
@@ -822,11 +822,11 @@ int CCrashHandler::SetProcessExceptionHandlers(DWORD dwFlags)
     if(dwFlags&CR_INST_PURE_CALL_HANDLER)
     {
         // Catch pure virtual function calls.
-        // Because there is one _purecall_handler for the whole process, 
-        // calling this function immediately impacts all threads. The last 
-        // caller on any thread sets the handler. 
+        // Because there is one _purecall_handler for the whole process,
+        // calling this function immediately impacts all threads. The last
+        // caller on any thread sets the handler.
         // http://msdn.microsoft.com/en-us/library/t296ys27.aspx
-        m_prevPurec = _set_purecall_handler(PureCallHandler);    
+        m_prevPurec = _set_purecall_handler(PureCallHandler);
     }
 
     if(dwFlags&CR_INST_NEW_OPERATOR_ERROR_HANDLER)
@@ -841,12 +841,12 @@ int CCrashHandler::SetProcessExceptionHandlers(DWORD dwFlags)
     if(dwFlags&CR_INST_INVALID_PARAMETER_HANDLER)
     {
         // Catch invalid parameter exceptions.
-        m_prevInvpar = _set_invalid_parameter_handler(InvalidParameterHandler); 
+        m_prevInvpar = _set_invalid_parameter_handler(InvalidParameterHandler);
     }
 #endif
 
 
-#if _MSC_VER>=1300 && _MSC_VER<1400    
+#if _MSC_VER>=1300 && _MSC_VER<1400
     if(dwFlags&CR_INST_SECURITY_ERROR_HANDLER)
     {
         // Catch buffer overrun exceptions
@@ -860,23 +860,23 @@ int CCrashHandler::SetProcessExceptionHandlers(DWORD dwFlags)
 
     if(dwFlags&CR_INST_SIGABRT_HANDLER)
     {
-#if _MSC_VER>=1400  
+#if _MSC_VER>=1400
         _set_abort_behavior(_CALL_REPORTFAULT, _CALL_REPORTFAULT);
 #endif
         // Catch an abnormal program termination
-        m_prevSigABRT = signal(SIGABRT, SigabrtHandler);  
+        m_prevSigABRT = signal(SIGABRT, SigabrtHandler);
     }
 
     if(dwFlags&CR_INST_SIGINT_HANDLER)
     {
         // Catch illegal instruction handler
-        m_prevSigINT = signal(SIGINT, SigintHandler);     
+        m_prevSigINT = signal(SIGINT, SigintHandler);
     }
 
     if(dwFlags&CR_INST_TERMINATE_HANDLER)
     {
         // Catch a termination request
-        m_prevSigTERM = signal(SIGTERM, SigtermHandler);          
+        m_prevSigTERM = signal(SIGTERM, SigtermHandler);
     }
 
     crSetErrorMsg(_T("Success."));
@@ -901,21 +901,21 @@ int CCrashHandler::UnSetProcessExceptionHandlers()
 #if _MSC_VER>=1400
     if(m_prevInvpar!=NULL)
         _set_invalid_parameter_handler(m_prevInvpar);
-#endif //_MSC_VER>=1400  
+#endif //_MSC_VER>=1400
 
-#if _MSC_VER>=1300 && _MSC_VER<1400    
+#if _MSC_VER>=1300 && _MSC_VER<1400
     if(m_prevSec!=NULL)
         _set_security_error_handler(m_prevSec);
 #endif //_MSC_VER<1400
 
     if(m_prevSigABRT!=NULL)
-        signal(SIGABRT, m_prevSigABRT);  
+        signal(SIGABRT, m_prevSigABRT);
 
     if(m_prevSigINT!=NULL)
-        signal(SIGINT, m_prevSigINT);     
+        signal(SIGINT, m_prevSigINT);
 
     if(m_prevSigTERM!=NULL)
-        signal(SIGTERM, m_prevSigTERM);    
+        signal(SIGTERM, m_prevSigTERM);
 
     crSetErrorMsg(_T("Success."));
     return 0;
@@ -927,7 +927,7 @@ int CCrashHandler::SetThreadExceptionHandlers(DWORD dwFlags)
     crSetErrorMsg(_T("Unspecified error."));
 
     // If 0 is specified as dwFlags, assume all available exception handlers should be
-    // installed  
+    // installed
     if((dwFlags&CR_INST_ALL_POSSIBLE_HANDLERS)==0)
         dwFlags |= CR_INST_ALL_POSSIBLE_HANDLERS;
 
@@ -938,12 +938,12 @@ int CCrashHandler::SetThreadExceptionHandlers(DWORD dwFlags)
     CAutoLock lock(&m_csThreadExceptionHandlers);
 
 	// Try and find our thread ID in the list of threads.
-    std::map<DWORD, ThreadExceptionHandlers>::iterator it = 
+    std::map<DWORD, ThreadExceptionHandlers>::iterator it =
         m_ThreadExceptionHandlers.find(dwThreadId);
 
     if(it!=m_ThreadExceptionHandlers.end())
     {
-        // handlers are already set for the thread    
+        // handlers are already set for the thread
         crSetErrorMsg(_T("Can't install handlers for current thread twice."));
         return 1; // failed
     }
@@ -952,45 +952,45 @@ int CCrashHandler::SetThreadExceptionHandlers(DWORD dwFlags)
 
     if(dwFlags&CR_INST_TERMINATE_HANDLER)
     {
-        // Catch terminate() calls. 
-        // In a multithreaded environment, terminate functions are maintained 
-        // separately for each thread. Each new thread needs to install its own 
+        // Catch terminate() calls.
+        // In a multithreaded environment, terminate functions are maintained
+        // separately for each thread. Each new thread needs to install its own
         // terminate function. Thus, each thread is in charge of its own termination handling.
         // http://msdn.microsoft.com/en-us/library/t6fk7h29.aspx
-        handlers.m_prevTerm = set_terminate(TerminateHandler);       
+        handlers.m_prevTerm = set_terminate(TerminateHandler);
     }
 
     if(dwFlags&CR_INST_UNEXPECTED_HANDLER)
     {
         // Catch unexpected() calls.
-        // In a multithreaded environment, unexpected functions are maintained 
-        // separately for each thread. Each new thread needs to install its own 
+        // In a multithreaded environment, unexpected functions are maintained
+        // separately for each thread. Each new thread needs to install its own
         // unexpected function. Thus, each thread is in charge of its own unexpected handling.
-        // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx  
-        handlers.m_prevUnexp = set_unexpected(UnexpectedHandler);    
+        // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx
+        handlers.m_prevUnexp = set_unexpected(UnexpectedHandler);
     }
 
     if(dwFlags&CR_INST_SIGFPE_HANDLER)
     {
         // Catch a floating point error
         typedef void (*sigh)(int);
-        handlers.m_prevSigFPE = signal(SIGFPE, (sigh)SigfpeHandler);     
+        handlers.m_prevSigFPE = signal(SIGFPE, (sigh)SigfpeHandler);
     }
 
 
     if(dwFlags&CR_INST_SIGILL_HANDLER)
     {
         // Catch an illegal instruction
-        handlers.m_prevSigILL = signal(SIGILL, SigillHandler);     
+        handlers.m_prevSigILL = signal(SIGILL, SigillHandler);
     }
 
     if(dwFlags&CR_INST_SIGSEGV_HANDLER)
     {
         // Catch illegal storage access errors
-        handlers.m_prevSigSEGV = signal(SIGSEGV, SigsegvHandler);   
+        handlers.m_prevSigSEGV = signal(SIGSEGV, SigsegvHandler);
     }
 
-    // Insert the structure to the list of handlers  
+    // Insert the structure to the list of handlers
     m_ThreadExceptionHandlers[dwThreadId] = handlers;
 
     // OK.
@@ -1007,12 +1007,12 @@ int CCrashHandler::UnSetThreadExceptionHandlers()
 
     CAutoLock lock(&m_csThreadExceptionHandlers);
 
-    std::map<DWORD, ThreadExceptionHandlers>::iterator it = 
+    std::map<DWORD, ThreadExceptionHandlers>::iterator it =
         m_ThreadExceptionHandlers.find(dwThreadId);
 
     if(it==m_ThreadExceptionHandlers.end())
     {
-        // No exception handlers were installed for the caller thread?    
+        // No exception handlers were installed for the caller thread?
         crSetErrorMsg(_T("Crash handler wasn't previously installed for current thread."));
         return 1;
     }
@@ -1026,13 +1026,13 @@ int CCrashHandler::UnSetThreadExceptionHandlers()
         set_unexpected(handlers->m_prevUnexp);
 
     if(handlers->m_prevSigFPE!=NULL)
-        signal(SIGFPE, handlers->m_prevSigFPE);     
+        signal(SIGFPE, handlers->m_prevSigFPE);
 
     if(handlers->m_prevSigILL!=NULL)
-        signal(SIGINT, handlers->m_prevSigILL);     
+        signal(SIGINT, handlers->m_prevSigILL);
 
     if(handlers->m_prevSigSEGV!=NULL)
-        signal(SIGSEGV, handlers->m_prevSigSEGV); 
+        signal(SIGSEGV, handlers->m_prevSigSEGV);
 
     // Remove from the list
     m_ThreadExceptionHandlers.erase(it);
@@ -1051,7 +1051,7 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
 	if(pszFile==NULL)
 	{
 		crSetErrorMsg(_T("Invalid file name specified."));
-        return 1; 
+        return 1;
 	}
 
     // Check that the destination file name is valid
@@ -1063,7 +1063,7 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
         if(sDestFile.GetLength()==0)
         {
             crSetErrorMsg(_T("Invalid destination file name specified."));
-            return 1; 
+            return 1;
         }
     }
 
@@ -1078,7 +1078,7 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
 		BOOL bIsFile = dwAttrs!=INVALID_FILE_ATTRIBUTES && (dwAttrs&FILE_ATTRIBUTE_DIRECTORY)==0;
 
 		if (!bIsFile && (dwFlags&CR_AF_MISSING_FILE_OK)==0)
-		{    
+		{
 			crSetErrorMsg(_T("The file does not exists or not a regular file."));
 			return 1;
 		}
@@ -1091,7 +1091,7 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
 		fi.m_bAllowDelete = (dwFlags&CR_AF_ALLOW_DELETE)!=0;
 		if(pszDestFile!=NULL)
 		{
-			fi.m_sDstFileName = pszDestFile;        
+			fi.m_sDstFileName = pszDestFile;
 		}
 		else
 		{
@@ -1102,7 +1102,7 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
 			if(pos!=-1)
 				sDestFile = sDestFile.Mid(pos+1);
 
-			fi.m_sDstFileName = sDestFile;        
+			fi.m_sDstFileName = sDestFile;
 		}
 
 		// Check if file is already in our list
@@ -1119,19 +1119,19 @@ int CCrashHandler::AddFile(LPCTSTR pszFile, LPCTSTR pszDestFile, LPCTSTR pszDesc
 		PackFileItem(fi);
 	}
 	else // Search pattern
-	{			
+	{
 		// Add file search pattern to file list.
 		FileItem fi;
 		fi.m_sDescription = pszDesc;
 		fi.m_sSrcFilePath = pszFile;
 		fi.m_sDstFileName = Utility::GetFileName(pszFile);
 		fi.m_bMakeCopy = (dwFlags&CR_AF_MAKE_FILE_COPY)!=0;
-		fi.m_bAllowDelete = (dwFlags&CR_AF_ALLOW_DELETE)!=0;		
+		fi.m_bAllowDelete = (dwFlags&CR_AF_ALLOW_DELETE)!=0;
 		m_files[fi.m_sDstFileName] = fi;
 
 		// Pack this file item into shared mem.
 		PackFileItem(fi);
-	}	 
+	}
 
     // OK.
     crSetErrorMsg(_T("Success."));
@@ -1160,7 +1160,7 @@ int CCrashHandler::AddProperty(CString sPropName, CString sPropValue)
 
 // Adds a screen shot to the error report
 int CCrashHandler::AddScreenshot(DWORD dwFlags, int nJpegQuality)
-{ 
+{
     crSetErrorMsg(_T("Unspecified error."));
 
     if(nJpegQuality<0 || nJpegQuality>100)
@@ -1183,7 +1183,7 @@ int CCrashHandler::AddScreenshot(DWORD dwFlags, int nJpegQuality)
 }
 
 // Adds a video recording of desktop state just before crash.
-int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval, 
+int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
 	SIZE* pDesiredFrameSize, HWND hWndParent)
 {
 	// Check duration - it should be less than 10 minutes
@@ -1192,7 +1192,7 @@ int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
 		crSetErrorMsg(_T("Invalid video duration."));
 		return 2;
 	}
-		
+
 	// If not specified, set default
 	if(nDuration==0)
 	{
@@ -1246,7 +1246,7 @@ int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
 	m_pTmpCrashDesc->m_nVideoFrameInterval = nFrameInterval;
     m_pTmpCrashDesc->m_DesiredFrameSize = m_DesiredFrameSize;
 	m_pTmpCrashDesc->m_hWndVideoParent = m_hWndVideoParent;
-	
+
 	// Create sync event (we will use it for synchronizing with CrashSender.exe).
 	CString sEventName;
     sEventName.Format(_T("Local\\CrashRptEvent_%s_2"), (LPCTSTR)m_sCrashGUID);
@@ -1254,11 +1254,11 @@ int CCrashHandler::AddVideo(DWORD dwFlags, int nDuration, int nFrameInterval,
     if(m_hEvent2==NULL)
     {
         crSetErrorMsg(_T("Couldn't create synchronization event."));
-        return 5; 
+        return 5;
     }
 
-	// Launch the CrashSender.exe process that will continuously record video 
-	// in background.    
+	// Launch the CrashSender.exe process that will continuously record video
+	// in background.
     if(0!=LaunchCrashSender(m_SharedMem.GetName(), FALSE, &m_hSenderProcess))
     {
 		crSetErrorMsg(_T("Couldn't launch CrashSender.exe process."));
@@ -1280,43 +1280,43 @@ int CCrashHandler::GenerateErrorReport(
 
 	// Allocate memory in stack for storing exception pointers.
 	EXCEPTION_RECORD ExceptionRecord;
-    CONTEXT ContextRecord;    
+    CONTEXT ContextRecord;
     EXCEPTION_POINTERS ExceptionPointers;
 	ExceptionPointers.ExceptionRecord = &ExceptionRecord;
-    ExceptionPointers.ContextRecord = &ContextRecord;  
+    ExceptionPointers.ContextRecord = &ContextRecord;
 
-    // Validate input parameters 
+    // Validate input parameters
     if(pExceptionInfo==NULL)
     {
         crSetErrorMsg(_T("Exception info is NULL."));
         return 1;
     }
 
-    // Get exception pointers if they were not provided by the caller. 
+    // Get exception pointers if they were not provided by the caller.
     if(pExceptionInfo->pexcptrs==NULL)
     {
         GetExceptionPointers(pExceptionInfo->code, &ExceptionPointers);
 		pExceptionInfo->pexcptrs = &ExceptionPointers;
     }
-		
-	// If error report is being generated manually, 
+
+	// If error report is being generated manually,
 	// temporarily disable app restart feature.
     if(pExceptionInfo->bManual)
-	{		
+	{
 		// Force disable app restart.
         m_pCrashDesc->m_dwInstallFlags &= ~CR_INST_APP_RESTART;
 	}
 
 	// Set "client app crashed" flag.
 	m_pCrashDesc->m_bClientAppCrashed = TRUE;
-	
+
 	// Reset "add video" flag (to ensure CrashSender.exe won't start video recording loop the second time).
 	m_pCrashDesc->m_bAddVideo = FALSE;
-    
+
 	// Save current process ID, thread ID and exception pointers address to shared mem.
     m_pCrashDesc->m_dwProcessId = GetCurrentProcessId();
     m_pCrashDesc->m_dwThreadId = GetCurrentThreadId();
-    m_pCrashDesc->m_pExceptionPtrs = pExceptionInfo->pexcptrs;  
+    m_pCrashDesc->m_pExceptionPtrs = pExceptionInfo->pexcptrs;
     m_pCrashDesc->m_bSendRecentReports = FALSE;
     m_pCrashDesc->m_nExceptionType = pExceptionInfo->exctype;
 
@@ -1338,8 +1338,8 @@ int CCrashHandler::GenerateErrorReport(
         m_pCrashDesc->m_dwInvParamFileOffs = PackString(pExceptionInfo->file);
         m_pCrashDesc->m_uInvParamLine = pExceptionInfo->line;
     }
-	    
-    // Let client know about the crash via the crash callback function. 
+
+    // Let client know about the crash via the crash callback function.
     int rv=1;
     if (m_lpfnCallback!=NULL && (rv=m_lpfnCallback(NULL))==FALSE)
     {
@@ -1359,43 +1359,43 @@ int CCrashHandler::GenerateErrorReport(
 		// User has canceled error report generation!
 		crSetErrorMsg(_T("The operation was cancelled by client."));
         return 2;
-    }	
+    }
 
-    // Start the CrashSender.exe process which will take the dekstop screenshot, 
-    // copy user-specified files to the error report folder, create minidump, 
-    // notify user about crash, compress the report into ZIP archive and send 
-    // the error report. 
+    // Start the CrashSender.exe process which will take the dekstop screenshot,
+    // copy user-specified files to the error report folder, create minidump,
+    // notify user about crash, compress the report into ZIP archive and send
+    // the error report.
 
     int result = 0; // result of launching CrashSender.exe
-	
+
 	// If we are not recording video or video recording process has been terminated by some reason...
-	if(!m_bAddVideo || (m_bAddVideo && !IsSenderProcessAlive())) 
+	if(!m_bAddVideo || (m_bAddVideo && !IsSenderProcessAlive()))
 	{
 		// Run new CrashSender.exe process
 		result = LaunchCrashSender(m_sCrashGUID, rv==1, &pExceptionInfo->hSenderProcess);
 	}
 	else // we are recording video
-	{		
+	{
 		// The CrashSender.exe process is already launched by the AddVideo method.
 		// We need to signal the event to make CrashSender.exe generate error report.
 		SetEvent(m_hEvent2);
-		
-		// Wait until CrashSender finishes with making screenshot, 
-        // copying files, creating minidump and encoding recorded video. 
+
+		// Wait until CrashSender finishes with making screenshot,
+        // copying files, creating minidump and encoding recorded video.
         WaitForSingleObject(m_hEvent, INFINITE);
 
 		// Free sync event (it is not needed since now).
 		CloseHandle(m_hEvent2);
 		m_hEvent2 = NULL;
-		
-		// Return handle to CrashSender.exe process to the caller.		
+
+		// Return handle to CrashSender.exe process to the caller.
 		pExceptionInfo->hSenderProcess = m_hSenderProcess;
 	}
-    
-	// New-style callback. Notify client about the second stage 
+
+	// New-style callback. Notify client about the second stage
 	// (CR_CB_STAGE_FINISH) of crash report generation.
 	CallBack(CR_CB_STAGE_FINISH, pExceptionInfo);
-	
+
 	// Check if the client program requests to continue its execution
 	// after crash.
 	if(m_bContinueExecution)
@@ -1403,10 +1403,10 @@ int CCrashHandler::GenerateErrorReport(
 		if(m_bAddVideo)
 		{
 			// Relaunch video recording loop for the next crash.
-			// Avoid displaying video notification dialog (as the user already has 
+			// Avoid displaying video notification dialog (as the user already has
 			// approved video recording).
 			m_bAddVideo = FALSE;
-			AddVideo(m_dwVideoFlags|CR_AV_NO_GUI, m_nVideoDuration, m_nVideoFrameInterval, 
+			AddVideo(m_dwVideoFlags|CR_AV_NO_GUI, m_nVideoDuration, m_nVideoFrameInterval,
 				&m_DesiredFrameSize, m_hWndVideoParent);
 		}
 	}
@@ -1423,13 +1423,13 @@ int CCrashHandler::GenerateErrorReport(
         szCaption.Format(_T("%s has stopped working"), (LPCTSTR)Utility::getAppName());
         CString szMessage;
         szMessage.Format(_T("Error launching CrashSender.exe"));
-        MessageBox(NULL, szMessage, szCaption, MB_OK|MB_ICONERROR);    
+        MessageBox(NULL, szMessage, szCaption, MB_OK|MB_ICONERROR);
         return 3;
     }
-		
+
     // OK
     crSetErrorMsg(_T("Success."));
-    return 0; 
+    return 0;
 }
 
 BOOL CCrashHandler::IsSenderProcessAlive()
@@ -1469,7 +1469,7 @@ int CCrashHandler::AddRegKey(LPCTSTR szRegKey, LPCTSTR szDstFileName, DWORD dwFl
     }
 
     HKEY hKey = NULL;
-    CString sKey = szRegKey;  
+    CString sKey = szRegKey;
     int nSkip = 0;
     if(sKey.Left(19).Compare(_T("HKEY_LOCAL_MACHINE\\"))==0)
     {
@@ -1480,14 +1480,14 @@ int CCrashHandler::AddRegKey(LPCTSTR szRegKey, LPCTSTR szDstFileName, DWORD dwFl
     {
         hKey = HKEY_CURRENT_USER;
         nSkip = 17;
-    }    
-    else 
+    }
+    else
     {
         crSetErrorMsg(_T("Invalid registry branch is specified."));
         return 1; // Invalid key.
     }
 
-    CString sSubKey = sKey.Mid(nSkip+1);  
+    CString sSubKey = sKey.Mid(nSkip+1);
     if(sSubKey.IsEmpty())
     {
         crSetErrorMsg(_T("Empty subkey is not allowed."));
@@ -1517,7 +1517,7 @@ int CCrashHandler::AddRegKey(LPCTSTR szRegKey, LPCTSTR szDstFileName, DWORD dwFl
 }
 
 // The following code gets exception pointers using a workaround found in CRT code.
-void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode, 
+void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
                                          EXCEPTION_POINTERS* pExceptionPointers)
 {
     // The following code was taken from VC++ 8.0 CRT (invarg.c: line 104)
@@ -1551,7 +1551,7 @@ void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
     ContextRecord.Esp = (ULONG)_AddressOfReturnAddress();
 #pragma warning(pop)
     ContextRecord.Ebp = *((ULONG *)_AddressOfReturnAddress()-1);
-	
+
 #elif defined (_IA64_) || defined (_AMD64_)
 
     /* Need to fill up the Context in IA64 and AMD64. */
@@ -1568,7 +1568,7 @@ void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
 	ZeroMemory(pExceptionPointers->ExceptionRecord, sizeof(EXCEPTION_RECORD));
 
     pExceptionPointers->ExceptionRecord->ExceptionCode = dwExceptionCode;
-    pExceptionPointers->ExceptionRecord->ExceptionAddress = _ReturnAddress();    
+    pExceptionPointers->ExceptionRecord->ExceptionAddress = _ReturnAddress();
 }
 
 // Launches CrashSender.exe process
@@ -1583,15 +1583,15 @@ int CCrashHandler::LaunchCrashSender(LPCTSTR szCmdLineParams, BOOL bWait, HANDLE
     si.cb = sizeof(STARTUPINFO);
 
     PROCESS_INFORMATION pi;
-    memset(&pi, 0, sizeof(PROCESS_INFORMATION));    
+    memset(&pi, 0, sizeof(PROCESS_INFORMATION));
 
 	// Format command line
     TCHAR szCmdLine[_MAX_PATH]=_T("");
 	_tcscat_s(szCmdLine, _MAX_PATH, _T("\""));
 	_tcscat_s(szCmdLine, _MAX_PATH, m_sPathToCrashSender.GetBuffer(0));
-	_tcscat_s(szCmdLine, _MAX_PATH, _T("\" \""));    
+	_tcscat_s(szCmdLine, _MAX_PATH, _T("\" \""));
 	_tcscat_s(szCmdLine, _MAX_PATH, szCmdLineParams);
-	_tcscat_s(szCmdLine, _MAX_PATH, _T("\""));    
+	_tcscat_s(szCmdLine, _MAX_PATH, _T("\""));
 
     BOOL bCreateProcess = CreateProcess(
         m_sPathToCrashSender, szCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
@@ -1609,13 +1609,13 @@ int CCrashHandler::LaunchCrashSender(LPCTSTR szCmdLineParams, BOOL bWait, HANDLE
 
     if(bWait)
     {
-        /* Wait until CrashSender finishes with making screenshot, 
-        copying files, creating minidump. */  
+        /* Wait until CrashSender finishes with making screenshot,
+        copying files, creating minidump. */
 
-        WaitForSingleObject(m_hEvent, INFINITE);  
+        WaitForSingleObject(m_hEvent, INFINITE);
     }
 
-    // Return handle to the CrashSender.exe process.    
+    // Return handle to the CrashSender.exe process.
     if(phProcess!=NULL)
     {
         *phProcess = pi.hProcess;
@@ -1632,7 +1632,7 @@ int CCrashHandler::LaunchCrashSender(LPCTSTR szCmdLineParams, BOOL bWait, HANDLE
     return 0;
 }
 
-// Acquires the crash lock. Other threads that may crash while we are 
+// Acquires the crash lock. Other threads that may crash while we are
 // inside of a crash handler function, will wait until we unlock.
 void CCrashHandler::CrashLock(BOOL bLock)
 {
@@ -1645,32 +1645,32 @@ void CCrashHandler::CrashLock(BOOL bLock)
 int CCrashHandler::PerCrashInit()
 {
 	// This method performs per-crash initialization actions.
-	// For example, we have to generate a new GUID string and repack 
+	// For example, we have to generate a new GUID string and repack
 	// configuration info into shared memory each time.
 
 	// Consider the next crash as non-critical.
 	m_bContinueExecution = TRUE;
 
-	// Set default ret code for callback func.	
+	// Set default ret code for callback func.
 	m_nCallbackRetCode = CR_CB_NOTIFY_NEXT_STAGE;
 
 	// Reset video flag to let user add new videos.
 	//m_bAddVideo = FALSE;
 
-	// Generate new GUID for new crash report 
+	// Generate new GUID for new crash report
 	// (if, for example, user will generate new error report manually).
     Utility::GenerateGUID(m_sCrashGUID);
-    
+
 	// Recreate the event that will be used to synchronize with CrashSender.exe process.
 	if(m_hEvent!=NULL)
 		CloseHandle(m_hEvent); // Free old event
     CString sEventName;
     sEventName.Format(_T("Local\\CrashRptEvent_%s"), (LPCTSTR)m_sCrashGUID);
     m_hEvent = CreateEvent(NULL, FALSE, FALSE, sEventName);
-    
+
 	// Format error report dir name for the next crash report.
 	CString sErrorReportDirName;
-	sErrorReportDirName.Format(_T("%s\\%s_%s\\%s"), 
+	sErrorReportDirName.Format(_T("%s\\%s_%s\\%s"),
 		m_sUnsentCrashReportsFolder.GetBuffer(0),
 		m_sAppName.GetBuffer(0),
 		m_sAppVersion.GetBuffer(0),
@@ -1690,7 +1690,7 @@ int CCrashHandler::PerCrashInit()
 	}
 
     Repack();
-	
+
 	// OK
 	return 0;
 }
@@ -1703,7 +1703,7 @@ void CCrashHandler::Repack()
 }
 
 int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
-{	
+{
 	// This method calls the new-style crash callback function.
 	// The client (calee) is able to either permit crash report generation (return CR_CB_DODEFAULT)
 	// or prevent it (return CR_CB_CANCEL).
@@ -1712,7 +1712,7 @@ int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 
 	if(m_nCallbackRetCode!=CR_CB_NOTIFY_NEXT_STAGE)
 		return CR_CB_DODEFAULT;
-	
+
 	if(m_pfnCallback2W!=NULL)
 	{
 		// Call the wide-char version of the callback function.
@@ -1725,8 +1725,8 @@ int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 		cci.pExceptionInfo = pExInfo;
 		cci.pUserParam = m_pCallbackParam;
 		cci.pszErrorReportFolder = m_sErrorReportDirW.c_str();
-		cci.bContinueExecution = m_bContinueExecution;		
-		
+		cci.bContinueExecution = m_bContinueExecution;
+
 		// Call the function and get the ret code
 		m_nCallbackRetCode = m_pfnCallback2W(&cci);
 
@@ -1759,15 +1759,15 @@ int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 
 // Structured exception handler (SEH)
 LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
-{ 
+{
     CCrashHandler* pCrashHandler = CCrashHandler::GetCurrentProcessCrashHandler();
-    ATLASSERT(pCrashHandler!=NULL);  
+    ATLASSERT(pCrashHandler!=NULL);
 
 	// Handle stack overflow in a separate thread.
 	// Vojtech: Based on martin.bis...@gmail.com comment in
 	//	http://groups.google.com/group/crashrpt/browse_thread/thread/a1dbcc56acb58b27/fbd0151dd8e26daf?lnk=gst&q=stack+overflow#fbd0151dd8e26daf
 	if (pExceptionPtrs != 0 && pExceptionPtrs->ExceptionRecord != 0 &&
-		pExceptionPtrs->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW) 
+		pExceptionPtrs->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 	{
 		// Special case to handle the stack overflow exception.
 		// The dump will be realized from another thread.
@@ -1782,8 +1782,8 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 
 	if(pCrashHandler!=NULL)
 	{
-		// Acquire lock to avoid other threads (if exist) to crash while we are 
-		// inside. 
+		// Acquire lock to avoid other threads (if exist) to crash while we are
+		// inside.
 		CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
 		// Treat this type of crash critical by default
@@ -1802,9 +1802,9 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-    }   
+    }
 
-    // Unreacheable code  
+    // Unreacheable code
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -1815,16 +1815,16 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 {
 	PEXCEPTION_POINTERS pExceptionPtrs =
 		reinterpret_cast<PEXCEPTION_POINTERS>(lpParameter);
-	
+
 	CCrashHandler *pCrashHandler =
 		CCrashHandler::GetCurrentProcessCrashHandler();
 	ATLASSERT(pCrashHandler != NULL);
 
-	if (pCrashHandler != NULL) 
+	if (pCrashHandler != NULL)
 	{
 		// Acquire lock to avoid other threads (if exist) to crash while we	are inside.
 		CCrashHandler::Locker const locker( * pCrashHandler ) ;
-		
+
 		// Treat this type of crash critical by default
 		pCrashHandler->m_bContinueExecution = FALSE;
 
@@ -1835,7 +1835,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 		ei.exctype = CR_SEH_EXCEPTION;
 		ei.pexcptrs = pExceptionPtrs;
 		pCrashHandler->GenerateErrorReport(&ei);
-		
+
 		if(!pCrashHandler->m_bContinueExecution)
 		{
 			// Terminate process
@@ -1856,7 +1856,7 @@ void __cdecl CCrashHandler::TerminateHandler()
 
     if(pCrashHandler!=NULL)
     {
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -1877,7 +1877,7 @@ void __cdecl CCrashHandler::TerminateHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-    }    
+    }
 }
 
 // CRT unexpected() call handler
@@ -1890,7 +1890,7 @@ void __cdecl CCrashHandler::UnexpectedHandler()
 
     if(pCrashHandler!=NULL)
     {
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -1911,7 +1911,7 @@ void __cdecl CCrashHandler::UnexpectedHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-    }    
+    }
 }
 
 // CRT Pure virtual method call handler
@@ -1925,7 +1925,7 @@ void __cdecl CCrashHandler::PureCallHandler()
 
     if(pCrashHandler!=NULL)
     {
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -1946,7 +1946,7 @@ void __cdecl CCrashHandler::PureCallHandler()
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-    }  
+    }
 }
 #endif
 
@@ -1963,8 +1963,8 @@ void __cdecl CCrashHandler::SecurityHandler(int code, void *x)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {    
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -1986,15 +1986,15 @@ void __cdecl CCrashHandler::SecurityHandler(int code, void *x)
 		}
     }
 }
-#endif 
+#endif
 
 // CRT invalid parameter handler
 #if _MSC_VER>=1400
 void __cdecl CCrashHandler::InvalidParameterHandler(
-    const wchar_t* expression, 
-    const wchar_t* function, 
-    const wchar_t* file, 
-    unsigned int line, 
+    const wchar_t* expression,
+    const wchar_t* function,
+    const wchar_t* file,
+    unsigned int line,
     uintptr_t pReserved)
 {
     pReserved;
@@ -2006,7 +2006,7 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 
     if(pCrashHandler!=NULL)
     {
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2021,7 +2021,7 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
         ei.expression = expression;
         ei.function = function;
         ei.file = file;
-        ei.line = line;    
+        ei.line = line;
 
 		// Generate error report.
         pCrashHandler->GenerateErrorReport(&ei);
@@ -2031,7 +2031,7 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
-    }   
+    }
 }
 #endif
 
@@ -2045,8 +2045,8 @@ int __cdecl CCrashHandler::NewHandler(size_t)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {     
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2058,7 +2058,7 @@ int __cdecl CCrashHandler::NewHandler(size_t)
         memset(&ei, 0, sizeof(CR_EXCEPTION_INFO));
         ei.cb = sizeof(CR_EXCEPTION_INFO);
         ei.exctype = CR_CPP_NEW_OPERATOR_ERROR;
-        ei.pexcptrs = NULL;    
+        ei.pexcptrs = NULL;
 
 		// Generate error report.
         pCrashHandler->GenerateErrorReport(&ei);
@@ -2084,8 +2084,8 @@ void CCrashHandler::SigabrtHandler(int)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {     
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2096,7 +2096,7 @@ void CCrashHandler::SigabrtHandler(int)
         CR_EXCEPTION_INFO ei;
         memset(&ei, 0, sizeof(CR_EXCEPTION_INFO));
         ei.cb = sizeof(CR_EXCEPTION_INFO);
-        ei.exctype = CR_CPP_SIGABRT;    
+        ei.exctype = CR_CPP_SIGABRT;
 
         pCrashHandler->GenerateErrorReport(&ei);
 
@@ -2117,8 +2117,8 @@ void CCrashHandler::SigfpeHandler(int /*code*/, int subcode)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {     
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2153,8 +2153,8 @@ void CCrashHandler::SigillHandler(int)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {    
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2187,8 +2187,8 @@ void CCrashHandler::SigintHandler(int)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    { 
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2220,8 +2220,8 @@ void CCrashHandler::SigsegvHandler(int)
     CCrashHandler* pCrashHandler = CCrashHandler::GetCurrentProcessCrashHandler();
 
     if(pCrashHandler!=NULL)
-    {     
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 
@@ -2231,7 +2231,7 @@ void CCrashHandler::SigsegvHandler(int)
         // Fill in exception info
         CR_EXCEPTION_INFO ei;
         memset(&ei, 0, sizeof(CR_EXCEPTION_INFO));
-        ei.cb = sizeof(CR_EXCEPTION_INFO);    
+        ei.cb = sizeof(CR_EXCEPTION_INFO);
         ei.exctype = CR_CPP_SIGSEGV;
         ei.pexcptrs = (PEXCEPTION_POINTERS)_pxcptinfoptrs;
 
@@ -2255,8 +2255,8 @@ void CCrashHandler::SigtermHandler(int)
     ATLASSERT(pCrashHandler!=NULL);
 
     if(pCrashHandler!=NULL)
-    {    
-        // Acquire lock to avoid other threads (if exist) to crash while we are 
+    {
+        // Acquire lock to avoid other threads (if exist) to crash while we are
         // inside.
         CCrashHandler::Locker const locker( * pCrashHandler ) ;
 

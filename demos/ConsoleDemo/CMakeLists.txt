@@ -11,13 +11,13 @@ fix_default_compiler_settings_()
 
 # Add include dir
 include_directories(${CMAKE_SOURCE_DIR}/include 
-					${CMAKE_SOURCE_DIR}/reporting/CrashRpt
-					${CMAKE_SOURCE_DIR}/thirdparty/wtl 
-					${CMAKE_SOURCE_DIR}/thirdparty/zlib
-					${CMAKE_SOURCE_DIR}/thirdparty/minizip  
-					${CMAKE_SOURCE_DIR}/thirdparty/jpeg 
-					${CMAKE_SOURCE_DIR}/thirdparty/libpng 
-					${CMAKE_SOURCE_DIR}/thirdparty/tinyxml )
+          ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
+          ${CMAKE_SOURCE_DIR}/thirdparty/wtl 
+          ${CMAKE_SOURCE_DIR}/thirdparty/zlib
+          ${CMAKE_SOURCE_DIR}/thirdparty/minizip  
+          ${CMAKE_SOURCE_DIR}/thirdparty/jpeg 
+          ${CMAKE_SOURCE_DIR}/thirdparty/libpng 
+          ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml )
 
 # Add executable build target
 add_executable(ConsoleDemo ${source_files} ${header_files})
@@ -28,5 +28,5 @@ target_link_libraries(ConsoleDemo CrashRpt)
 set_target_properties(ConsoleDemo PROPERTIES DEBUG_POSTFIX d )
 
 INSTALL(TARGETS ConsoleDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
-						 ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
-						 RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+             ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
+             RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})

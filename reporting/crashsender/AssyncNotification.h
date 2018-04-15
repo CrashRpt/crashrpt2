@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,8 +19,8 @@ be found in the Authors.txt file in the root of the source tree.
 struct AssyncNotification
 {
     /* Constructor */
-    AssyncNotification(); 
-	~AssyncNotification(); 
+    AssyncNotification();
+	~AssyncNotification();
 
 	void InitLogFile(LPCTSTR szFileName);
 	void CloseLogFile();
@@ -67,5 +67,5 @@ private:
     int m_nPercentCompleted;      // Percent completed
     std::vector<CString> m_statusLog; // Status log
 	CString m_sLogFile;
-    FILE* m_fileLog;	
+    FILE* m_fileLog;
 };

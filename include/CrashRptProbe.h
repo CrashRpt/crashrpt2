@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -53,7 +53,7 @@ typedef int CrpHandle;
 /*! \ingroup CrashRptProbeAPI
 *  \brief Opens a zipped crash report file.
 *
-*  \return This function returns zero on success. 
+*  \return This function returns zero on success.
 *
 *  \param[in] pszFileName Zipped report file name.
 *  \param[in] pszMd5Hash String containing MD5 hash for the ZIP file data.
@@ -64,14 +64,14 @@ typedef int CrpHandle;
 *  \remarks
 *
 *  Use this function to open a ZIP archive containing an error report. The error report typically contains
-*  several compressed files, such as XML crash description file, crash minidump file, and (optionally) 
+*  several compressed files, such as XML crash description file, crash minidump file, and (optionally)
 *  application-defined files.
 *
 *  \a pszFileName should be the name of the error report (ZIP file) to open. Absolute or relative path accepted.
 *  This parameter is required.
 *
 *  \a pszMd5Hash is a string containing the MD5 hash calculated for \a pszFileName. The MD5
-*  hash is a sequence of 16 characters being used for integrity checks. 
+*  hash is a sequence of 16 characters being used for integrity checks.
 *  If this parameter is NULL, integrity check is not performed.
 *
 *  If the error report is delivered by HTTP, the MD5 hash can be extracted by server-side script from the
@@ -79,7 +79,7 @@ typedef int CrpHandle;
 *  The integrity check can be performed to ensure the error report was not corrupted during delivery.
 *  For more information, see \ref sending_error_reports.
 *
-*  \a pszSymSearchPath parameter defines where to look for symbols files (*.PDB). You can specify the list of 
+*  \a pszSymSearchPath parameter defines where to look for symbols files (*.PDB). You can specify the list of
 *  semicolon-separated directories to search in. If this parameter is NULL, the default search sequence is used.
 *  For the default search sequence, see the documentation for \b SymInitialize() function in MSDN.
 *
@@ -89,7 +89,7 @@ typedef int CrpHandle;
 *  \a dwFlags is currently not used, should be zero.
 *
 *  \a phReport parameter receives the handle to the opened crash report. If the function fails,
-*  this parameter becomes zero. 
+*  this parameter becomes zero.
 *
 *  This function does the following when opening report file:
 *    - It performs integrity checks for the error report being opened, if MD5 hash is specified.
@@ -105,11 +105,11 @@ typedef int CrpHandle;
 *
 *  \note
 *
-*  The crpOpenErrorReportW() and crpOpenErrorReportA() are wide character and multibyte 
-*  character versions of crpOpenErrorReport(). 
-* 
+*  The crpOpenErrorReportW() and crpOpenErrorReportA() are wide character and multibyte
+*  character versions of crpOpenErrorReport().
 *
-*  \sa 
+*
+*  \sa
 *    crpCloseErrorReport()
 */
 
@@ -131,12 +131,12 @@ CRASHRPTPROBE_API(int)
 crpOpenErrorReportA(
                     __in LPCSTR pszFileName,
                     __in_opt LPCSTR pszMd5Hash,
-                    __in_opt LPCSTR pszSymSearchPath,  
+                    __in_opt LPCSTR pszSymSearchPath,
                     __reserved DWORD dwFlags,
                     __out CrpHandle* phReport
                     );
 
-/*! \brief Character set-independent mapping of crpOpenErrorReportW() and crpOpenErrorReportA() functions. 
+/*! \brief Character set-independent mapping of crpOpenErrorReportW() and crpOpenErrorReportA() functions.
 *  \ingroup CrashRptProbeAPI
 */
 
@@ -162,24 +162,24 @@ crpOpenErrorReportA(
 *    crpOpenErrorReport(), crpOpenErrorReportW(), crpOpenErrorReportA(), crpGetLastErrorMsg()
 */
 
-CRASHRPTPROBE_API(int) 
+CRASHRPTPROBE_API(int)
 crpCloseErrorReport(
-                    CrpHandle hReport  
+                    CrpHandle hReport
                     );
 
 /* Table names passed to crpGetProperty() function. */
 
-#define CRP_TBL_XMLDESC_MISC _T("XmlDescMisc")                //!< Table: Miscellaneous info contained in crash description XML file. 
+#define CRP_TBL_XMLDESC_MISC _T("XmlDescMisc")                //!< Table: Miscellaneous info contained in crash description XML file.
 #define CRP_TBL_XMLDESC_FILE_ITEMS _T("XmlDescFileItems")     //!< Table: The list of file items contained in error report.
 #define CRP_TBL_XMLDESC_CUSTOM_PROPS _T("XmlDescCustomProps") //!< Table: The list of application-defined properties (available since v.1.2.1).
-#define CRP_TBL_MDMP_MISC    _T("MdmpMisc")    //!< Table: Miscellaneous info contained in crash minidump file.  
+#define CRP_TBL_MDMP_MISC    _T("MdmpMisc")    //!< Table: Miscellaneous info contained in crash minidump file.
 #define CRP_TBL_MDMP_MODULES _T("MdmpModules") //!< Table: The list of loaded modules.
 #define CRP_TBL_MDMP_THREADS _T("MdmpThreads") //!< Table: The list of threads.
 #define CRP_TBL_MDMP_LOAD_LOG _T("MdmpLoadLog") //!< Table: Minidump loading log.
 
 /* Meta information */
 
-#define CRP_META_ROW_COUNT _T("RowCount") //!< Row count in the table.  
+#define CRP_META_ROW_COUNT _T("RowCount") //!< Row count in the table.
 
 /* Column names passed to crpGetProperty() function. */
 
@@ -230,10 +230,10 @@ crpCloseErrorReport(
 
 // Column IDs of the CRP_MDMP_MODULES table
 #define CRP_COL_MODULE_NAME      _T("ModuleName")           //!< Column: Module name.
-#define CRP_COL_MODULE_IMAGE_NAME _T("ModuleImageName")     //!< Column: Image name containing full path.  
+#define CRP_COL_MODULE_IMAGE_NAME _T("ModuleImageName")     //!< Column: Image name containing full path.
 #define CRP_COL_MODULE_BASE_ADDRESS _T("ModuleBaseAddress") //!< Column: Module base load address.
 #define CRP_COL_MODULE_SIZE      _T("ModuleSize")           //!< Column: Module size.
-#define CRP_COL_MODULE_LOADED_PDB_NAME _T("LoadedPDBName")  //!< Column: The full path and file name of the .pdb file. 
+#define CRP_COL_MODULE_LOADED_PDB_NAME _T("LoadedPDBName")  //!< Column: The full path and file name of the .pdb file.
 #define CRP_COL_MODULE_LOADED_IMAGE_NAME _T("LoadedImageName")  //!< Column: The full path and file name of executable file.
 #define CRP_COL_MODULE_SYM_LOAD_STATUS _T("ModuleSymLoadStatus") //!< Column: Symbol load status for the module.
 
@@ -273,7 +273,7 @@ crpCloseErrorReport(
 *  see \ref using_crashrptprobe_api.
 *
 *  To get the number of rows in a table, pass the constant \ref CRP_META_ROW_COUNT as column ID. In this case the
-*  function returns number of rows as its return value, or negative value on failure. 
+*  function returns number of rows as its return value, or negative value on failure.
 *
 *  In all other cases the function returns zero on success.
 *
@@ -284,14 +284,14 @@ crpCloseErrorReport(
 *
 *  \a lpszTableId represente the ID of the table.
 *
-*  \a lpszColumnId represents the ID of the column in the table. 
+*  \a lpszColumnId represents the ID of the column in the table.
 *
 *  \a nRowIndex defines the zero-based index of the row in the table.
-*  
+*
 *  \a lpszBuffer defines the buffer where retrieved property value will be placed. If this parameter
 *  is NULL, it is ignored and \a pcchCount is set with the required size in characters of the buffer.
 *
-*  \a cchBuffSize defines the buffer size in characters. To calculate required buffer size, set \a lpszBuffer with NULL, 
+*  \a cchBuffSize defines the buffer size in characters. To calculate required buffer size, set \a lpszBuffer with NULL,
 *  the function will set \a pcchCount with the number of characters required.
 *
 *  \a pcchCount is set with the actual count of characters copied to the \a lpszBuffer. If this parameter is NULL,
@@ -302,14 +302,14 @@ crpCloseErrorReport(
 *  For code examples of using this function, see \ref crashrptprobe_api_examples.
 *
 *  \note
-*  The crpGetPropertyW() and crpGetPropertyA() are wide character and multibyte 
-*  character versions of crpGetProperty(). 
+*  The crpGetPropertyW() and crpGetPropertyA() are wide character and multibyte
+*  character versions of crpGetProperty().
 *
 *  \sa
 *    crpGetPropertyW(), crpGetPropertyA(), crpOpenErrorReport(), crpGetLastErrorMsg()
-*/ 
+*/
 
-CRASHRPTPROBE_API(int) 
+CRASHRPTPROBE_API(int)
 crpGetPropertyW(
                 CrpHandle hReport,
                 LPCWSTR lpszTableId,
@@ -325,7 +325,7 @@ crpGetPropertyW(
 *
 */
 
-CRASHRPTPROBE_API(int) 
+CRASHRPTPROBE_API(int)
 crpGetPropertyA(
                 CrpHandle hReport,
                 LPCSTR lpszTableId,
@@ -336,7 +336,7 @@ crpGetPropertyA(
                 __out PULONG pcchCount
                 );
 
-/*! \brief Character set-independent mapping of crpGetPropertyW() and crpGetPropertyA() functions. 
+/*! \brief Character set-independent mapping of crpGetPropertyW() and crpGetPropertyA() functions.
 *  \ingroup CrashRptProbeAPI
 */
 
@@ -362,7 +362,7 @@ crpGetPropertyA(
 *  \a lpszFileName parameter should be the name of the file to extract. For more information
 *  about enumerating file names, see \ref crashrptprobe_api_examples.
 *
-*  \a lpszFileSaveAs defines the name of the file to extract to. 
+*  \a lpszFileSaveAs defines the name of the file to extract to.
 *
 *  \a bOverwriteExisting flag defines the behavior when the destination file already exists.
 *  If this parameter is TRUE, the file is overwritten, otherwise the function fails.
@@ -370,14 +370,14 @@ crpGetPropertyA(
 *  If this function fails, use crpGetLastErrorMsg() to retrieve the error message.
 *
 *  \note
-*    The crpExtractFileW() and crpExtractFileA() are wide character and multibyte 
-*    character versions of crpExtractFile(). 
+*    The crpExtractFileW() and crpExtractFileA() are wide character and multibyte
+*    character versions of crpExtractFile().
 *
 *  \sa
 *    crpExtractFileA(), crpExtractFileW(), crpExtractFile()
 */
 
-CRASHRPTPROBE_API(int) 
+CRASHRPTPROBE_API(int)
 crpExtractFileW(
                 CrpHandle hReport,
                 LPCWSTR lpszFileName,
@@ -386,10 +386,10 @@ crpExtractFileW(
                 );
 
 /*! \ingroup CrashRptProbeAPI
-*  \copydoc crpExtractFileW() 
+*  \copydoc crpExtractFileW()
 */
 
-CRASHRPTPROBE_API(int) 
+CRASHRPTPROBE_API(int)
 crpExtractFileA(
                 CrpHandle hReport,
                 LPCSTR lpszFileName,
@@ -397,7 +397,7 @@ crpExtractFileA(
                 BOOL bOverwriteExisting
                 );
 
-/*! \brief Character set-independent mapping of crpExtractFileW() and crpExtractFileA() functions. 
+/*! \brief Character set-independent mapping of crpExtractFileW() and crpExtractFileA() functions.
 *  \ingroup CrashRptProbeAPI
 */
 
@@ -407,7 +407,7 @@ crpExtractFileA(
 #define crpExtractFile crpExtractFileA
 #endif //UNICODE
 
-/*! \ingroup CrashRptProbeAPI 
+/*! \ingroup CrashRptProbeAPI
 *  \brief Gets the last CrashRptProbe error message.
 *
 *  \return This function returns length of error message in characters.
@@ -422,14 +422,14 @@ crpExtractFileA(
 *
 *  If buffer is too small for the error message, the message is truncated.
 *
-*  \note 
+*  \note
 *    crpGetLastErrorMsgW() and crpGetLastErrorMsgA() are wide-character and multi-byte character versions
 *    of crpGetLastErrorMsg(). The crpGetLastErrorMsg() macro defines character set independent mapping.
 *
 *  The following example shows how to use crpGetLastErrorMsg() function.
 *
 *  \code
-*  
+*
 *  // .. call some CrashRptProbe function
 *
 *  // Get the status message
@@ -442,7 +442,7 @@ crpExtractFileA(
 
 CRASHRPTPROBE_API(int)
 crpGetLastErrorMsgW(
-                    __out_ecount(cchBuffSize) LPWSTR pszBuffer, 
+                    __out_ecount(cchBuffSize) LPWSTR pszBuffer,
                     __in UINT cchBuffSize);
 
 /*! \ingroup CrashRptProbeAPI
@@ -452,7 +452,7 @@ crpGetLastErrorMsgW(
 
 CRASHRPTPROBE_API(int)
 crpGetLastErrorMsgA(
-                    __out_ecount(cchBuffSize) LPSTR pszBuffer, 
+                    __out_ecount(cchBuffSize) LPSTR pszBuffer,
                     __in UINT cchBuffSize);
 
 /*! \brief Defines character set-independent mapping for crpGetLastErrorMsgW() and crpGetLastErrorMsgA().

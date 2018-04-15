@@ -1,4 +1,4 @@
-﻿/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -31,7 +31,7 @@ BOOL TestUtils::CreateErrorReport(CString sTmpFolder, CString& sErrorReportName,
     CString sKeyName = _T("Software\\CrashRpt&&#4216wer\\应用程序名称");
     CString sKeyName2 = _T("HKEY_CURRENT_USER\\") + sKeyName;
 
-    lResult = RegCreateKey(HKEY_CURRENT_USER, sKeyName, &hKey); 
+    lResult = RegCreateKey(HKEY_CURRENT_USER, sKeyName, &hKey);
     if(lResult!=ERROR_SUCCESS)
         goto cleanup;
 
@@ -42,12 +42,12 @@ BOOL TestUtils::CreateErrorReport(CString sTmpFolder, CString& sErrorReportName,
 
     CR_INSTALL_INFOW infoW;
     memset(&infoW, 0, sizeof(CR_INSTALL_INFOW));
-    infoW.cb = sizeof(CR_INSTALL_INFOW);  
-    infoW.pszAppName = L"My& app Name &"; 
+    infoW.cb = sizeof(CR_INSTALL_INFOW);
+    infoW.pszAppName = L"My& app Name &";
     // Use appname with restricted XML characters
-    infoW.pszAppVersion = L"1.0.0 &<'a应> \"<"; 
+    infoW.pszAppVersion = L"1.0.0 &<'a应> \"<";
     infoW.pszErrorReportSaveDir = sTmpFolder;
-    infoW.dwFlags = CR_INST_NO_GUI|CR_INST_DONT_SEND_REPORT|CR_INST_STORE_ZIP_ARCHIVES;  
+    infoW.dwFlags = CR_INST_NO_GUI|CR_INST_DONT_SEND_REPORT|CR_INST_STORE_ZIP_ARCHIVES;
 
     int nInstallResult = crInstallW(&infoW);
     if(nInstallResult!=0)
@@ -71,12 +71,12 @@ BOOL TestUtils::CreateErrorReport(CString sTmpFolder, CString& sErrorReportName,
     // Wait until CrashSender process exits
     WaitForSingleObject(ei.hSenderProcess, INFINITE);
 
-    // Check exit code  
+    // Check exit code
     GetExitCodeProcess(ei.hSenderProcess, &dwExitCode);
     if(dwExitCode!=0)
         goto cleanup;
 
-    // Get ZIP name  
+    // Get ZIP name
     hFind = FindFirstFile(sSearchPattern, &ffd);
     if(hFind==INVALID_HANDLE_VALUE)
         goto cleanup;
@@ -123,7 +123,7 @@ cleanup:
     if(hFind!=INVALID_HANDLE_VALUE)
         FindClose(hFind);
 
-    if(hKey)    
+    if(hKey)
         RegCloseKey(hKey);
 
     RegDeleteKey(HKEY_CURRENT_USER, sKeyName);
@@ -147,7 +147,7 @@ int TestUtils::EnumINIFileSections(CString sFileName, std::vector<CString>& aSec
 		if(buf[i]==0)
 		{
 			if(sToken.GetLength()!=0)
-				aSections.push_back(sToken);			
+				aSections.push_back(sToken);
 			sToken.Empty();
 		}
 		else
@@ -175,7 +175,7 @@ int TestUtils::EnumINIFileStrings(CString sFileName, CString sSectionName, std::
 		if(buf[i]==0)
 		{
 			if(sToken.GetLength()!=0)
-				aStrings.push_back(sToken);			
+				aStrings.push_back(sToken);
 			sToken.Empty();
 		}
 		else
@@ -199,7 +199,7 @@ int TestUtils::RunProgram(CString sExeName, CString sParams)
     sei.lpVerb = _T("open");
     sei.lpFile = sExeName;
     sei.lpParameters = sParams;
-    
+
     bExecute = ShellExecuteEx(&sei);
     if(!bExecute)
 		return 255;
@@ -224,13 +224,13 @@ void TestUtils::wtrim(std::wstring& str, const wchar_t* szTrim)
     else str.erase(str.begin(), str.end());
 }
 
-std::wstring TestUtils::exec(LPCTSTR szCmd) 
+std::wstring TestUtils::exec(LPCTSTR szCmd)
 {
     FILE* pipe = _tpopen(szCmd, _T("rt"));
     if (!pipe) return L"ERROR";
     wchar_t buffer[4096];
     std::wstring result;
-    while(!feof(pipe)) 
+    while(!feof(pipe))
 	{
     	if(fgetws(buffer, 4096, pipe) != NULL)
     		result += buffer;

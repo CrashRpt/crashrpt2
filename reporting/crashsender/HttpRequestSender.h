@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -19,7 +19,7 @@ be found in the Authors.txt file in the root of the source tree.
 
 
 struct CHttpRequestFile
-{  
+{
     CString m_sSrcFileName;  // Name of the file attachment.
     CString m_sContentType;  // Content type.
 };
@@ -28,7 +28,7 @@ struct CHttpRequestFile
 class CHttpRequest
 {
 public:
-    CString m_sUrl;      // Script URL  
+    CString m_sUrl;      // Script URL
     std::map<CString, std::string> m_aTextFields;    // Array of text fields to include into POST data
     std::map<CString, CHttpRequestFile> m_aIncludedFiles; // Array of binary files to include into POST data
 };
@@ -47,14 +47,14 @@ public:
 private:
 
     // Worker thread procedure
-    static DWORD WINAPI WorkerThread(VOID* pParam);  
+    static DWORD WINAPI WorkerThread(VOID* pParam);
 
     BOOL InternalSend();
 
     // Used to calculate summary size of the request
     BOOL CalcRequestSize(LONGLONG& lSize);
     BOOL FormatTextPartHeader(CString sName, CString& sText);
-    BOOL FormatTextPartFooter(CString sName, CString& sText);  
+    BOOL FormatTextPartFooter(CString sName, CString& sText);
     BOOL FormatAttachmentPartHeader(CString sName, CString& sText);
     BOOL FormatAttachmentPartFooter(CString sName, CString& sText);
     BOOL FormatTrailingBoundary(CString& sBoundary);
@@ -70,7 +70,7 @@ private:
         LPTSTR szAddress, UINT cbAddress, DWORD &dwPort, LPTSTR szURI, UINT cbURI);
 
     CHttpRequest m_Request;       // HTTP request being sent
-    AssyncNotification* m_Assync; // Used to communicate with the main thread  
+    AssyncNotification* m_Assync; // Used to communicate with the main thread
 
     CString m_sFilePartHeaderFmt;
     CString m_sFilePartFooterFmt;

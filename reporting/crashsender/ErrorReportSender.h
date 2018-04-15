@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -18,7 +18,7 @@ be found in the Authors.txt file in the root of the source tree.
 #include "VideoRec.h"
 
 // Action type
-enum ActionType  
+enum ActionType
 {
     COLLECT_CRASH_INFO  = 0x01, // Crash info should be collected.
     COMPRESS_REPORT     = 0x02, // Error report files should be packed into ZIP archive.
@@ -40,7 +40,7 @@ enum eMailClientConfirm
 #define WM_ITEM_STATUS_CHANGED (WM_USER+1024)
 #define WM_DELIVERY_COMPLETE   (WM_USER+1025)
 
-// The main class that collects crash report files, packs them 
+// The main class that collects crash report files, packs them
 // into a ZIP archive and sends the error report.
 class CErrorReportSender
 {
@@ -55,15 +55,15 @@ public:
 	// Returns singleton of this class.
 	static CErrorReportSender* GetInstance();
 
-	// Performs initialization.	
+	// Performs initialization.
 	BOOL Init(LPCTSTR szFileMappingName);
-		
+
 	// Cleans up all temp files and does other finalizing work.
     BOOL Finalize();
 
 	// Returns pointer to object containing crash information.
 	CCrashInfoReader* GetCrashInfo();
-	
+
 	// Returns last error message.
 	CString GetErrorMsg();
 
@@ -72,7 +72,7 @@ public:
 
 	// Compresses and sends the report(s).
 	BOOL Run();
-	    
+
     // Blocks until an assync operation finishes.
     void WaitForCompletion();
 
@@ -84,22 +84,22 @@ public:
 
     // Gets current operation status.
     void GetCurOpStatus(int& nProgressPct, std::vector<CString>& msg_log);
-	    
+
     // Unblocks waiting worker thread.
     void FeedbackReady(int code);
-	    
+
     // Returns current error report's index.
 	int GetCurReportIndex() const  { return m_nCurReport; }
-	    
+
 	// Kaneva - Added
 	void SetCurReportIndex(int index) { m_nCurReport = index; }
-	CErrorReportInfo* GetReport(int index = -1) { 
-		return (index < 0) ? m_CrashInfo.GetReport(GetCurReportIndex()) : m_CrashInfo.GetReport(index); 
+	CErrorReportInfo* GetReport(int index = -1) {
+		return (index < 0) ? m_CrashInfo.GetReport(GetCurReportIndex()) : m_CrashInfo.GetReport(index);
 	}
 
 	// Returns path to log file.
 	CString GetLogFilePath();
-	    
+
 	// Returns a localized string from lang file.
 	CString GetLangStr(LPCTSTR szSection, LPCTSTR szName);
 
@@ -114,10 +114,10 @@ public:
 
 	// Returns TRUE if there were errors.
 	BOOL HasErrors();
-	
+
 	// This method finds and terminates all instances of CrashSender.exe process.
 	static int TerminateAllCrashSenderProcesses();
-		
+
 private:
 
 	// Creates log file
@@ -125,15 +125,15 @@ private:
 
 	// This method performs an action or several actions.
     BOOL DoWork(int Action);
-	    
+
     // Worker thread proc.
-    static DWORD WINAPI WorkerThread(LPVOID lpParam);  
+    static DWORD WINAPI WorkerThread(LPVOID lpParam);
 
 	// Runs an action or several actions in assync mode.
     BOOL DoWorkAssync(int Action);
 
     // Collects crash report files.
-    BOOL CollectCrashFiles();  
+    BOOL CollectCrashFiles();
 
 	// Includes a single file to crash report
 	BOOL CollectSingleFile(ERIFileItem* pfi);
@@ -143,7 +143,7 @@ private:
 
     // Calculates MD5 hash for a file.
     int CalcFileMD5Hash(CString sFileName, CString& sMD5Hash);
-	    
+
     // Takes desktop screenshot.
     BOOL TakeDesktopScreenshot();
 
@@ -154,20 +154,20 @@ private:
 	BOOL EncodeVideo();
 
     // Creates crash dump file.
-    BOOL CreateMiniDump();  
+    BOOL CreateMiniDump();
 
 	// This method is used to have the current process be able to call MiniDumpWriteDump.
 	BOOL SetDumpPrivileges();
 
     // Creates crash description XML file.
     BOOL CreateCrashDescriptionXML(CErrorReportInfo& eri);
-	
+
     // Adds an element to XML file.
     void AddElemToXML(CString sName, CString sValue, TiXmlNode* root);
 
     // Minidump callback.
     static BOOL CALLBACK MiniDumpCallback(PVOID CallbackParam, PMINIDUMP_CALLBACK_INPUT CallbackInput,
-        PMINIDUMP_CALLBACK_OUTPUT CallbackOutput); 
+        PMINIDUMP_CALLBACK_OUTPUT CallbackOutput);
 
     // Minidump callback.
     BOOL OnMinidumpProgress(const PMINIDUMP_CALLBACK_INPUT CallbackInput,
@@ -178,7 +178,7 @@ private:
 
 	// Dumps registry key to the XML file.
     int DumpRegKey(CString sRegKey, CString sDestFile, CString& sErrorMsg);
-	
+
 	// Used internally for dumping a registry key.
     int DumpRegKey(HKEY hKeyParent, CString sSubKey, TiXmlElement* elem);
 
@@ -211,7 +211,7 @@ private:
 
 	// Send the next queued report.
 	BOOL SendNextReport(int nReport);
-    
+
 	// Internal variables
 	static CErrorReportSender* m_pInstance; // Singleton
 	CCrashInfoReader m_CrashInfo;       // Contains crash information.

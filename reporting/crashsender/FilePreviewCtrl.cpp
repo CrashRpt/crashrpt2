@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -22,7 +22,7 @@ be found in the Authors.txt file in the root of the source tree.
 #define _DIBSIZE(bi) (DIBWIDTHBYTES(bi) * (DWORD)(bi).biHeight)
 #define DIBSIZE(bi) ((bi).biHeight < 0 ? (-1)*(_DIBSIZE(bi)) : _DIBSIZE(bi))
 
-static inline 
+static inline
 unsigned char CLAMP(int x)
 {
    return  (unsigned char)((x > 255) ? 255 : (x < 0) ? 0 : x);
@@ -32,16 +32,16 @@ unsigned char CLAMP(int x)
 // CFileMemoryMapping implementation
 //-----------------------------------------------------------------------------
 
-CFileMemoryMapping::CFileMemoryMapping()  
+CFileMemoryMapping::CFileMemoryMapping()
 {
     // Set member vars to the default values
     m_hFile = INVALID_HANDLE_VALUE;
     m_uFileLength = 0;
-    m_hFileMapping = NULL;  
+    m_hFileMapping = NULL;
 
-    SYSTEM_INFO si;  
+    SYSTEM_INFO si;
     GetSystemInfo(&si);
-    m_dwAllocGranularity = si.dwAllocationGranularity;  
+    m_dwAllocGranularity = si.dwAllocationGranularity;
 }
 
 CFileMemoryMapping::~CFileMemoryMapping()
@@ -55,7 +55,7 @@ BOOL CFileMemoryMapping::Init(LPCTSTR szFileName)
     if(m_hFile!=INVALID_HANDLE_VALUE)
     {
         // If a file mapping already created, destroy it
-        Destroy();    
+        Destroy();
     }
 
     // Open file handle
@@ -66,8 +66,8 @@ BOOL CFileMemoryMapping::Init(LPCTSTR szFileName)
     // Create file mapping
     m_hFileMapping = CreateFileMapping(m_hFile, 0, PAGE_READONLY, 0, 0, 0);
     LARGE_INTEGER size;
-    GetFileSizeEx(m_hFile, &size);	
-    m_uFileLength = size.QuadPart; 
+    GetFileSizeEx(m_hFile, &size);
+    m_uFileLength = size.QuadPart;
 
     return TRUE;
 }
@@ -79,25 +79,25 @@ BOOL CFileMemoryMapping::Destroy()
     for(it=m_aViewStartPtrs.begin(); it!=m_aViewStartPtrs.end(); it++)
     {
         if(it->second != NULL)
-            UnmapViewOfFile(it->second);    
+            UnmapViewOfFile(it->second);
     }
     m_aViewStartPtrs.clear();
 
     // Close file mapping handle
     if(m_hFileMapping!=NULL)
     {
-        CloseHandle(m_hFileMapping);    
+        CloseHandle(m_hFileMapping);
     }
 
     // Close file handle
     if(m_hFile!=INVALID_HANDLE_VALUE)
     {
-        CloseHandle(m_hFile);    
+        CloseHandle(m_hFile);
     }
 
     m_hFileMapping = NULL;
-    m_hFile = INVALID_HANDLE_VALUE;		
-    m_uFileLength = 0;  
+    m_hFile = INVALID_HANDLE_VALUE;
+    m_uFileLength = 0;
 
     return TRUE;
 }
@@ -159,7 +159,7 @@ BOOL CImage::IsBitmap(FILE* f)
     if(memcmp(&bfh.bfType, "BM", 2)!=0)
         return FALSE;
 
-    return TRUE;  
+    return TRUE;
 }
 
 BOOL CImage::IsPNG(FILE* f)
@@ -168,7 +168,7 @@ BOOL CImage::IsPNG(FILE* f)
     rewind(f);
 
     fread(header, 1, 8, f);
-    if(png_sig_cmp(header, 0, 8))  
+    if(png_sig_cmp(header, 0, 8))
         return FALSE;
 
     return TRUE;
@@ -259,7 +259,7 @@ BOOL CImage::Load(CString sFileName)
     }
 
     fclose(f);
-    return FALSE;  
+    return FALSE;
 }
 
 void CImage::Cancel()
@@ -355,17 +355,17 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
     }
 
     fread(header, 1, number, fp);
-    if(png_sig_cmp(header, 0, number))  
+    if(png_sig_cmp(header, 0, number))
     {
         goto cleanup;
-    }  
+    }
 
     png_ptr = png_create_read_struct
         (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr)
         goto cleanup;
 
-    if (setjmp(png_ptr->jmpbuf)) 
+    if (setjmp(png_ptr->jmpbuf))
         goto cleanup;
 
     info_ptr = png_create_info_struct(png_ptr);
@@ -392,7 +392,7 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
     if(info_ptr->channels==3)
     {
         png_set_strip_16(png_ptr);
-        png_set_packing(png_ptr); 
+        png_set_packing(png_ptr);
         png_set_bgr(png_ptr);
     }
 
@@ -402,11 +402,11 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
         CAutoLock lock(&m_csLock);
         if(m_bLoadCancelled)
             goto cleanup;
-        m_hBitmap = CreateCompatibleBitmap(hDC, width, height);  
+        m_hBitmap = CreateCompatibleBitmap(hDC, width, height);
     }
 
     pBMI = (BITMAPINFO*)new BYTE[sizeof(BITMAPINFO)+256*4];
-    memset(pBMI, 0, sizeof(BITMAPINFO)+256*4);  
+    memset(pBMI, 0, sizeof(BITMAPINFO)+256*4);
     pBMI->bmiHeader.biSize = sizeof(BITMAPINFO);
     pBMI->bmiHeader.biBitCount = 8*info_ptr->channels;
     pBMI->bmiHeader.biWidth = width;
@@ -431,7 +431,7 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
 
     for(y=height-1; y>=0; y--)
     {
-        png_read_rows(png_ptr, &row, png_bytepp_NULL, 1); 
+        png_read_rows(png_ptr, &row, png_bytepp_NULL, 1);
 
         {
             CAutoLock lock(&m_csLock);
@@ -482,7 +482,7 @@ BOOL CImage::LoadBitmapFromJPEGFile(LPTSTR szFileName)
     BOOL bStatus = false;
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
-    FILE* fp = NULL;  
+    FILE* fp = NULL;
     JSAMPROW row = NULL;
     BITMAPINFO bmi;
     HDC hDC = NULL;
@@ -510,10 +510,10 @@ BOOL CImage::LoadBitmapFromJPEGFile(LPTSTR szFileName)
         CAutoLock lock(&m_csLock);
         if(m_bLoadCancelled)
             goto cleanup;
-        m_hBitmap = CreateCompatibleBitmap(hDC, cinfo.output_width, cinfo.output_height);  
+        m_hBitmap = CreateCompatibleBitmap(hDC, cinfo.output_width, cinfo.output_height);
     }
 
-    memset(&bmi, 0, sizeof(bmi));  
+    memset(&bmi, 0, sizeof(bmi));
     bmi.bmiHeader.biSize = sizeof(bmi);
     bmi.bmiHeader.biBitCount = 24;
     bmi.bmiHeader.biWidth = cinfo.output_width;
@@ -523,8 +523,8 @@ BOOL CImage::LoadBitmapFromJPEGFile(LPTSTR szFileName)
     bmi.bmiHeader.biSizeImage = cinfo.output_width*cinfo.output_height*3;
 
     while (cinfo.output_scanline < cinfo.output_height)
-    {    
-        jpeg_read_scanlines(&cinfo, &row, 1); 
+    {
+        jpeg_read_scanlines(&cinfo, &row, 1);
 
         if(cinfo.out_color_components==3)
         {
@@ -600,29 +600,29 @@ void CImage::Draw(HDC hDC, LPRECT prcDraw)
 
     if((float)rcDraw.Width()/(float)bm.bmWidth <
         (float)rcDraw.Height()/(float)bm.bmHeight)
-    {    
+    {
         int nDstMid = rcDraw.top + rcDraw.Height()/2;
-        int nDstHeight = (int)( rcDraw.Width()*(float)bm.bmHeight/bm.bmWidth ); 
-        rcDraw.top = nDstMid - nDstHeight/2; 
-        rcDraw.bottom = nDstMid + nDstHeight/2; 
+        int nDstHeight = (int)( rcDraw.Width()*(float)bm.bmHeight/bm.bmWidth );
+        rcDraw.top = nDstMid - nDstHeight/2;
+        rcDraw.bottom = nDstMid + nDstHeight/2;
     }
     else
     {
         int nDstMid = rcDraw.left + rcDraw.Width()/2;
-        int nDstWidth = (int)( rcDraw.Height()*(float)bm.bmWidth/bm.bmHeight ); 
-        rcDraw.left = nDstMid - nDstWidth/2; 
-        rcDraw.right = nDstMid + nDstWidth/2; 
+        int nDstWidth = (int)( rcDraw.Height()*(float)bm.bmWidth/bm.bmHeight );
+        rcDraw.left = nDstMid - nDstWidth/2;
+        rcDraw.right = nDstMid + nDstWidth/2;
     }
 
     int nOldMode = SetStretchBltMode(hDC, HALFTONE);
-    StretchBlt(hDC, rcDraw.left, rcDraw.top, rcDraw.Width(), rcDraw.Height(), 
+    StretchBlt(hDC, rcDraw.left, rcDraw.top, rcDraw.Width(), rcDraw.Height(),
         hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY );
 
     SetStretchBltMode(hDC, nOldMode);
-    SelectObject( hMemDC, hOldBitmap );  
+    SelectObject( hMemDC, hOldBitmap );
     if(m_hPalette)
     {
-        SelectPalette( hDC, hOldPalette, FALSE ); 
+        SelectPalette( hDC, hOldPalette, FALSE );
     }
 }
 
@@ -635,19 +635,19 @@ CVideo::CVideo()
 	m_pf = NULL;
 	m_hbmpFrame = NULL;
 	m_pFrameBits = NULL;
-	m_pDIB = NULL;	
+	m_pDIB = NULL;
 	m_hDC = NULL;
-	m_hOldBitmap = NULL;	
+	m_hOldBitmap = NULL;
 	m_buf = NULL;
 	m_psetup = NULL;
-	m_pctx = NULL;	
-	m_pos = 0;	
+	m_pctx = NULL;
+	m_pos = 0;
 	m_nFrameWidth = 0;
 	m_nFrameHeight = 0;
 	m_nFrameInterval = 0;
 	ogg_sync_init(&m_state);
 	ogg_stream_init(&m_stream, 0);
-	memset(&m_packet, 0, sizeof(m_packet));	
+	memset(&m_packet, 0, sizeof(m_packet));
 	th_info_init(&m_info);
 	th_comment_init(&m_comment);
 }
@@ -679,7 +679,7 @@ BOOL CVideo::IsOGG(FILE* f)
 	rewind(f);
 
     // Read first three bytes (Ogg).
-    
+
     BYTE uchBytes[4];
     int n = (int)fread(uchBytes, 1, 3, f);
     if(n!=3)
@@ -711,10 +711,10 @@ BOOL CVideo::Load(LPCTSTR szFileName)
 		// Load OGG video
         return LoadOggFile(szFileName);
     }
-    
+
 	// Close file
     fclose(f);
-    return FALSE; 
+    return FALSE;
 }
 
 void CVideo::Destroy()
@@ -753,12 +753,12 @@ void CVideo::Destroy()
 		delete [] m_pDIB;
 		m_pDIB = NULL;
 	}
-		
+
 	m_pFrameBits = NULL;
 
 	if(m_hDC!=NULL)
 	{
-		DeleteDC(m_hDC);	
+		DeleteDC(m_hDC);
 		m_hDC = NULL;
 	}
 
@@ -767,25 +767,25 @@ void CVideo::Destroy()
 
 BOOL CVideo::LoadOggFile(LPCTSTR szFileName)
 {
-	bool bStatus = false;		
+	bool bStatus = false;
 	int ret = -1;
 
 	// Open OGG file
 	_TFOPEN_S(m_pf, szFileName, _T("rb"));
     if(m_pf==NULL)
         goto cleanup; // Error opening file
-    
+
 	// Init theora decoder structures
 	th_info_init(&m_info);
     th_comment_init(&m_comment);
 
-	// The first thing we need to do when reading an Ogg file is find 
-	// the first page of data. We use a ogg_sync_state structure to keep 
-	// track of search for the page data. This needs to be initialized 
+	// The first thing we need to do when reading an Ogg file is find
+	// the first page of data. We use a ogg_sync_state structure to keep
+	// track of search for the page data. This needs to be initialized
 	// with ogg_sync_init and later cleaned up with ogg_sync_clear:
 	if(0!=ogg_sync_init(&m_state))
 		goto cleanup; // Error initializing sync state
-				
+
 	// Parse the header packets by repeatedly calling th_decode_headerin()
 	while(ReadOGGPacket())
 	{
@@ -803,7 +803,7 @@ BOOL CVideo::LoadOggFile(LPCTSTR szFileName)
 		else if(ret==TH_EBADHEADER)
 		{
 			//goto cleanup;
-		}			
+		}
 		else if(ret==TH_EVERSION)
 		{
 			//goto cleanup;
@@ -811,14 +811,14 @@ BOOL CVideo::LoadOggFile(LPCTSTR szFileName)
 		else if(ret==TH_ENOTFORMAT )
 		{
 			//goto cleanup;
-		}			
+		}
 	}
 
-	/*Allocate YV12 image */	
+	/*Allocate YV12 image */
 	m_nFrameWidth = m_info.frame_width;
 	m_nFrameHeight = m_info.frame_height;
 	m_nFrameInterval = (int)((float)m_info.fps_denominator/(float)m_info.fps_numerator*1000);
-		
+
 	if(m_hbmpFrame==NULL)
 	{
 		// Calculate frame size
@@ -834,7 +834,7 @@ BOOL CVideo::LoadOggFile(LPCTSTR szFileName)
 	m_psetup = NULL;
 
 	// Perform any additional decoder configuration with th_decode_ctl().
-	
+
 	m_sFileName = szFileName;
 
 	// Done
@@ -852,7 +852,7 @@ BOOL CVideo::ReadOGGPage()
 
 	// Read an entire page from OGG file
 
-	while(ogg_sync_pageout(&m_state, &m_page) != 1) 
+	while(ogg_sync_pageout(&m_state, &m_page) != 1)
 	{
 		// Allocate buffer
 		m_buf = ogg_sync_buffer(&m_state, 4096);
@@ -863,7 +863,7 @@ BOOL CVideo::ReadOGGPage()
 		nBytes = fread(m_buf, 1, 4096, m_pf);
 		if(nBytes==0)
 			goto cleanup; // End of file
-				
+
 		if(0!=ogg_sync_wrote(&m_state, (long)nBytes))
 			goto cleanup; // Failed
 	}
@@ -881,15 +881,15 @@ BOOL CVideo::ReadOGGPacket()
 	int ret = -1;
 
 	while(1)
-	{	
-		// Call ogg_stream_packetout. This will return a value indicating if 
-		// a packet of data is available in the stream. If it is not then we 
-		// need to read another page (following the same steps previously) and 
-		// add it to the stream, calling ogg_stream_packetout again until it 
-		// tells us a packet is available. The packet’s data is stored in an 
+	{
+		// Call ogg_stream_packetout. This will return a value indicating if
+		// a packet of data is available in the stream. If it is not then we
+		// need to read another page (following the same steps previously) and
+		// add it to the stream, calling ogg_stream_packetout again until it
+		// tells us a packet is available. The packetâ€™s data is stored in an
 		// ogg_packet object.
-		ret = ogg_stream_packetout(&m_stream, &m_packet);    
-		if (ret == 0) 
+		ret = ogg_stream_packetout(&m_stream, &m_packet);
+		if (ret == 0)
 		{
 			// Need more data to be able to complete the packet
 
@@ -899,7 +899,7 @@ BOOL CVideo::ReadOGGPacket()
 
 			// If this page is the beginning of the logical stream...
 			if (ogg_page_bos(&m_page))
-			{	
+			{
 				// Get page's serial number
 				int serial = ogg_page_serialno(&m_page);
 
@@ -908,7 +908,7 @@ BOOL CVideo::ReadOGGPacket()
 				if(ret != 0)
 					goto cleanup;  // Failed to init stream
 			}
-	
+
 			// Pass the page data to stream
 			ret = ogg_stream_pagein(&m_stream, &m_page);
 			if(ret!=0)
@@ -916,14 +916,14 @@ BOOL CVideo::ReadOGGPacket()
 
 			continue;
 		}
-		else if (ret == -1) 
+		else if (ret == -1)
 		{
 			// We are out of sync and there is a gap in the data.
 			// We lost a page somewhere.
 			break;
 		}
-		
-		// A packet is available, this is what we pass to the 
+
+		// A packet is available, this is what we pass to the
 		// theora library to decode.
 		bStatus = true;
 		break;
@@ -940,7 +940,7 @@ HBITMAP CVideo::DecodeFrame(BOOL bFirstFrame, CSize& FrameSize, int& nDuration)
 	FrameSize.cx = m_nFrameWidth;
 	FrameSize.cy = m_nFrameHeight;
 	nDuration = m_nFrameInterval;
-		
+
 	// For the first frame, we use the packet that was read previously
 	// For next frames, we need to read new packets
 	if(!bFirstFrame)
@@ -957,18 +957,18 @@ HBITMAP CVideo::DecodeFrame(BOOL bFirstFrame, CSize& FrameSize, int& nDuration)
 
 	if(ret!=TH_DUPFRAME)
 	{
-		// Retrieve the uncompressed video data via th_decode_ycbcr_out().	
+		// Retrieve the uncompressed video data via th_decode_ycbcr_out().
 		th_decode_ycbcr_out(m_pctx, &m_raw[0]);
-		
+
 		CAutoLock lock(&m_csLock);
 
 		// Convert YV12 to RGB
-		YV12_To_RGB((unsigned char*)m_pFrameBits, 
-			m_nFrameWidth, m_nFrameHeight, 
-			m_nFrameWidth*3+(m_nFrameWidth*3)%4, 
+		YV12_To_RGB((unsigned char*)m_pFrameBits,
+			m_nFrameWidth, m_nFrameHeight,
+			m_nFrameWidth*3+(m_nFrameWidth*3)%4,
 			&m_raw[0]);
 	}
-	
+
 	// Return bitmap
 	return m_hbmpFrame;
 }
@@ -976,37 +976,37 @@ HBITMAP CVideo::DecodeFrame(BOOL bFirstFrame, CSize& FrameSize, int& nDuration)
 void CVideo::DrawFrame(HDC hDC, LPRECT prcDraw)
 {
     CAutoLock lock(&m_csLock);
-    
+
     CRect rcDraw = prcDraw;
     BITMAP        bm;
     GetObject(m_hbmpFrame, sizeof(BITMAP), &bm );
-	    
+
     if((float)rcDraw.Width()/(float)bm.bmWidth <
         (float)rcDraw.Height()/(float)bm.bmHeight)
-    {    
+    {
         int nDstMid = rcDraw.top + rcDraw.Height()/2;
-        int nDstHeight = (int)( rcDraw.Width()*(float)bm.bmHeight/bm.bmWidth ); 
-        rcDraw.top = nDstMid - nDstHeight/2; 
-        rcDraw.bottom = nDstMid + nDstHeight/2; 
+        int nDstHeight = (int)( rcDraw.Width()*(float)bm.bmHeight/bm.bmWidth );
+        rcDraw.top = nDstMid - nDstHeight/2;
+        rcDraw.bottom = nDstMid + nDstHeight/2;
     }
     else
     {
         int nDstMid = rcDraw.left + rcDraw.Width()/2;
-        int nDstWidth = (int)( rcDraw.Height()*(float)bm.bmWidth/bm.bmHeight ); 
-        rcDraw.left = nDstMid - nDstWidth/2; 
-        rcDraw.right = nDstMid + nDstWidth/2; 
+        int nDstWidth = (int)( rcDraw.Height()*(float)bm.bmWidth/bm.bmHeight );
+        rcDraw.left = nDstMid - nDstWidth/2;
+        rcDraw.right = nDstMid + nDstWidth/2;
     }
 
     int nOldMode = SetStretchBltMode(hDC, HALFTONE);
-    StretchBlt(hDC, rcDraw.left, rcDraw.top, rcDraw.Width(), rcDraw.Height(), 
+    StretchBlt(hDC, rcDraw.left, rcDraw.top, rcDraw.Width(), rcDraw.Height(),
         m_hDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY );
 
-    SetStretchBltMode(hDC, nOldMode);    
+    SetStretchBltMode(hDC, nOldMode);
 }
 
 void CVideo::Reset()
 {
-	
+
 }
 
 // Returns TRUE if video is valid, otherwise returns FALSE
@@ -1016,7 +1016,7 @@ BOOL CVideo::IsValid()
 }
 
 // Converts an YV12 image to RGB24 image.
-void CVideo::YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth, 
+void CVideo::YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth,
 			int nFrameHeight, int nRGBStride, th_ycbcr_buffer raw)
 {
 
@@ -1035,12 +1035,12 @@ void CVideo::YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth,
 			pRGBData[nRGBOffs+1] = CLAMP((int)(1.164*(Y - 16) - 0.813*(V - 128) - 0.391*(U - 128)));
 			pRGBData[nRGBOffs+2] = CLAMP((int)(1.164*(Y - 16) + 1.596*(V - 128)));
 		}
-	}	
+	}
 }
 
 BOOL CVideo::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 {
-	if (m_pDIB) 
+	if (m_pDIB)
 		return FALSE;
 
 	const DWORD dwcBihSize = sizeof(BITMAPINFOHEADER);
@@ -1051,7 +1051,7 @@ BOOL CVideo::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 		((nBits * dwWidth) * dwHeight);
 
 	m_pDIB = (LPBITMAPINFO)new BYTE[dwSize];
-	if (!m_pDIB) 
+	if (!m_pDIB)
 		return FALSE;
 
 
@@ -1093,21 +1093,21 @@ BOOL CVideo::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 //-----------------------------------------------------------------------------
 
 CFilePreviewCtrl::CFilePreviewCtrl()
-{   
+{
     m_xChar = 10;
     m_yChar = 10;
     m_nHScrollPos = 0;
     m_nHScrollMax = 0;
     m_nMaxColsPerPage = 0;
     m_nMaxLinesPerPage = 0;
-    m_nMaxDisplayWidth = 0;   
+    m_nMaxDisplayWidth = 0;
     m_uNumLines = 0;
     m_nVScrollPos = 0;
     m_nVScrollMax = 0;
-    m_nBytesPerLine = 16; 
+    m_nBytesPerLine = 16;
     m_cchTabLength = 4;
     m_sEmptyMsg = _T("No data to display");
-    m_hFont = CreateFont(14, 7, 0, 0, 0, 0, 0, 0, ANSI_CHARSET, 0, 0, 
+    m_hFont = CreateFont(14, 7, 0, 0, 0, 0, 0, 0, ANSI_CHARSET, 0, 0,
         ANTIALIASED_QUALITY, FIXED_PITCH, _T("Courier"));
 
     m_hWorkerThread = NULL;
@@ -1122,7 +1122,7 @@ CFilePreviewCtrl::~CFilePreviewCtrl()
 	m_bmp.Destroy();
 	m_fm.Destroy();
 
-    DeleteObject(m_hFont);  	
+    DeleteObject(m_hFont);
 }
 
 LPCTSTR CFilePreviewCtrl::GetFile()
@@ -1174,13 +1174,13 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
 
     LOGFONT lf;
     ZeroMemory(&lf, sizeof(LOGFONT));
-    GetObject(m_hFont, sizeof(LOGFONT), &lf);			
+    GetObject(m_hFont, sizeof(LOGFONT), &lf);
     m_xChar = lf.lfWidth;
     m_yChar = lf.lfHeight;
 
     SelectObject(hDC, hOldFont);
 
-    m_nVScrollPos = 0; 
+    m_nVScrollPos = 0;
     m_nVScrollMax = 0;
     m_nHScrollPos = 0;
     m_nHScrollMax = 0;
@@ -1194,7 +1194,7 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
     {
         if(m_fm.GetSize()!=0)
         {
-            m_nMaxDisplayWidth = 
+            m_nMaxDisplayWidth =
                 8 +				//adress
                 2 +				//padding
                 m_nBytesPerLine * 3 +	//hex column
@@ -1208,7 +1208,7 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
             m_uNumLines++;
     }
     else if(m_PreviewMode==PREVIEW_TEXT)
-    {       
+    {
         if(enc==ENC_AUTO)
             m_TextEncoding = DetectTextEncoding(m_sFileName, m_nEncSignatureLen);
         else
@@ -1228,13 +1228,13 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
     else if(m_PreviewMode==PREVIEW_IMAGE)
     {
         m_bCancelled = FALSE;
-        m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);    
+        m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);
         ::SetTimer(m_hWnd, 0, 250, NULL);
     }
 	else if(m_PreviewMode==PREVIEW_VIDEO)
     {
         m_bCancelled = FALSE;
-        m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);    
+        m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);
         //::SetTimer(m_hWnd, 0, 250, NULL);
     }
 
@@ -1288,7 +1288,7 @@ PreviewMode CFilePreviewCtrl::DetectPreviewMode(LPCTSTR szFileName)
 
     int backslash_pos = sFileName.ReverseFind('\\');
     if(backslash_pos>=0)
-        sFileName = sFileName.Mid(backslash_pos+1);  
+        sFileName = sFileName.Mid(backslash_pos+1);
     int dot_pos = sFileName.ReverseFind('.');
     if(dot_pos>0)
         sExtension = sFileName.Mid(dot_pos+1);
@@ -1331,7 +1331,7 @@ TextEncoding CFilePreviewCtrl::DetectTextEncoding(LPCTSTR szFileName, int& nSign
 #endif
 
     if(f==NULL)
-        goto cleanup;   
+        goto cleanup;
 
     BYTE signature2[2];
     size_t nRead = fread(signature2, 1, 2, f);
@@ -1339,8 +1339,8 @@ TextEncoding CFilePreviewCtrl::DetectTextEncoding(LPCTSTR szFileName, int& nSign
         goto cleanup;
 
     // Compare with UTF-16 LE signature
-    if(signature2[0]==0xFF && 
-        signature2[1]==0xFE 
+    if(signature2[0]==0xFF &&
+        signature2[1]==0xFE
         )
     {
         enc = ENC_UTF16_LE;
@@ -1349,8 +1349,8 @@ TextEncoding CFilePreviewCtrl::DetectTextEncoding(LPCTSTR szFileName, int& nSign
     }
 
     // Compare with UTF-16 BE signature
-    if(signature2[0]==0xFE && 
-        signature2[1]==0xFF 
+    if(signature2[0]==0xFE &&
+        signature2[1]==0xFF
         )
     {
         enc = ENC_UTF16_BE;
@@ -1366,9 +1366,9 @@ TextEncoding CFilePreviewCtrl::DetectTextEncoding(LPCTSTR szFileName, int& nSign
         goto cleanup;
 
     // Compare with UTF-8 signature
-    if(signature3[0]==0xEF && 
-        signature3[1]==0xBB && 
-        signature3[2]==0xBF 
+    if(signature3[0]==0xEF &&
+        signature3[1]==0xBB &&
+        signature3[2]==0xBF
         )
     {
         enc = ENC_UTF8;
@@ -1386,7 +1386,7 @@ cleanup:
 DWORD WINAPI CFilePreviewCtrl::WorkerThread(LPVOID lpParam)
 {
     CFilePreviewCtrl* pCtrl = (CFilePreviewCtrl*)lpParam;
-    pCtrl->DoInWorkerThread(); 
+    pCtrl->DoInWorkerThread();
     return 0;
 }
 
@@ -1410,13 +1410,13 @@ void CFilePreviewCtrl::ParseText()
     DWORD dwFileSize = (DWORD)m_fm.GetSize();
     DWORD dwOffset = 0;
     DWORD dwPrevOffset = 0;
-    int nTabs = 0;  
+    int nTabs = 0;
 
     if(dwFileSize!=0)
     {
         CAutoLock lock(&m_csLock);
         if(m_PreviewMode==PREVIEW_TEXT)
-        { 
+        {
             dwOffset+=m_nEncSignatureLen;
             m_aTextLines.push_back(dwOffset);
         }
@@ -1431,7 +1431,7 @@ void CFilePreviewCtrl::ParseText()
     for(;;)
     {
         {
-            CAutoLock lock(&m_csLock);        
+            CAutoLock lock(&m_csLock);
             if(m_bCancelled)
                 break;
         }
@@ -1449,7 +1449,7 @@ void CFilePreviewCtrl::ParseText()
         for(i=0; i<dwLength; )
         {
             {
-                CAutoLock lock(&m_csLock);        
+                CAutoLock lock(&m_csLock);
                 if(m_bCancelled)
                     break;
             }
@@ -1466,7 +1466,7 @@ void CFilePreviewCtrl::ParseText()
                 }
                 else if(c=='\n')
                 {
-                    CAutoLock lock(&m_csLock);        
+                    CAutoLock lock(&m_csLock);
                     m_aTextLines.push_back(dwOffset+i+2);
                     int cchLineLength = dwOffset+i+2-dwPrevOffset;
                     if(nTabs!=0)
@@ -1474,7 +1474,7 @@ void CFilePreviewCtrl::ParseText()
 
                     m_nMaxDisplayWidth = max(m_nMaxDisplayWidth, cchLineLength);
                     m_uNumLines++;
-                    dwPrevOffset = dwOffset+i+2;        
+                    dwPrevOffset = dwOffset+i+2;
                     nTabs = 0;
                 }
 
@@ -1482,7 +1482,7 @@ void CFilePreviewCtrl::ParseText()
             }
             else
             {
-                char c = ((char*)ptr)[i];      
+                char c = ((char*)ptr)[i];
 
                 if(c=='\t')
                 {
@@ -1490,7 +1490,7 @@ void CFilePreviewCtrl::ParseText()
                 }
                 else if(c=='\n')
                 {
-                    CAutoLock lock(&m_csLock);        
+                    CAutoLock lock(&m_csLock);
                     m_aTextLines.push_back(dwOffset+i+1);
                     int cchLineLength = dwOffset+i+1-dwPrevOffset;
                     if(nTabs!=0)
@@ -1498,7 +1498,7 @@ void CFilePreviewCtrl::ParseText()
 
                     m_nMaxDisplayWidth = max(m_nMaxDisplayWidth, cchLineLength);
                     m_uNumLines++;
-                    dwPrevOffset = dwOffset+i+1;        
+                    dwPrevOffset = dwOffset+i+1;
                     nTabs = 0;
                 }
 
@@ -1506,7 +1506,7 @@ void CFilePreviewCtrl::ParseText()
             }
         }
 
-        dwOffset += dwLength;        
+        dwOffset += dwLength;
     }
 
     PostMessage(WM_FPC_COMPLETE);
@@ -1522,17 +1522,17 @@ void CFilePreviewCtrl::LoadVideo()
 {
 	int nFrame = 0;
 	CSize FrameSize;
-	int nFrameInterval;	
+	int nFrameInterval;
     if(m_video.Load(m_sFileName))
-	{		
+	{
 		while(m_video.DecodeFrame(nFrame==0?TRUE:FALSE, FrameSize, nFrameInterval))
 		{
 			if(m_bCancelled)
 				break;
 
-			nFrame++;		
+			nFrame++;
 			InvalidateRect(NULL);
-		
+
 			Sleep(nFrameInterval);
 		}
 
@@ -1577,9 +1577,9 @@ void CFilePreviewCtrl::SetupScrollbars()
     sInfo.nPage	= min(m_nMaxLinesPerPage, m_nVScrollMax+1);
     SetScrollInfo (SB_VERT, &sInfo, TRUE);
 
-    //	Horizontal scrollbar 
+    //	Horizontal scrollbar
 
-    m_nMaxColsPerPage = min(m_nMaxDisplayWidth+1, rcClient.Width() / m_xChar);	
+    m_nMaxColsPerPage = min(m_nMaxDisplayWidth+1, rcClient.Width() / m_xChar);
     m_nHScrollMax = max(0, m_nMaxDisplayWidth-1);
     m_nHScrollPos = min(m_nHScrollPos, m_nHScrollMax-m_nMaxColsPerPage+1);
 
@@ -1592,7 +1592,7 @@ void CFilePreviewCtrl::SetupScrollbars()
 
     SetScrollInfo (SB_HORZ, &sInfo, TRUE);
 
-}	
+}
 
 //
 //	Create 1 line of a hex-dump, given a buffer of BYTES
@@ -1646,7 +1646,7 @@ CString CFilePreviewCtrl::FormatHexLine(LPBYTE pData, int nBytesInLine, ULONG64 
 //	Draw 1 line to the display
 //
 void CFilePreviewCtrl::DrawHexLine(HDC hdc, DWORD nLineNo)
-{	
+{
     int nBytesPerLine = m_nBytesPerLine;
 
     if(m_fm.GetSize() - nLineNo * m_nBytesPerLine < (UINT)m_nBytesPerLine)
@@ -1659,7 +1659,7 @@ void CFilePreviewCtrl::DrawHexLine(HDC hdc, DWORD nLineNo)
     CString str = FormatHexLine(ptr, nBytesPerLine, nLineNo*m_nBytesPerLine );
 
     //draw this line to the screen
-    TextOut(hdc, -(int)(m_nHScrollPos * m_xChar), 
+    TextOut(hdc, -(int)(m_nHScrollPos * m_xChar),
         (nLineNo - m_nVScrollPos) * (m_yChar-1) , str, str.GetLength());
 }
 
@@ -1707,8 +1707,8 @@ void CFilePreviewCtrl::DrawTextLine(HDC hdc, DWORD nLineNo)
     }
     else if(m_TextEncoding==ENC_UTF16_LE)
     {
-        DrawTextExW(hdc, (WCHAR*)ptr, dwLength/2-1,  &rcText, 
-            dwFlags, &params);   
+        DrawTextExW(hdc, (WCHAR*)ptr, dwLength/2-1,  &rcText,
+            dwFlags, &params);
     }
     else if(m_TextEncoding==ENC_UTF16_BE)
     {
@@ -1719,7 +1719,7 @@ void CFilePreviewCtrl::DrawTextLine(HDC hdc, DWORD nLineNo)
     }
     else // ASCII
     {
-        DrawTextExA(hdc, (char*)ptr, dwLength-1,  &rcText, 
+        DrawTextExA(hdc, (char*)ptr, dwLength-1,  &rcText,
             dwFlags, &params);
     }
 }
@@ -1754,11 +1754,11 @@ void CFilePreviewCtrl::DoPaintText(HDC hDC)
 
     FillRect(hDC, &rcClient, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
-    int iPaintBeg = max(0, m_nVScrollPos);			//only update the lines that 
+    int iPaintBeg = max(0, m_nVScrollPos);			//only update the lines that
     int iPaintEnd = (int)min(m_uNumLines, m_nVScrollPos + rcClient.bottom / m_yChar);		//need updating!!!!!!!!!!!!!
 
     if(rcClient.bottom % m_yChar) iPaintEnd++;
-    if(iPaintEnd > m_uNumLines) iPaintEnd--;	
+    if(iPaintEnd > m_uNumLines) iPaintEnd--;
 
     //
     //	Only paint what needs to be!
@@ -1769,7 +1769,7 @@ void CFilePreviewCtrl::DoPaintText(HDC hDC)
         if(m_PreviewMode==PREVIEW_HEX)
             DrawHexLine(hDC, i);
         else
-            DrawTextLine(hDC, i);				
+            DrawTextLine(hDC, i);
     }
 
     SelectObject(hDC, hOldFont);
@@ -1825,7 +1825,7 @@ void CFilePreviewCtrl::DoPaint(HDC hDC)
     else if(m_PreviewMode==PREVIEW_IMAGE)
     {
         DoPaintBitmap(hDC);
-    }	
+    }
 	else if(m_PreviewMode==PREVIEW_VIDEO)
 	{
 		DoPaintVideo(hDC);
@@ -1835,7 +1835,7 @@ void CFilePreviewCtrl::DoPaint(HDC hDC)
 LRESULT CFilePreviewCtrl::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
     m_fm.Destroy();
-    bHandled = FALSE;  
+    bHandled = FALSE;
     return 0;
 }
 
@@ -1875,7 +1875,7 @@ LRESULT CFilePreviewCtrl::OnHScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
 
     case SB_PAGELEFT:
         m_nHScrollPos -= m_nMaxColsPerPage;
-        if(m_nHScrollPos > nOldHScrollPos) 
+        if(m_nHScrollPos > nOldHScrollPos)
             m_nHScrollPos = 0;
         break;
 
@@ -1908,7 +1908,7 @@ LRESULT CFilePreviewCtrl::OnHScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
     nHScrollInc = m_nHScrollPos - nOldHScrollPos;
 
     if (nHScrollInc)
-    {	
+    {
 
         //finally setup the actual scrollbar!
         info.cbSize = sizeof(SCROLLINFO);
@@ -1988,7 +1988,7 @@ LRESULT CFilePreviewCtrl::OnVScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
     nVScrollInc = m_nVScrollPos - nOldVScrollPos;
 
     if (nVScrollInc)
-    {	
+    {
 
         //finally setup the actual scrollbar!
         info.cbSize = sizeof(SCROLLINFO);
@@ -2005,11 +2005,11 @@ LRESULT CFilePreviewCtrl::OnVScroll(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
 LRESULT CFilePreviewCtrl::OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
     // Do nothing
-    return 0;   
+    return 0;
 }
 
 LRESULT CFilePreviewCtrl::OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{ 
+{
     PAINTSTRUCT ps;
     HDC hDC = BeginPaint(&ps);
 
@@ -2062,7 +2062,7 @@ LRESULT CFilePreviewCtrl::OnRButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 LRESULT CFilePreviewCtrl::OnMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-    if(m_PreviewMode!=PREVIEW_TEXT && 
+    if(m_PreviewMode!=PREVIEW_TEXT &&
         m_PreviewMode!=PREVIEW_HEX)
         return 0;
 
@@ -2073,7 +2073,7 @@ LRESULT CFilePreviewCtrl::OnMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lP
     memset(&info, 0, sizeof(SCROLLINFO));
     info.cbSize = sizeof(SCROLLINFO);
     info.fMask = SIF_ALL;
-    GetScrollInfo(SB_VERT, &info);	
+    GetScrollInfo(SB_VERT, &info);
     info.nPos -=nDistance*nLinesPerDelta;
     SetScrollInfo(SB_VERT, &info, TRUE);
 

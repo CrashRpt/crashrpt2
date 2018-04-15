@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -9,9 +9,9 @@ be found in the Authors.txt file in the root of the source tree.
 ***************************************************************************************/
 
 // File: ResendDlg.h
-// Description: 
+// Description:
 // Authors: zexspectrum
-// Date: 
+// Date:
 
 #pragma once
 #include "stdafx.h"
@@ -23,17 +23,17 @@ be found in the Authors.txt file in the root of the source tree.
 
 class CResendDlg;
 
-class CActionProgressDlg : 
-    public CDialogImpl<CActionProgressDlg>,   	
+class CActionProgressDlg :
+    public CDialogImpl<CActionProgressDlg>,
     public CDialogResize<CActionProgressDlg>
 {
 public:
     enum { IDD = IDD_ACTIONPROGRESS };
 
-    BEGIN_DLGRESIZE_MAP(CActionProgressDlg)    
-        DLGRESIZE_CONTROL(IDC_CURRENTACTION, DLSZ_SIZE_X)    
-        DLGRESIZE_CONTROL(IDC_PROGRESS, DLSZ_SIZE_X)    
-        DLGRESIZE_CONTROL(IDC_ACTIONDESC, DLSZ_SIZE_X)        
+    BEGIN_DLGRESIZE_MAP(CActionProgressDlg)
+        DLGRESIZE_CONTROL(IDC_CURRENTACTION, DLSZ_SIZE_X)
+        DLGRESIZE_CONTROL(IDC_PROGRESS, DLSZ_SIZE_X)
+        DLGRESIZE_CONTROL(IDC_ACTIONDESC, DLSZ_SIZE_X)
     END_DLGRESIZE_MAP()
 
     BEGIN_MSG_MAP(CProgressMultiDlg)
@@ -43,8 +43,8 @@ public:
         CHAIN_MSG_MAP(CDialogResize<CActionProgressDlg>)
     END_MSG_MAP()
 
-    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);      
-    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	    
+    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
     void CloseDialog(int nVal);
 
@@ -57,44 +57,44 @@ public:
 };
 
 
-class CResendDlg : 
-    public CDialogImpl<CResendDlg>,   
+class CResendDlg :
+    public CDialogImpl<CResendDlg>,
     public CMessageFilter,
     public CDialogResize<CResendDlg>
 {
 public:
     enum { IDD = IDD_RESEND };
 
-	enum eActionOnClose 
+	enum eActionOnClose
 	{
-		HIDE, 
+		HIDE,
 		EXIT
 	};
 
     virtual BOOL PreTranslateMessage(MSG* pMsg);
 
-    BEGIN_DLGRESIZE_MAP(CResendDlg)    
-        DLGRESIZE_CONTROL(IDC_TEXT, DLSZ_SIZE_X)    
-        DLGRESIZE_CONTROL(IDC_LIST, DLSZ_SIZE_X|DLSZ_SIZE_Y)    
-        DLGRESIZE_CONTROL(IDC_SELSIZE, DLSZ_SIZE_X|DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_CONSENT, DLSZ_SIZE_X|DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_PRIVACYPOLICY, DLSZ_SIZE_X|DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_LINE, DLSZ_SIZE_X|DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_CRASHRPT, DLSZ_MOVE_X|DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_OTHERACTIONS, DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDC_SHOWLOG, DLSZ_MOVE_Y)    
-        DLGRESIZE_CONTROL(IDD_ACTIONPROGRESS, DLSZ_MOVE_Y|DLSZ_SIZE_X)    
+    BEGIN_DLGRESIZE_MAP(CResendDlg)
+        DLGRESIZE_CONTROL(IDC_TEXT, DLSZ_SIZE_X)
+        DLGRESIZE_CONTROL(IDC_LIST, DLSZ_SIZE_X|DLSZ_SIZE_Y)
+        DLGRESIZE_CONTROL(IDC_SELSIZE, DLSZ_SIZE_X|DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_CONSENT, DLSZ_SIZE_X|DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_PRIVACYPOLICY, DLSZ_SIZE_X|DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_LINE, DLSZ_SIZE_X|DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_CRASHRPT, DLSZ_MOVE_X|DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_OTHERACTIONS, DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDC_SHOWLOG, DLSZ_MOVE_Y)
+        DLGRESIZE_CONTROL(IDD_ACTIONPROGRESS, DLSZ_MOVE_Y|DLSZ_SIZE_X)
     END_DLGRESIZE_MAP()
 
     BEGIN_MSG_MAP(CResendDlg)
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_CLOSE, OnClose)
         MESSAGE_HANDLER(WM_TIMER, OnTimer)
-        MESSAGE_HANDLER(WM_RESENDTRAYICON, OnTrayIcon)    
-		MESSAGE_HANDLER(WM_NEXT_ITEM_HINT, OnNextItemHint)    
-		MESSAGE_HANDLER(WM_ITEM_STATUS_CHANGED, OnItemStatusChanged)    
-		MESSAGE_HANDLER(WM_DELIVERY_COMPLETE, OnDeliveryComplete)   
+        MESSAGE_HANDLER(WM_RESENDTRAYICON, OnTrayIcon)
+		MESSAGE_HANDLER(WM_NEXT_ITEM_HINT, OnNextItemHint)
+		MESSAGE_HANDLER(WM_ITEM_STATUS_CHANGED, OnItemStatusChanged)
+		MESSAGE_HANDLER(WM_DELIVERY_COMPLETE, OnDeliveryComplete)
 		MESSAGE_HANDLER(WM_REPORTSIZECHANGED, OnReportSizeChanged)
         COMMAND_ID_HANDLER(IDOK, OnSendNow)
         COMMAND_ID_HANDLER(IDC_OTHERACTIONS, OnOtherActions)
@@ -115,14 +115,14 @@ public:
         CHAIN_MSG_MAP(CDialogResize<CResendDlg>)
     END_MSG_MAP()
 
-    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);  
-    LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	    
-    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	    
-    LRESULT OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	
-	LRESULT OnReportSizeChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);	
-	LRESULT OnNextItemHint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);  
-	LRESULT OnItemStatusChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);  
-	LRESULT OnDeliveryComplete(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);  
+    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+    LRESULT OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnReportSizeChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnNextItemHint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnItemStatusChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnDeliveryComplete(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
     LRESULT OnPopupShow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnPopupExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnListItemChanging(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
@@ -175,7 +175,7 @@ public:
     CProgressDlg m_dlgProgress;
 
 	int m_nSendAttempt;
-    int m_nTimerTick; // Timer tick counter     
+    int m_nTimerTick; // Timer tick counter
 	eActionOnClose m_ActionOnClose; // What to do on dialog close
 };
 

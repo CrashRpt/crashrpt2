@@ -1,4 +1,4 @@
-﻿/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -44,9 +44,9 @@ REGISTER_TEST_SUITE( CrproberTests );
 
 void CrproberTests::SetUp()
 {
-    CString sAppDataFolder;  
+    CString sAppDataFolder;
 
-    // Create a temporary folder  
+    // Create a temporary folder
     Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
     m_sTmpFolder = sAppDataFolder+_T("\\CrashRpt 应用程序名称");
     BOOL bCreate = Utility::CreateFolder(m_sTmpFolder);
@@ -92,7 +92,7 @@ void CrproberTests::Test_help()
 }
 
 void CrproberTests::Test_output()
-{ 
+{
     // This test calls crprober.exe with /f, fmd5 and /o flags to
     // generate a text output file from error report ZIP archive
 
@@ -110,7 +110,7 @@ void CrproberTests::Test_output()
     sExeName = Utility::GetModulePath(NULL)+_T("\\crprober.exe");
 #endif
 
-    sParams.Format(_T("/f \"%s\" /fmd5 \"%s\" /o \"%s\""), 
+    sParams.Format(_T("/f \"%s\" /fmd5 \"%s\" /o \"%s\""),
 		(LPCTSTR) m_sErrorReportName,
 		(LPCTSTR) (m_sErrorReportName+_T(".md5")),
 		(LPCTSTR) (m_sTmpFolder+_T("\\out.txt")));
@@ -147,7 +147,7 @@ void CrproberTests::Test_output()
 }
 
 void CrproberTests::Test_extract_file()
-{ 
+{
     // This test calls crprober.exe with /ext flag to
     // extract all files from error report ZIP archive
 
@@ -163,7 +163,7 @@ void CrproberTests::Test_extract_file()
 
     asFileList.push_back(_T("crashrpt.xml"));
     asFileList.push_back(_T("crashdump.dmp"));
-    asFileList.push_back(_T("regkey.xml"));  
+    asFileList.push_back(_T("regkey.xml"));
 
 #ifdef _DEBUG
     sExeName = Utility::GetModulePath(NULL)+_T("\\crproberd.exe");
@@ -203,7 +203,7 @@ void CrproberTests::Test_extract_file()
     {
         CloseHandle(sei.hProcess);
         sei.hProcess = NULL;
-    }  
+    }
 }
 
 void CrproberTests::Test_get()

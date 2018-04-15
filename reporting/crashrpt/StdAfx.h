@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -32,7 +32,7 @@ be found in the Authors.txt file in the root of the source tree.
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #pragma conform(forScope, off)
-#pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")  
+#pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
 #endif // _WTL_SUPPORT_SDK_ATL3
 
 #include <atlbase.h>

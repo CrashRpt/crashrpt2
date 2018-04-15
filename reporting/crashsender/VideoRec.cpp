@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -51,7 +51,7 @@ CVideoRecorder::~CVideoRecorder()
 	Destroy();
 }
 
-BOOL CVideoRecorder::Init(LPCTSTR szSaveToDir, 
+BOOL CVideoRecorder::Init(LPCTSTR szSaveToDir,
 	SCREENSHOT_TYPE type,
 	DWORD dwProcessId,
 	int nVideoDuration,
@@ -65,11 +65,11 @@ BOOL CVideoRecorder::Init(LPCTSTR szSaveToDir,
 		// Invalid arg
 		return FALSE;
 	}
-	
+
 	// Save params
 	m_sSaveToDir = szSaveToDir;
 	m_ScreenshotType = type;
-	m_nVideoDuration = nVideoDuration;	
+	m_nVideoDuration = nVideoDuration;
 	m_nVideoFrameInterval = nVideoFrameInterval;
 	m_nVideoQuality = nVideoQuality;
 	m_dwProcessId = dwProcessId;
@@ -122,14 +122,14 @@ BOOL CVideoRecorder::RecordVideoFrame()
 {
 	// The following method records a single video frame and returns.
 
-	ScreenshotInfo ssi; // Screenshot params    
+	ScreenshotInfo ssi; // Screenshot params
 
 	CString sDirName = m_sSaveToDir + _T("\\~temp_video");
 
 	// Take the screen shot and save it as raw BMP file.
-	BOOL bTakeScreenshot = m_sc.TakeDesktopScreenshot(		
-		sDirName, 
-		ssi, m_ScreenshotType, m_dwProcessId, 
+	BOOL bTakeScreenshot = m_sc.TakeDesktopScreenshot(
+		sDirName,
+		ssi, m_ScreenshotType, m_dwProcessId,
 		SCREENSHOT_FORMAT_BMP, 0, FALSE, m_nFileId);
 	if(bTakeScreenshot==FALSE)
 	{
@@ -150,7 +150,7 @@ BOOL CVideoRecorder::RecordVideoFrame()
 	if(m_nFrameId>=m_nFrameCount)
 	{
 		m_nFileId = 0;
-		m_nFrameId = 0;					
+		m_nFrameId = 0;
 	}
 
 	return TRUE;
@@ -178,7 +178,7 @@ void CVideoRecorder::SetVideoFrameInfo(int nFrameId, ScreenshotInfo& ssi)
 }
 
 BOOL CVideoRecorder::EncodeVideo()
-{	
+{
 	// This method encodes all raw BMP files
 	// into a single OGG file.
 
@@ -192,12 +192,12 @@ BOOL CVideoRecorder::EncodeVideo()
 	th_info          ti;
 	th_comment       tc;
 	int frame_avail = 0;
-	th_ycbcr_buffer raw;	
+	th_ycbcr_buffer raw;
 	int frame_cnt = 0;
 	int nFrameWidth = 0;
 	int nFrameHeight = 0;
 	int ret = 1;
-	
+
 	memset(&to, 0, sizeof(to));
 	memset(&og, 0, sizeof(og));
 	memset(&op, 0, sizeof(op));
@@ -219,7 +219,7 @@ BOOL CVideoRecorder::EncodeVideo()
 			ScreenSize.cy = ssi.m_rcVirtualScreen.Height();
 		}
 	}
-	
+
 	// Check if desired frame size is not specified
 	if(m_DesiredFrameSize.cx==0 && m_DesiredFrameSize.cy==0)
 	{
@@ -247,16 +247,16 @@ BOOL CVideoRecorder::EncodeVideo()
 			nFrameHeight = (int)ceil(nFrameWidth/ratio-0.5f);
 		}
 	}
-	
+
 	/* Theora encoder has a divisible-by-sixteen restriction for the encoded frame size */
     /* scale the picture size up to the nearest /16 and calculate offsets */
     nFrameWidth=nFrameWidth+15&~0xF;
     nFrameHeight=nFrameHeight+15&~0xF;
-    
+
 	/* Set up Ogg output stream */
     srand((unsigned int)time(NULL));
-    ogg_stream_init(&to,rand());                                                              
-		
+    ogg_stream_init(&to,rand());
+
 	// Fill in a th_info structure with details on the format of the video you wish to encode.
 	th_info_init(&ti);
     ti.frame_width=nFrameWidth;
@@ -271,17 +271,17 @@ BOOL CVideoRecorder::EncodeVideo()
     ti.aspect_denominator=0;
     ti.colorspace=TH_CS_UNSPECIFIED;
     ti.target_bitrate=0; // VBR mode at specified video quality
-    ti.quality=m_nVideoQuality; 
+    ti.quality=m_nVideoQuality;
     ti.keyframe_granule_shift=6;
     ti.pixel_fmt=TH_PF_420;
-   
+
 	// Allocate a th_enc_ctx handle with th_encode_alloc().
     td=th_encode_alloc(&ti);
     th_info_clear(&ti);
-	
+
 	/*Allocate YV12 image */
 	int nDataSize = (nFrameWidth*nFrameHeight*3)/2;
-	unsigned char* pImageData = new unsigned char[nDataSize]; 
+	unsigned char* pImageData = new unsigned char[nDataSize];
 	raw[0].data = pImageData;
 	raw[0].width = nFrameWidth;
 	raw[0].height = nFrameHeight;
@@ -294,7 +294,7 @@ BOOL CVideoRecorder::EncodeVideo()
 	raw[2].width = nFrameWidth/2;
 	raw[2].height = nFrameHeight/2;
 	raw[2].stride = nFrameWidth/2;
-	
+
 	/*Open output file */
 	CString sFileName = m_sSaveToDir + _T("\\video.ogg");
 	m_sOutFile = sFileName;
@@ -305,7 +305,7 @@ BOOL CVideoRecorder::EncodeVideo()
 	/* write the bitstream header packets with proper page interleave */
     th_comment_init(&tc);
 	// Repeatedly call th_encode_flushheader() to retrieve all the header packets.
-    // first packet will get its own page automatically 
+    // first packet will get its own page automatically
     if(th_encode_flushheader(td,&tc,&op)<=0)
 	{
       // Internal Theora library error.
@@ -334,7 +334,7 @@ BOOL CVideoRecorder::EncodeVideo()
 		  break;
 	  ogg_stream_packetin(&to,&op);
     }
-		
+
 	/* Write OGG page */
 	for(;;)
 	{
@@ -346,7 +346,7 @@ BOOL CVideoRecorder::EncodeVideo()
 		fwrite(og.header,1,og.header_len,fout);
 		fwrite(og.body,1,og.body_len,fout);
 	}
-	
+
 	/* Encode frames. */
 	int nFrame = m_nFrameId; // Start with the oldest frame
 	if(nFrame==(int)m_aVideoFrames.size())
@@ -357,7 +357,7 @@ BOOL CVideoRecorder::EncodeVideo()
 		frame_avail = ComposeFrame(nFrame, &raw);
 
 		// Encode frame
-		if(th_encode_ycbcr_in(td, raw)) 
+		if(th_encode_ycbcr_in(td, raw))
 		{
 			goto cleanup;
 		}
@@ -376,11 +376,11 @@ BOOL CVideoRecorder::EncodeVideo()
 				fwrite(og.body,1,og.body_len,fout);
 			}
 		}
-	
+
 		// Increment total encoded frame count
 		if(frame_avail)
 			frame_cnt++;
-		else 
+		else
 			break;
 
 		// Increment frame index
@@ -403,7 +403,7 @@ BOOL CVideoRecorder::EncodeVideo()
 		fwrite(og.header,1,og.header_len,fout);
 		fwrite(og.body,1,og.body_len,fout);
 	}
-			
+
 cleanup:
 
 	/* Free codec resources */
@@ -468,7 +468,7 @@ BOOL CVideoRecorder::ComposeFrame(int nFrameId, th_ycbcr_buffer *pImage)
 
 			// Copy bitmap to its destination rect
 			int nOldMode = SetStretchBltMode(m_hDC, HALFTONE);
-			StretchBlt(m_hDC, xDest, yDest, wDest, hDest, hMemDC, 0, 0, 
+			StretchBlt(m_hDC, xDest, yDest, wDest, hDest, hMemDC, 0, 0,
 				ssi.m_aMonitors[i].m_rcMonitor.Width(), ssi.m_aMonitors[i].m_rcMonitor.Height(), SRCCOPY);
 			SetStretchBltMode(m_hDC, nOldMode);
 
@@ -478,13 +478,13 @@ BOOL CVideoRecorder::ComposeFrame(int nFrameId, th_ycbcr_buffer *pImage)
 			DeleteDC(hMemDC);
 			// Free loaded bitmap
 			DeleteObject(hBitmap);
-		}		
+		}
 	}
 
 	// Convert RGB to YV12
-	RGB_To_YV12((unsigned char*)m_pFrameBits, 
-		pImage[0]->width, pImage[0]->height, 
-		pImage[0]->width*3+(pImage[0]->width*3)%4, 
+	RGB_To_YV12((unsigned char*)m_pFrameBits,
+		pImage[0]->width, pImage[0]->height,
+		pImage[0]->width*3+(pImage[0]->width*3)%4,
 		(*pImage)[0].data, (*pImage)[1].data, (*pImage)[2].data);
 
 	return TRUE;
@@ -492,7 +492,7 @@ BOOL CVideoRecorder::ComposeFrame(int nFrameId, th_ycbcr_buffer *pImage)
 
 BOOL CVideoRecorder::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 {
-	if (m_pDIB) 
+	if (m_pDIB)
 		return FALSE;
 
 	const DWORD dwcBihSize = sizeof(BITMAPINFOHEADER);
@@ -503,7 +503,7 @@ BOOL CVideoRecorder::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 		((nBits * dwWidth) * dwHeight);
 
 	m_pDIB = (LPBITMAPINFO)new BYTE[dwSize];
-	if (!m_pDIB) 
+	if (!m_pDIB)
 		return FALSE;
 
 
@@ -555,9 +555,9 @@ CString CVideoRecorder::GetOutFile()
 	return m_sOutFile;
 }
 
-void CVideoRecorder::RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth, 
-	int nFrameHeight, int nRGBStride, unsigned char *pFullYPlane, 
-	unsigned char *pDownsampledUPlane, 
+void CVideoRecorder::RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth,
+	int nFrameHeight, int nRGBStride, unsigned char *pFullYPlane,
+	unsigned char *pDownsampledUPlane,
 	unsigned char *pDownsampledVPlane )
 {
 	// Convert RGB -> YV12. We do this in-place to avoid allocating any more memory.
@@ -592,7 +592,7 @@ void CVideoRecorder::RGB_To_YV12( unsigned char *pRGBData, int nFrameWidth,
 	// Downsample to U and V.
 	int halfHeight = nFrameHeight/2;
 	int halfWidth = nFrameWidth/2;
-		
+
 	for ( int yPixel=0; yPixel < halfHeight; yPixel++ )
 	{
 		int iBaseSrc = ( (yPixel*2) * nRGBStride );

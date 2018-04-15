@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -27,10 +27,10 @@ typedef std::map<std::string, std::string> TStrStrMap;
 
 // ===========================================================================
 // CMailMsg
-// 
+//
 // See the module comment at top of file.
 //
-class CMailMsg  
+class CMailMsg
 {
 public:
 

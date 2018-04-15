@@ -12,24 +12,24 @@ function done($return_status, $message)
   // Write HTTP responce code
   header("HTTP/1.0 ".$return_status." ".$message);
   // Write HTTP responce body (for backwards compatibility)
-  echo $return_status." ".$message; 
+  echo $return_status." ".$message;
   exit(0);
 }
 
 // Checks that text fild doesn't contain inacceptable symbols
 function checkOK($field)
 {
-  if (stristr($field, "\\r") || stristr($field, "\\n")) 
+  if (stristr($field, "\\r") || stristr($field, "\\n"))
   {
     done(450, "Invalid input parameter.");
   }
 }
 
 $md5_hash = "";    // MD5 hash for error report ZIP
-$file_name = "";   // Destination file name                                  
+$file_name = "";   // Destination file name
 $crash_guid = "";  // Crash GUID
 
-// Check that MD5 hash exists 
+// Check that MD5 hash exists
 if(!isset($_POST['md5']))
 {
   done(450, "MD5 hash is missing.");
@@ -46,7 +46,7 @@ if(strlen($md5_hash)!=32)
 // Get CrashGUID
 if(!array_key_exists("crashguid", $_POST))
 {
-  done(450, "Crash GUID missing.");  
+  done(450, "Crash GUID missing.");
 }
 
 $crash_guid = $_POST["crashguid"];
@@ -54,7 +54,7 @@ checkOK($crash_guid);
 if(strlen($crash_guid)!=36)
 {
   done(450, "Crash GUID has wrong length.");
-}  
+}
 
 // Get file attachment
 if(array_key_exists("crashrpt", $_FILES))
@@ -84,12 +84,12 @@ if(array_key_exists("crashrpt", $_FILES))
   // Move uploaded file to an appropriate directory
   if(!move_uploaded_file($tmp_file_name, $file_name))
   {
-    done(452, "Couldn't save data to local storage"); 
+    done(452, "Couldn't save data to local storage");
   }
 }
 else
 {
-  done(452, "File attachment missing"); 
+  done(452, "File attachment missing");
 }
 
 // OK.
