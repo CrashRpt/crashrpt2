@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.1)
 project (CrashRpt)
 
 # CrashRpt version number
-set (CRASHRPT_VER 1500)
+set (CRASHRPT_VER 1501)
 
 # Check supported generators
 if(NOT MSVC OR ${MSVC_VERSION} LESS 1600)
@@ -17,6 +17,10 @@ option(CRASHRPT_BUILD_DEMOS "If set (default), CrashRpt builds the demo projects
 option(CRASHRPT_BUILD_TESTS "If set (default), CrashRpt builds the test projects." ON)
 
 ADD_DEFINITIONS("/W4 /wd4456 /wd4458 /MP /Oy- /EHsc")
+IF(MSVC AND ${MSVC_VERSION} GREATER 1910)
+  ADD_DEFINITIONS("/permissive-")
+  ADD_DEFINITIONS("/std:c++17")
+ENDIF()
 
 SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /DEBUG:FULL /OPT:NOREF /OPT:NOICF" )
 SET( CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG:FULL /OPT:NOREF /OPT:NOICF" )

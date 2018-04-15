@@ -398,7 +398,7 @@ LRESULT CProgressDlg::OnListRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandle
     CMenu popup_menu;
     popup_menu.LoadMenu(IDR_POPUPMENU);
 
-    CMenu submenu = popup_menu.GetSubMenu(0);
+    CMenu submenu(popup_menu.GetSubMenu(0));
 
     if(lpnmitem->iItem<0)
     {

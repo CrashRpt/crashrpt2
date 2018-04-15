@@ -1273,45 +1273,46 @@ PreviewMode CFilePreviewCtrl::DetectPreviewMode(LPCTSTR szFileName)
     std::set<CString> aTextFileExtensions;
     CString sExtension;
 
-    sFileName = szFileName;
-
-    if(CImage::IsImageFile(sFileName))
     {
-        mode = PREVIEW_IMAGE;
-        goto cleanup;
+        sFileName = szFileName;
+
+        if (CImage::IsImageFile(sFileName))
+        {
+            mode = PREVIEW_IMAGE;
+            goto cleanup;
+        }
+        else if (CVideo::IsVideoFile(sFileName))
+        {
+            mode = PREVIEW_VIDEO;
+            goto cleanup;
+        }
+
+        int backslash_pos = sFileName.ReverseFind('\\');
+        if (backslash_pos >= 0)
+            sFileName = sFileName.Mid(backslash_pos + 1);
+        int dot_pos = sFileName.ReverseFind('.');
+        if (dot_pos > 0)
+            sExtension = sFileName.Mid(dot_pos + 1);
+        sExtension.MakeUpper();
+
+        aTextFileExtensions.insert(_T("TXT"));
+        aTextFileExtensions.insert(_T("INI"));
+        aTextFileExtensions.insert(_T("LOG"));
+        aTextFileExtensions.insert(_T("XML"));
+        aTextFileExtensions.insert(_T("HTM"));
+        aTextFileExtensions.insert(_T("HTML"));
+        aTextFileExtensions.insert(_T("JS"));
+        aTextFileExtensions.insert(_T("C"));
+        aTextFileExtensions.insert(_T("H"));
+        aTextFileExtensions.insert(_T("CPP"));
+        aTextFileExtensions.insert(_T("HPP"));
+
+        it = aTextFileExtensions.find(sExtension);
+        if (it != aTextFileExtensions.end())
+        {
+            mode = PREVIEW_TEXT;
+        }
     }
-	else if(CVideo::IsVideoFile(sFileName))
-    {
-        mode = PREVIEW_VIDEO;
-        goto cleanup;
-    }
-
-    int backslash_pos = sFileName.ReverseFind('\\');
-    if(backslash_pos>=0)
-        sFileName = sFileName.Mid(backslash_pos+1);
-    int dot_pos = sFileName.ReverseFind('.');
-    if(dot_pos>0)
-        sExtension = sFileName.Mid(dot_pos+1);
-    sExtension.MakeUpper();
-
-    aTextFileExtensions.insert(_T("TXT"));
-    aTextFileExtensions.insert(_T("INI"));
-    aTextFileExtensions.insert(_T("LOG"));
-    aTextFileExtensions.insert(_T("XML"));
-    aTextFileExtensions.insert(_T("HTM"));
-    aTextFileExtensions.insert(_T("HTML"));
-    aTextFileExtensions.insert(_T("JS"));
-    aTextFileExtensions.insert(_T("C"));
-    aTextFileExtensions.insert(_T("H"));
-    aTextFileExtensions.insert(_T("CPP"));
-    aTextFileExtensions.insert(_T("HPP"));
-
-    it = aTextFileExtensions.find(sExtension);
-    if(it!=aTextFileExtensions.end())
-    {
-        mode = PREVIEW_TEXT;
-    }
-
 cleanup:
 
     return mode;
@@ -1330,52 +1331,53 @@ TextEncoding CFilePreviewCtrl::DetectTextEncoding(LPCTSTR szFileName, int& nSign
     _tfopen_s(&f, szFileName, _T("rb"));
 #endif
 
-    if(f==NULL)
-        goto cleanup;
-
-    BYTE signature2[2];
-    size_t nRead = fread(signature2, 1, 2, f);
-    if(nRead!=2)
-        goto cleanup;
-
-    // Compare with UTF-16 LE signature
-    if(signature2[0]==0xFF &&
-        signature2[1]==0xFE
-        )
     {
-        enc = ENC_UTF16_LE;
-        nSignatureLen = 2;
-        goto cleanup;
+        if (f == NULL)
+            goto cleanup;
+
+        BYTE signature2[2];
+        size_t nRead = fread(signature2, 1, 2, f);
+        if (nRead != 2)
+            goto cleanup;
+
+        // Compare with UTF-16 LE signature
+        if (signature2[0] == 0xFF &&
+            signature2[1] == 0xFE
+            )
+        {
+            enc = ENC_UTF16_LE;
+            nSignatureLen = 2;
+            goto cleanup;
+        }
+
+        // Compare with UTF-16 BE signature
+        if (signature2[0] == 0xFE &&
+            signature2[1] == 0xFF
+            )
+        {
+            enc = ENC_UTF16_BE;
+            nSignatureLen = 2;
+            goto cleanup;
+        }
+
+        rewind(f);
+
+        BYTE signature3[3];
+        nRead = fread(signature3, 1, 3, f);
+        if (nRead != 3)
+            goto cleanup;
+
+        // Compare with UTF-8 signature
+        if (signature3[0] == 0xEF &&
+            signature3[1] == 0xBB &&
+            signature3[2] == 0xBF
+            )
+        {
+            enc = ENC_UTF8;
+            nSignatureLen = 3;
+            goto cleanup;
+        }
     }
-
-    // Compare with UTF-16 BE signature
-    if(signature2[0]==0xFE &&
-        signature2[1]==0xFF
-        )
-    {
-        enc = ENC_UTF16_BE;
-        nSignatureLen = 2;
-        goto cleanup;
-    }
-
-    rewind(f);
-
-    BYTE signature3[3];
-    nRead = fread(signature3, 1, 3, f);
-    if(nRead!=3)
-        goto cleanup;
-
-    // Compare with UTF-8 signature
-    if(signature3[0]==0xEF &&
-        signature3[1]==0xBB &&
-        signature3[2]==0xBF
-        )
-    {
-        enc = ENC_UTF8;
-        nSignatureLen = 3;
-        goto cleanup;
-    }
-
 cleanup:
 
     fclose(f);

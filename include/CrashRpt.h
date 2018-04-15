@@ -1633,8 +1633,12 @@ crExceptionFilter(
 */
 
 CRASHRPTAPI(int)
-crEmulateCrash(
-               unsigned ExceptionType) throw (...);
+crEmulateCrash(unsigned ExceptionType)
+#if _MSVC_LANG != 201703
+throw (...);
+#else
+noexcept(false);
+#endif
 
 
 
