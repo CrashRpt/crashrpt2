@@ -173,9 +173,9 @@ int Utility::GetOSFriendlyName(CString& sOSName)
         TCHAR buf[1024];
         ULONG buf_size = 0;
 
-        TCHAR* PRODUCT_NAME = _T("ProductName");
-        TCHAR* CURRENT_BUILD_NUMBER = _T("CurrentBuildNumber");
-        TCHAR* CSD_VERSION = _T("CSDVersion");
+        const TCHAR* PRODUCT_NAME = _T("ProductName");
+        const TCHAR* CURRENT_BUILD_NUMBER = _T("CurrentBuildNumber");
+        const  TCHAR* CSD_VERSION = _T("CSDVersion");
 
 #pragma warning(disable:4996)
 

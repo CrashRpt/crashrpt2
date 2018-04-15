@@ -47,7 +47,7 @@ DWORD WINAPI CrashThread(LPVOID /*lpParam*/)
 
 // Function forward declarations
 std::vector<std::string> explode(std::string str, std::string separators = " \t");
-void trim2(std::string& str, char* szTrim=" \t\n");
+void trim2(std::string& str, const char* szTrim=" \t\n");
 int fork();
 
 int CALLBACK CrashCallback(CR_CRASH_CALLBACK_INFO * pInfo)
@@ -276,7 +276,7 @@ int _tmain(int argc, TCHAR** argv)
 }
 
 // Helper function that removes spaces from the beginning and end of the string
-void trim2(std::string& str, char* szTrim)
+void trim2(std::string& str, const char* szTrim)
 {
     std::string::size_type pos = str.find_last_not_of(szTrim);
     if(pos != std::string::npos) {
@@ -412,31 +412,32 @@ int fork()
     if(g_bRunningFromUNICODEFolder)
         sCmdLine += _T(" /unicode");
 
-    HANDLE hProcess = NULL;
-
-    STARTUPINFO si;
-    memset(&si, 0, sizeof(STARTUPINFO));
-    si.cb = sizeof(STARTUPINFO);
-
-    PROCESS_INFORMATION pi;
-    memset(&pi, 0, sizeof(PROCESS_INFORMATION));
-
-    BOOL bCreateProcess = CreateProcess(NULL, sCmdLine.GetBuffer(0),
-        NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-    if(!bCreateProcess)
     {
-        _tprintf(_T("Error creating process! Press any key to exit.\n."));
-        _getch();
-        goto cleanup;
+        HANDLE hProcess = NULL;
+
+        STARTUPINFO si;
+        memset(&si, 0, sizeof(STARTUPINFO));
+        si.cb = sizeof(STARTUPINFO);
+
+        PROCESS_INFORMATION pi;
+        memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+
+        BOOL bCreateProcess = CreateProcess(NULL, sCmdLine.GetBuffer(0),
+            NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+        if (!bCreateProcess)
+        {
+            _tprintf(_T("Error creating process! Press any key to exit.\n."));
+            _getch();
+            goto cleanup;
+        }
+
+        hProcess = pi.hProcess;
+
+        // Wait until process exits.
+        WaitForSingleObject(hProcess, INFINITE);
+
+        GetExitCodeProcess(hProcess, &dwExitCode);
     }
-
-    hProcess = pi.hProcess;
-
-    // Wait until process exits.
-    WaitForSingleObject(hProcess, INFINITE);
-
-    GetExitCodeProcess(hProcess, &dwExitCode);
-
 cleanup:
 
     // Clean up

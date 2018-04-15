@@ -687,11 +687,11 @@ BOOL CErrorReportSender::OnMinidumpProgress(const PMINIDUMP_CALLBACK_INPUT Callb
 // This method creates the minidump of the process
 BOOL CErrorReportSender::CreateMiniDump()
 {
-   	// Kaneva - Added
-	auto pReport = GetReport();
-	if (!pReport) return FALSE;
+    // Kaneva - Added
+    auto pReport = GetReport();
+    if (!pReport) return FALSE;
 
-	BOOL bStatus = FALSE;
+    BOOL bStatus = FALSE;
     HMODULE hDbgHelp = NULL;
     HANDLE hFile = NULL;
     MINIDUMP_EXCEPTION_INFORMATION mei;
@@ -701,134 +701,135 @@ BOOL CErrorReportSender::CreateMiniDump()
     ERIFileItem fi;
     CString sErrorMsg;
 
-	// Check our config - should we generate the minidump or not?
-    if(m_CrashInfo.m_bGenerateMinidump==FALSE)
+    // Check our config - should we generate the minidump or not?
+    if (m_CrashInfo.m_bGenerateMinidump == FALSE)
     {
         m_Assync.SetProgress(_T("Crash dump generation disabled; skipping."), 0, false);
         return TRUE;
     }
 
-	// Update progress
+    // Update progress
     m_Assync.SetProgress(_T("Creating crash dump file..."), 0, false);
     m_Assync.SetProgress(_T("[creating_dump]"), 0, false);
 
-    // Load dbghelp.dll
-    hDbgHelp = LoadLibrary(m_CrashInfo.m_sDbgHelpPath);
-    if(hDbgHelp==NULL)
     {
-        // Try again ... fallback to dbghelp.dll in path
-        const CString sDebugHelpDLL_name = "dbghelp.dll";
-        hDbgHelp = LoadLibrary(sDebugHelpDLL_name);
+        // Load dbghelp.dll
+        hDbgHelp = LoadLibrary(m_CrashInfo.m_sDbgHelpPath);
+        if (hDbgHelp == NULL)
+        {
+            // Try again ... fallback to dbghelp.dll in path
+            const CString sDebugHelpDLL_name = "dbghelp.dll";
+            hDbgHelp = LoadLibrary(sDebugHelpDLL_name);
+        }
+
+        if (hDbgHelp == NULL)
+        {
+            sErrorMsg = _T("dbghelp.dll couldn't be loaded");
+            m_Assync.SetProgress(_T("dbghelp.dll couldn't be loaded."), 0, false);
+            goto cleanup;
+        }
+
+        // Try to adjust process privilegies to be able to generate minidumps.
+        SetDumpPrivileges();
+
+        // Create the minidump file
+        hFile = CreateFile(
+            sMinidumpFile,
+            GENERIC_WRITE,
+            0,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL);
+
+        // Check if file has been created
+        if (hFile == INVALID_HANDLE_VALUE)
+        {
+            DWORD dwError = GetLastError();
+            CString sMsg;
+            sMsg.Format(_T("CErrorReportSender::CreateMiniDump - Couldn't create minidump file: %s"),
+                (LPCTSTR)Utility::FormatErrorMsg(dwError));
+            m_Assync.SetProgress(sMsg, 0, false);
+            sErrorMsg = sMsg;
+            return FALSE;
+        }
+
+        // Set valid dbghelp API version
+        typedef LPAPI_VERSION(WINAPI* LPIMAGEHLPAPIVERSIONEX)(LPAPI_VERSION AppVersion);
+        LPIMAGEHLPAPIVERSIONEX lpImagehlpApiVersionEx =
+            (LPIMAGEHLPAPIVERSIONEX)GetProcAddress(hDbgHelp, "ImagehlpApiVersionEx");
+        ATLASSERT(lpImagehlpApiVersionEx != NULL);
+        if (lpImagehlpApiVersionEx != NULL)
+        {
+            API_VERSION CompiledApiVer;
+            CompiledApiVer.MajorVersion = 10;
+            CompiledApiVer.MinorVersion = 0;
+            CompiledApiVer.Revision = 12;
+            CompiledApiVer.Reserved = 0;
+            LPAPI_VERSION pActualApiVer = lpImagehlpApiVersionEx(&CompiledApiVer);
+            pActualApiVer;
+            ATLASSERT(CompiledApiVer.MajorVersion == pActualApiVer->MajorVersion);
+            ATLASSERT(CompiledApiVer.MinorVersion == pActualApiVer->MinorVersion);
+            ATLASSERT(CompiledApiVer.Revision == pActualApiVer->Revision);
+        }
+
+        // Write minidump to the file
+        mei.ThreadId = m_CrashInfo.m_dwThreadId;
+        mei.ExceptionPointers = m_CrashInfo.m_pExInfo;
+        mei.ClientPointers = TRUE;
+
+        mci.CallbackRoutine = MiniDumpCallback;
+        mci.CallbackParam = this;
+
+        typedef BOOL(WINAPI *LPMINIDUMPWRITEDUMP)(
+            HANDLE hProcess,
+            DWORD ProcessId,
+            HANDLE hFile,
+            MINIDUMP_TYPE DumpType,
+            CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
+            CONST PMINIDUMP_USER_STREAM_INFORMATION UserEncoderParam,
+            CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
+
+        // Get address of MiniDumpWirteDump function
+        LPMINIDUMPWRITEDUMP pfnMiniDumpWriteDump =
+            (LPMINIDUMPWRITEDUMP)GetProcAddress(hDbgHelp, "MiniDumpWriteDump");
+        if (!pfnMiniDumpWriteDump)
+        {
+            m_Assync.SetProgress(_T("Bad MiniDumpWriteDump function."), 0, false);
+            sErrorMsg = _T("Bad MiniDumpWriteDump function");
+            return FALSE;
+        }
+
+        // Open client process
+        HANDLE hProcess = OpenProcess(
+            PROCESS_ALL_ACCESS,
+            FALSE,
+            m_CrashInfo.m_dwProcessId);
+
+        // Now actually write the minidump
+        BOOL bWriteDump = pfnMiniDumpWriteDump(
+            hProcess,
+            m_CrashInfo.m_dwProcessId,
+            hFile,
+            m_CrashInfo.m_MinidumpType,
+            &mei,
+            NULL,
+            &mci);
+
+        // Check result
+        if (!bWriteDump)
+        {
+            CString sMsg = Utility::FormatErrorMsg(GetLastError());
+            m_Assync.SetProgress(_T("Error writing dump."), 0, false);
+            m_Assync.SetProgress(sMsg, 0, false);
+            sErrorMsg = sMsg;
+            goto cleanup;
+        }
+
+        // Update progress
+        bStatus = TRUE;
+        m_Assync.SetProgress(_T("Finished creating dump."), 100, false);
     }
-
-    if(hDbgHelp==NULL)
-    {
-        sErrorMsg = _T("dbghelp.dll couldn't be loaded");
-        m_Assync.SetProgress(_T("dbghelp.dll couldn't be loaded."), 0, false);
-        goto cleanup;
-    }
-
-	// Try to adjust process privilegies to be able to generate minidumps.
-	SetDumpPrivileges();
-
-    // Create the minidump file
-    hFile = CreateFile(
-        sMinidumpFile,
-        GENERIC_WRITE,
-        0,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
-
-	// Check if file has been created
-    if(hFile==INVALID_HANDLE_VALUE)
-    {
-        DWORD dwError = GetLastError();
-        CString sMsg;
-        sMsg.Format(_T("CErrorReportSender::CreateMiniDump - Couldn't create minidump file: %s"),
-			(LPCTSTR) Utility::FormatErrorMsg(dwError));
-        m_Assync.SetProgress(sMsg, 0, false);
-        sErrorMsg = sMsg;
-        return FALSE;
-    }
-
-    // Set valid dbghelp API version
-    typedef LPAPI_VERSION (WINAPI* LPIMAGEHLPAPIVERSIONEX)(LPAPI_VERSION AppVersion);
-    LPIMAGEHLPAPIVERSIONEX lpImagehlpApiVersionEx =
-        (LPIMAGEHLPAPIVERSIONEX)GetProcAddress(hDbgHelp, "ImagehlpApiVersionEx");
-    ATLASSERT(lpImagehlpApiVersionEx!=NULL);
-    if(lpImagehlpApiVersionEx!=NULL)
-    {
-        API_VERSION CompiledApiVer;
-        CompiledApiVer.MajorVersion = 10;
-        CompiledApiVer.MinorVersion = 0;
-        CompiledApiVer.Revision = 12;
-        CompiledApiVer.Reserved = 0;
-        LPAPI_VERSION pActualApiVer = lpImagehlpApiVersionEx(&CompiledApiVer);
-        pActualApiVer;
-        ATLASSERT(CompiledApiVer.MajorVersion==pActualApiVer->MajorVersion);
-        ATLASSERT(CompiledApiVer.MinorVersion==pActualApiVer->MinorVersion);
-        ATLASSERT(CompiledApiVer.Revision==pActualApiVer->Revision);
-    }
-
-    // Write minidump to the file
-    mei.ThreadId = m_CrashInfo.m_dwThreadId;
-    mei.ExceptionPointers = m_CrashInfo.m_pExInfo;
-    mei.ClientPointers = TRUE;
-
-    mci.CallbackRoutine = MiniDumpCallback;
-    mci.CallbackParam = this;
-
-    typedef BOOL (WINAPI *LPMINIDUMPWRITEDUMP)(
-        HANDLE hProcess,
-        DWORD ProcessId,
-        HANDLE hFile,
-        MINIDUMP_TYPE DumpType,
-        CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
-        CONST PMINIDUMP_USER_STREAM_INFORMATION UserEncoderParam,
-        CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
-
-	// Get address of MiniDumpWirteDump function
-    LPMINIDUMPWRITEDUMP pfnMiniDumpWriteDump =
-        (LPMINIDUMPWRITEDUMP)GetProcAddress(hDbgHelp, "MiniDumpWriteDump");
-    if(!pfnMiniDumpWriteDump)
-    {
-        m_Assync.SetProgress(_T("Bad MiniDumpWriteDump function."), 0, false);
-        sErrorMsg = _T("Bad MiniDumpWriteDump function");
-        return FALSE;
-    }
-
-	// Open client process
-    HANDLE hProcess = OpenProcess(
-        PROCESS_ALL_ACCESS,
-        FALSE,
-        m_CrashInfo.m_dwProcessId);
-
-	// Now actually write the minidump
-    BOOL bWriteDump = pfnMiniDumpWriteDump(
-        hProcess,
-        m_CrashInfo.m_dwProcessId,
-        hFile,
-        m_CrashInfo.m_MinidumpType,
-        &mei,
-        NULL,
-        &mci);
-
-	// Check result
-    if(!bWriteDump)
-    {
-        CString sMsg = Utility::FormatErrorMsg(GetLastError());
-        m_Assync.SetProgress(_T("Error writing dump."), 0, false);
-        m_Assync.SetProgress(sMsg, 0, false);
-        sErrorMsg = sMsg;
-        goto cleanup;
-    }
-
-	// Update progress
-    bStatus = TRUE;
-    m_Assync.SetProgress(_T("Finished creating dump."), 100, false);
-
 cleanup:
 
     // Close file
@@ -946,7 +947,7 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
     sCrashRptVer.Format(_T("%d"), CRASHRPT_VER);
     TiXmlHandle(root).ToElement()->SetAttribute("version", strconv.t2utf8(sCrashRptVer));
 
-    TiXmlDeclaration * decl = new TiXmlDeclaration( "1.0", "UTF-8", "" );
+    TiXmlDeclaration * decl = new TiXmlDeclaration("1.0", "UTF-8", "");
     doc.InsertBeforeChild(root, *decl);
 
     AddElemToXML(_T("CrashGUID"), eri.GetCrashGUID(), root);
@@ -962,18 +963,18 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
     AddElemToXML(_T("GeoLocation"), eri.GetGeoLocation(), root);
     AddElemToXML(_T("SystemTimeUTC"), eri.GetSystemTimeUTC(), root);
 
-	if(eri.GetExceptionAddress()!=0)
-	{
-		sNum.Format(_T("0x%I64x"), eri.GetExceptionAddress());
-		AddElemToXML(_T("ExceptionAddress"), sNum, root);
+    if (eri.GetExceptionAddress() != 0)
+    {
+        sNum.Format(_T("0x%I64x"), eri.GetExceptionAddress());
+        AddElemToXML(_T("ExceptionAddress"), sNum, root);
 
-		AddElemToXML(_T("ExceptionModule"), eri.GetExceptionModule(), root);
+        AddElemToXML(_T("ExceptionModule"), eri.GetExceptionModule(), root);
 
-		sNum.Format(_T("0x%I64x"), eri.GetExceptionModuleBase());
-		AddElemToXML(_T("ExceptionModuleBase"), sNum, root);
+        sNum.Format(_T("0x%I64x"), eri.GetExceptionModuleBase());
+        AddElemToXML(_T("ExceptionModuleBase"), sNum, root);
 
-		AddElemToXML(_T("ExceptionModuleVersion"), eri.GetExceptionModuleVersion(), root);
-	}
+        AddElemToXML(_T("ExceptionModuleVersion"), eri.GetExceptionModuleVersion(), root);
+    }
 
     sExceptionType.Format(_T("%d"), m_CrashInfo.m_nExceptionType);
     AddElemToXML(_T("ExceptionType"), sExceptionType, root);
@@ -988,7 +989,7 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
         sFPESubcode.Format(_T("%d"), m_CrashInfo.m_uFPESubcode);
         AddElemToXML(_T("FPESubcode"), sFPESubcode, root);
     }
-    else if(m_CrashInfo.m_nExceptionType==CR_CPP_INVALID_PARAMETER)
+    else if (m_CrashInfo.m_nExceptionType == CR_CPP_INVALID_PARAMETER)
     {
         AddElemToXML(_T("InvParamExpression"), m_CrashInfo.m_sInvParamExpr, root);
         AddElemToXML(_T("InvParamFunction"), m_CrashInfo.m_sInvParamFunction, root);
@@ -1009,7 +1010,7 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
 
     AddElemToXML(_T("MemoryUsageKbytes"), eri.GetMemUsage(), root);
 
-    if(eri.GetScreenshotInfo().m_bValid)
+    if (eri.GetScreenshotInfo().m_bValid)
     {
         TiXmlHandle hScreenshotInfo = new TiXmlElement("ScreenshotInfo");
         root->LinkEndChild(hScreenshotInfo.ToNode());
@@ -1034,7 +1035,7 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
         hScreenshotInfo.ToElement()->LinkEndChild(hMonitors.ToNode());
 
         size_t i;
-        for(i=0; i<eri.GetScreenshotInfo().m_aMonitors.size(); i++)
+        for (i = 0; i < eri.GetScreenshotInfo().m_aMonitors.size(); i++)
         {
             MonitorInfo& mi = eri.GetScreenshotInfo().m_aMonitors[i];
             TiXmlHandle hMonitor = new TiXmlElement("Monitor");
@@ -1059,7 +1060,7 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
         TiXmlHandle hWindows = new TiXmlElement("Windows");
         hScreenshotInfo.ToElement()->LinkEndChild(hWindows.ToNode());
 
-        for(i=0; i<eri.GetScreenshotInfo().m_aWindows.size(); i++)
+        for (i = 0; i < eri.GetScreenshotInfo().m_aWindows.size(); i++)
         {
             WindowInfo& wi = eri.GetScreenshotInfo().m_aWindows[i];
             TiXmlHandle hWindow = new TiXmlElement("Window");
@@ -1085,12 +1086,12 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
     TiXmlHandle hCustomProps = new TiXmlElement("CustomProps");
     root->LinkEndChild(hCustomProps.ToNode());
 
-	int i;
-	for(i=0; i<eri.GetPropCount(); i++)
+    int i;
+    for (i = 0; i < eri.GetPropCount(); i++)
     {
-		CString sName;
-		CString sVal;
-		eri.GetPropByIndex(i, sName, sVal);
+        CString sName;
+        CString sVal;
+        eri.GetPropByIndex(i, sName, sVal);
 
         TiXmlHandle hProp = new TiXmlElement("Prop");
 
@@ -1103,46 +1104,46 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
     TiXmlHandle hFileItems = new TiXmlElement("FileList");
     root->LinkEndChild(hFileItems.ToNode());
 
-    for(i=0; i<eri.GetFileItemCount(); i++)
+    for (i = 0; i < eri.GetFileItemCount(); i++)
     {
-		ERIFileItem* rfi = eri.GetFileItemByIndex(i);
+        ERIFileItem* rfi = eri.GetFileItemByIndex(i);
         TiXmlHandle hFileItem = new TiXmlElement("FileItem");
 
         hFileItem.ToElement()->SetAttribute("name", strconv.t2utf8(rfi->m_sDestFile));
         hFileItem.ToElement()->SetAttribute("description", strconv.t2utf8(rfi->m_sDesc));
-		if(rfi->m_bAllowDelete)
-			hFileItem.ToElement()->SetAttribute("optional", "1");
-        if(!rfi->m_sErrorStatus.IsEmpty())
+        if (rfi->m_bAllowDelete)
+            hFileItem.ToElement()->SetAttribute("optional", "1");
+        if (!rfi->m_sErrorStatus.IsEmpty())
             hFileItem.ToElement()->SetAttribute("error", strconv.t2utf8(rfi->m_sErrorStatus));
 
         hFileItems.ToElement()->LinkEndChild(hFileItem.ToNode());
     }
-
+    {
 #if _MSC_VER<1400
-    f = _tfopen(sFileName, _T("w"));
+        f = _tfopen(sFileName, _T("w"));
 #else
-    _tfopen_s(&f, sFileName, _T("w"));
+        _tfopen_s(&f, sFileName, _T("w"));
 #endif
 
-    if(f==NULL)
-    {
-        sErrorMsg = _T("Error opening file for writing");
-        goto cleanup;
+        if (f == NULL)
+        {
+            sErrorMsg = _T("Error opening file for writing");
+            goto cleanup;
+        }
+
+        doc.useMicrosoftBOM = true;
+        bool bSave = doc.SaveFile(f);
+        if (!bSave)
+        {
+            sErrorMsg = doc.ErrorDesc();
+            goto cleanup;
+        }
+
+        fclose(f);
+        f = NULL;
+
+        bStatus = TRUE;
     }
-
-    doc.useMicrosoftBOM = true;
-    bool bSave = doc.SaveFile(f);
-    if(!bSave)
-    {
-        sErrorMsg = doc.ErrorDesc();
-        goto cleanup;
-    }
-
-    fclose(f);
-    f = NULL;
-
-    bStatus = TRUE;
-
 cleanup:
 
     if(f)
@@ -1197,77 +1198,76 @@ BOOL CErrorReportSender::CollectCrashFiles()
 	{
 		pReport->AddFileItem(&file_list[i]);
 	}
-
-	// Remove file items that are search patterns
-	BOOL bFound = FALSE;
-	do
-	{
-		bFound = FALSE;
-		for(i=0; i<pReport->GetFileItemCount(); i++)
-		{
-			ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
-
-			// Check if the file name is a search template.
-			BOOL bSearchPattern = Utility::IsFileSearchPattern(pfi->m_sSrcFile);
-			if(bSearchPattern)
-			{
-				// Delete this item
-				pReport->DeleteFileItemByIndex(i);
-				bFound = TRUE;
-				break;
-			}
-		}
-	}
-	while(bFound);
-
-	// Log Files
-	for(i=0; i<pReport->GetFileItemCount(); i++)
-	{
-		ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
-        str.Format(_T("File %d - '%s'"), i + 1, (LPCTSTR)pfi->m_sSrcFile);
-        m_Assync.SetProgress(str, 0, false);
-	}
-
-    // Create dump of registry keys
-	if(pReport->GetRegKeyCount()!=0)
     {
-        m_Assync.SetProgress(_T("Dumping registry keys..."), 0, false);
+        // Remove file items that are search patterns
+        BOOL bFound = FALSE;
+        do
+        {
+            bFound = FALSE;
+            for (i = 0; i < pReport->GetFileItemCount(); i++)
+            {
+                ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
+
+                // Check if the file name is a search template.
+                BOOL bSearchPattern = Utility::IsFileSearchPattern(pfi->m_sSrcFile);
+                if (bSearchPattern)
+                {
+                    // Delete this item
+                    pReport->DeleteFileItemByIndex(i);
+                    bFound = TRUE;
+                    break;
+                }
+            }
+        } while (bFound);
+
+        // Log Files
+        for (i = 0; i < pReport->GetFileItemCount(); i++)
+        {
+            ERIFileItem* pfi = pReport->GetFileItemByIndex(i);
+            str.Format(_T("File %d - '%s'"), i + 1, (LPCTSTR)pfi->m_sSrcFile);
+            m_Assync.SetProgress(str, 0, false);
+        }
+
+        // Create dump of registry keys
+        if (pReport->GetRegKeyCount() != 0)
+        {
+            m_Assync.SetProgress(_T("Dumping registry keys..."), 0, false);
+        }
+
+        // Walk through our registry key list
+        for (i = 0; i < pReport->GetRegKeyCount(); i++)
+        {
+            CString sKeyName;
+            ERIRegKey rki;
+            pReport->GetRegKeyByIndex(i, sKeyName, rki);
+
+            if (m_Assync.IsCancelled())
+                goto cleanup;
+
+            CString sFilePath = pReport->GetErrorReportDirName() + _T("\\") + rki.m_sDstFileName;
+
+            str.Format(_T("Dumping registry key '%s' to file '%s' "), (LPCTSTR)sKeyName, (LPCTSTR)sFilePath);
+            m_Assync.SetProgress(str, 0, false);
+
+            // Create registry key dump
+            CString sErrorMsg;
+            DumpRegKey(sKeyName, sFilePath, sErrorMsg);
+            ERIFileItem fi;
+            fi.m_sSrcFile = sFilePath;
+            fi.m_sDestFile = rki.m_sDstFileName;
+            fi.m_sDesc = Utility::GetINIString(m_CrashInfo.m_sLangFileName, _T("DetailDlg"), _T("DescRegKey"));
+            fi.m_bMakeCopy = FALSE;
+            fi.m_bAllowDelete = rki.m_bAllowDelete;
+            fi.m_sErrorStatus = sErrorMsg;
+            std::vector<ERIFileItem> file_list;
+            file_list.push_back(fi);
+            // Add file to the list of file items
+            pReport->AddFileItem(&fi);
+        }
+
+        // Success
+        bStatus = TRUE;
     }
-
-	// Walk through our registry key list
-    for(i=0; i<pReport->GetRegKeyCount(); i++)
-    {
-		CString sKeyName;
-		ERIRegKey rki;
-		pReport->GetRegKeyByIndex(i, sKeyName, rki);
-
-        if(m_Assync.IsCancelled())
-            goto cleanup;
-
-		CString sFilePath = pReport->GetErrorReportDirName() + _T("\\") + rki.m_sDstFileName;
-
-        str.Format(_T("Dumping registry key '%s' to file '%s' "), (LPCTSTR) sKeyName, (LPCTSTR) sFilePath);
-        m_Assync.SetProgress(str, 0, false);
-
-        // Create registry key dump
-        CString sErrorMsg;
-        DumpRegKey(sKeyName, sFilePath, sErrorMsg);
-        ERIFileItem fi;
-        fi.m_sSrcFile = sFilePath;
-		fi.m_sDestFile = rki.m_sDstFileName;
-        fi.m_sDesc = Utility::GetINIString(m_CrashInfo.m_sLangFileName, _T("DetailDlg"), _T("DescRegKey"));
-        fi.m_bMakeCopy = FALSE;
-		fi.m_bAllowDelete = rki.m_bAllowDelete;
-        fi.m_sErrorStatus = sErrorMsg;
-        std::vector<ERIFileItem> file_list;
-        file_list.push_back(fi);
-        // Add file to the list of file items
-        pReport->AddFileItem(&fi);
-    }
-
-    // Success
-    bStatus = TRUE;
-
 cleanup:
 
 	// Clean up
@@ -1624,7 +1624,7 @@ int CErrorReportSender::DumpRegKey(HKEY hParentKey, CString sSubKey, TiXmlElemen
                             val_node.ToElement()->SetAttribute("name", strconv.w2utf8(szName));
 
                             char str[128] = "";
-                            LPSTR szType = NULL;
+                            LPCSTR szType = NULL;
                             if(dwType==REG_BINARY)
                                 szType = "REG_BINARY";
                             else if(dwType==REG_DWORD)

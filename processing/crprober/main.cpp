@@ -293,182 +293,197 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
     TCHAR* szMD5Hash = NULL;
     FILE* f = NULL;
 
-    // Validate input parameters
-    if(szInput==NULL)
     {
-        result = INVALIDARG;
-        _tprintf(_T("Input file name is missing.\n"));
-        goto done;
-    }
-
-    if(szTableId==NULL && szOutput==NULL && szExtractPath==NULL)
-    {
-        result = INVALIDARG;
-        _tprintf(_T("Output file name or directory name is missing.\n"));
-        goto done;
-    }
-
-    // Decide input dir and file name
-    sInDirName = szInput;
-    size_t pos = sInDirName.rfind('\\');
-    if(pos<0) // There is no back slash in path
-    {
-        sInDirName = _T("");
-        sInFileName = szInput;
-    }
-    else
-    {
-        sInFileName = sInDirName.substr(pos+1);
-        sInDirName = sInDirName.substr(0, pos);
-    }
-
-    if(szExtractPath!=NULL)
-    {
-        // Determine if user has specified a valid dir name for file extraction
-        dwFileAttrs = GetFileAttributes(szExtractPath);
-        if(dwFileAttrs==INVALID_FILE_ATTRIBUTES ||
-            !(dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
+        // Validate input parameters
+        if (szInput == NULL)
         {
             result = INVALIDARG;
-            _tprintf(_T("Invalid directory name for file extraction.\n"));
+            _tprintf(_T("Input file name is missing.\n"));
             goto done;
         }
-    }
 
-    if(szInputMD5!=NULL)
-    {
-        // Determine if user wants us to search for .MD5 files in a directory
-        // or if he specifies the .MD5 file name.
-        dwFileAttrs = GetFileAttributes(szInputMD5);
-        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES &&
-            (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
-            bInputMD5FromDir = TRUE;
-
-        // Append the last back slash to the MD5 dir name if needed
-        if(bInputMD5FromDir)
+        if (szTableId == NULL && szOutput == NULL && szExtractPath == NULL)
         {
-            sMD5DirName = szInputMD5;
-            size_t pos = sMD5DirName.rfind('\\');
-            if(pos< tstring::npos) // There is no back slash in path
-                sMD5DirName = _T("");
-            else if(pos!=sMD5DirName.length()-1) // Append the back slash to dir name
-                sMD5DirName = sMD5DirName.substr(0, pos+1);
+            result = INVALIDARG;
+            _tprintf(_T("Output file name or directory name is missing.\n"));
+            goto done;
         }
-    }
-    else
-    {
-        // Assume .md5 files are in the same dir as input file
-        sMD5DirName = sInDirName;
-    }
 
-    if(szOutput!=NULL && _tcscmp(szOutput, _T(""))!=0) // If empty, direct output to terminal
-    {
-        // Determine if user wants us to save resulting file in directory using its respective
-        // file name or if he specifies the file name for the saved file
-        dwFileAttrs = GetFileAttributes(szOutput);
-        if(dwFileAttrs!=INVALID_FILE_ATTRIBUTES &&
-            (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
-            bOutputToDir = TRUE;
-    }
-
-    //_tprintf(_T("Processing file: %s\n"), sInFileName.c_str());
-
-    // Decide MD5 file name
-    if(szInputMD5==NULL)
-    {
-        // If /md5 cmdline argument is omitted, search for md5 files in the same dir
-        sMD5FileName = szInput;
-        sMD5FileName += _T(".md5");
-    }
-    else
-    {
-        if(bInputMD5FromDir)
+        // Decide input dir and file name
+        sInDirName = szInput;
+        size_t pos = sInDirName.rfind('\\');
+        if (pos < 0) // There is no back slash in path
         {
-            // Look for .md5 files in the special directory
-            sMD5FileName = sMD5DirName+sInFileName;
+            sInDirName = _T("");
+            sInFileName = szInput;
+        }
+        else
+        {
+            sInFileName = sInDirName.substr(pos + 1);
+            sInDirName = sInDirName.substr(0, pos);
+        }
+
+        if (szExtractPath != NULL)
+        {
+            // Determine if user has specified a valid dir name for file extraction
+            dwFileAttrs = GetFileAttributes(szExtractPath);
+            if (dwFileAttrs == INVALID_FILE_ATTRIBUTES ||
+                !(dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
+            {
+                result = INVALIDARG;
+                _tprintf(_T("Invalid directory name for file extraction.\n"));
+                goto done;
+            }
+        }
+
+        if (szInputMD5 != NULL)
+        {
+            // Determine if user wants us to search for .MD5 files in a directory
+            // or if he specifies the .MD5 file name.
+            dwFileAttrs = GetFileAttributes(szInputMD5);
+            if (dwFileAttrs != INVALID_FILE_ATTRIBUTES &&
+                (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
+                bInputMD5FromDir = TRUE;
+
+            // Append the last back slash to the MD5 dir name if needed
+            if (bInputMD5FromDir)
+            {
+                sMD5DirName = szInputMD5;
+                size_t pos = sMD5DirName.rfind('\\');
+                if (pos < tstring::npos) // There is no back slash in path
+                    sMD5DirName = _T("");
+                else if (pos != sMD5DirName.length() - 1) // Append the back slash to dir name
+                    sMD5DirName = sMD5DirName.substr(0, pos + 1);
+            }
+        }
+        else
+        {
+            // Assume .md5 files are in the same dir as input file
+            sMD5DirName = sInDirName;
+        }
+
+        if (szOutput != NULL && _tcscmp(szOutput, _T("")) != 0) // If empty, direct output to terminal
+        {
+            // Determine if user wants us to save resulting file in directory using its respective
+            // file name or if he specifies the file name for the saved file
+            dwFileAttrs = GetFileAttributes(szOutput);
+            if (dwFileAttrs != INVALID_FILE_ATTRIBUTES &&
+                (dwFileAttrs&FILE_ATTRIBUTE_DIRECTORY))
+                bOutputToDir = TRUE;
+        }
+
+        //_tprintf(_T("Processing file: %s\n"), sInFileName.c_str());
+
+        // Decide MD5 file name
+        if (szInputMD5 == NULL)
+        {
+            // If /md5 cmdline argument is omitted, search for md5 files in the same dir
+            sMD5FileName = szInput;
             sMD5FileName += _T(".md5");
         }
         else
         {
-            // Look for MF5 hash in the specified file
-            sMD5FileName = szInputMD5;
-        }
-    }
-
-    // Get MD5 hash from .md5 file
-    _TFOPEN_S(f, sMD5FileName.c_str(), _T("rt"));
-    if(f!=NULL)
-    {
-        szMD5Hash = _fgetts(szMD5Buffer, 64, f);
-        fclose(f);
-        if(szTableId==NULL)
-            _tprintf(_T("Found MD5 file %s; MD5=%s\n"), sMD5FileName.c_str(), szMD5Hash);
-    }
-    else if(szTableId==NULL)
-    {
-        _tprintf(_T("Warning: 'MD5 file not detected; integrity check not performed.' while processing file '%s'\n"), sInFileName.c_str());
-    }
-
-    // Open the error report file
-    int res = crpOpenErrorReport(szInput, szMD5Hash, szSymSearchPath, 0, &hReport);
-    if(res!=0)
-    {
-        result = UNEXPECTED;
-        TCHAR buff[1024];
-        crpGetLastErrorMsg(buff, 1024);
-        _tprintf(_T("Error '%s' while processing file '%s'\n"), buff, sInFileName.c_str());
-        goto done;
-    }
-    else
-    {
-        // Output results
-        tstring sOutFileName;
-        if(szOutput!=NULL && _tcscmp(szOutput, _T(""))!=0)
-        {
-            if(bOutputToDir)
+            if (bInputMD5FromDir)
             {
-                // Write output to directory
-                sOutFileName = tstring(szOutput);
-                if( sOutFileName[sOutFileName.length()-1]!='\\' )
-                    sOutFileName += _T("\\");
-                sOutFileName += sInFileName + _T(".txt");
+                // Look for .md5 files in the special directory
+                sMD5FileName = sMD5DirName + sInFileName;
+                sMD5FileName += _T(".md5");
             }
             else
             {
-                // Write output to single file
-                sOutFileName = szOutput;
-            }
-
-            // Open resulting file
-            _TFOPEN_S(f, sOutFileName.c_str(), _T("wt"));
-            if(f==NULL)
-            {
-                result = UNEXPECTED;
-                _tprintf(_T("Error: couldn't open output file '%s'.\n"),
-                    sOutFileName.c_str());
-                goto done;
+                // Look for MF5 hash in the specified file
+                sMD5FileName = szInputMD5;
             }
         }
-        else if(szOutput!=NULL && _tcscmp(szOutput, _T(""))==0)
+
+        // Get MD5 hash from .md5 file
+        _TFOPEN_S(f, sMD5FileName.c_str(), _T("rt"));
+        if (f != NULL)
         {
-            f=stdout; // Write output to terminal
+            szMD5Hash = _fgetts(szMD5Buffer, 64, f);
+            fclose(f);
+            if (szTableId == NULL)
+                _tprintf(_T("Found MD5 file %s; MD5=%s\n"), sMD5FileName.c_str(), szMD5Hash);
+        }
+        else if (szTableId == NULL)
+        {
+            _tprintf(_T("Warning: 'MD5 file not detected; integrity check not performed.' while processing file '%s'\n"), sInFileName.c_str());
         }
 
-        if(szExtractPath!=NULL && szOutput!=NULL && f==NULL)
+        // Open the error report file
+        int res = crpOpenErrorReport(szInput, szMD5Hash, szSymSearchPath, 0, &hReport);
+        if (res != 0)
         {
             result = UNEXPECTED;
-            _tprintf(_T("Error: couldn't open output file.\n"));
+            TCHAR buff[1024];
+            crpGetLastErrorMsg(buff, 1024);
+            _tprintf(_T("Error '%s' while processing file '%s'\n"), buff, sInFileName.c_str());
             goto done;
         }
-
-        if(szTableId!=NULL)
+        else
         {
-            // Get single property
-            tstring sProp;
-            int get = get_prop(hReport, szTableId, szColumnId, sProp, _ttoi(szRowId));
-            if(_tcscmp(szColumnId, CRP_META_ROW_COUNT)==0)
+            // Output results
+            tstring sOutFileName;
+            if (szOutput != NULL && _tcscmp(szOutput, _T("")) != 0)
             {
-                if(get<0)
+                if (bOutputToDir)
+                {
+                    // Write output to directory
+                    sOutFileName = tstring(szOutput);
+                    if (sOutFileName[sOutFileName.length() - 1] != '\\')
+                        sOutFileName += _T("\\");
+                    sOutFileName += sInFileName + _T(".txt");
+                }
+                else
+                {
+                    // Write output to single file
+                    sOutFileName = szOutput;
+                }
+
+                // Open resulting file
+                _TFOPEN_S(f, sOutFileName.c_str(), _T("wt"));
+                if (f == NULL)
+                {
+                    result = UNEXPECTED;
+                    _tprintf(_T("Error: couldn't open output file '%s'.\n"),
+                        sOutFileName.c_str());
+                    goto done;
+                }
+            }
+            else if (szOutput != NULL && _tcscmp(szOutput, _T("")) == 0)
+            {
+                f = stdout; // Write output to terminal
+            }
+
+            if (szExtractPath != NULL && szOutput != NULL && f == NULL)
+            {
+                result = UNEXPECTED;
+                _tprintf(_T("Error: couldn't open output file.\n"));
+                goto done;
+            }
+
+            if (szTableId != NULL)
+            {
+                // Get single property
+                tstring sProp;
+                int get = get_prop(hReport, szTableId, szColumnId, sProp, _ttoi(szRowId));
+                if (_tcscmp(szColumnId, CRP_META_ROW_COUNT) == 0)
+                {
+                    if (get < 0)
+                    {
+                        result = UNEXPECTED;
+                        TCHAR szErr[1024];
+                        crpGetLastErrorMsg(szErr, 1024);
+                        _tprintf(_T("%s\n"), szErr);
+                        goto done;
+                    }
+                    else
+                    {
+                        // Print row count in the specified table
+                        _ftprintf(f, _T("%d\n"), get);
+                    }
+                }
+                else if (get != 0)
                 {
                     result = UNEXPECTED;
                     TCHAR szErr[1024];
@@ -478,43 +493,29 @@ int process_report(LPTSTR szInput, LPTSTR szInputMD5, LPTSTR szOutput,
                 }
                 else
                 {
-                    // Print row count in the specified table
-                    _ftprintf(f, _T("%d\n"), get);
+                    _ftprintf(f, _T("%s\n"), sProp.c_str());
                 }
             }
-            else if(get!=0)
+            else if (szOutput != NULL)
             {
-                result = UNEXPECTED;
-                TCHAR szErr[1024];
-                crpGetLastErrorMsg(szErr, 1024);
-                _tprintf(_T("%s\n"), szErr);
-                goto done;
+                // Write error report properties to the resulting file
+                result = output_document(hReport, f);
+                if (result != 0)
+                    goto done;
             }
-            else
+
+            if (szExtractPath != NULL)
             {
-                _ftprintf(f, _T("%s\n"), sProp.c_str());
+                // Extract files from error report
+                result = extract_files(hReport, szExtractPath);
+                if (result != 0)
+                    goto done;
             }
-        }
-        else if(szOutput!=NULL)
-        {
-            // Write error report properties to the resulting file
-            result = output_document(hReport, f);
-            if(result!=0)
-                goto done;
         }
 
-        if(szExtractPath!=NULL)
-        {
-            // Extract files from error report
-            result = extract_files(hReport, szExtractPath);
-            if(result!=0)
-                goto done;
-        }
+        // Success.
+        result = SUCCESS;
     }
-
-    // Success.
-    result = SUCCESS;
-
 done:
 
     if(f!=NULL && f!=stdout)

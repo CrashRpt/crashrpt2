@@ -49,7 +49,7 @@ LRESULT CDetailDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         m_linkPrivacyPolicy.ShowWindow(SW_HIDE);
 
 	// Set up header text
-    CStatic statHeader = GetDlgItem(IDC_HEADERTEXT);
+    CStatic statHeader(GetDlgItem(IDC_HEADERTEXT));
 	statHeader.SetWindowText(pSender->GetLangStr(_T("DetailDlg"), _T("DoubleClickAnItem")));
 
 	// Set up the list control
@@ -267,7 +267,7 @@ LRESULT CDetailDlg::OnPreviewRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
     CMenu menu;
     menu.LoadMenu(IDR_POPUPMENU);
 
-    CMenu submenu = menu.GetSubMenu(1);
+    CMenu submenu(menu.GetSubMenu(1));
     MENUITEMINFO mii;
     memset(&mii, 0, sizeof(MENUITEMINFO));
     mii.cbSize = sizeof(MENUITEMINFO);
@@ -397,8 +397,8 @@ LRESULT CDetailDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 	CPoint pt;
     GetCursorPos(&pt);
-    CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
-    CMenu submenu = menu.GetSubMenu(6);
+    CMenu menu(LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU)));
+    CMenu submenu(menu.GetSubMenu(6));
 
     strconv_t strconv;
 	CString sOpen = pSender->GetLangStr(_T("DetailDlg"), _T("Open"));

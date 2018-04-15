@@ -64,6 +64,8 @@ CRASHRPTAPI(int) crInstallW(CR_INSTALL_INFOW* pInfo)
         }
     }
 
+
+    {
     LPCTSTR ptszAppName = strconv.w2t((LPWSTR)pInfo->pszAppName);
     LPCTSTR ptszAppVersion = strconv.w2t((LPWSTR)pInfo->pszAppVersion);
     LPCTSTR ptszCrashSenderPath = strconv.w2t((LPWSTR)pInfo->pszCrashSenderPath);
@@ -111,6 +113,7 @@ CRASHRPTAPI(int) crInstallW(CR_INSTALL_INFOW* pInfo)
     {
         nStatus = 4;
         goto cleanup;
+        }
     }
 
     // OK.
@@ -169,53 +172,55 @@ CRASHRPTAPI(int) crInstallA(CR_INSTALL_INFOA* pInfo)
         }
     }
 
-    LPCTSTR ptszAppName = strconv.a2t((LPSTR)pInfo->pszAppName);
-    LPCTSTR ptszAppVersion = strconv.a2t((LPSTR)pInfo->pszAppVersion);
-    LPCTSTR ptszCrashSenderPath = strconv.a2t((LPSTR)pInfo->pszCrashSenderPath);
-    LPCTSTR ptszEmailTo = strconv.a2t((LPSTR)pInfo->pszEmailTo);
-    LPCTSTR ptszEmailSubject = strconv.a2t((LPSTR)pInfo->pszEmailSubject);
-    LPCTSTR ptszUrl = strconv.a2t((LPSTR)pInfo->pszUrl);
-    LPCTSTR ptszPrivacyPolicyURL = strconv.a2t((LPSTR)pInfo->pszPrivacyPolicyURL);
-    LPCTSTR ptszDebugHelpDLL_file = strconv.a2t((LPSTR)pInfo->pszDebugHelpDLL);
-    MINIDUMP_TYPE miniDumpType = pInfo->uMiniDumpType;
-    LPCTSTR ptszErrorReportSaveDir = strconv.a2t((LPSTR)pInfo->pszErrorReportSaveDir);
-    LPCTSTR ptszRestartCmdLine = strconv.a2t((LPSTR)pInfo->pszRestartCmdLine);
-    LPCTSTR ptszLangFilePath = strconv.a2t((LPSTR)pInfo->pszLangFilePath);
-    LPCTSTR ptszEmailText = strconv.a2t((LPSTR)pInfo->pszEmailText);
-    LPCTSTR ptszSmtpProxy = strconv.a2t((LPSTR)pInfo->pszSmtpProxy);
-    LPCTSTR ptszCustomSenderIcon = strconv.a2t((LPSTR)pInfo->pszCustomSenderIcon);
-	LPCTSTR ptszSmtpLogin = strconv.a2t((LPSTR)pInfo->pszSmtpLogin);
-	LPCTSTR ptszSmtpPassword = strconv.a2t((LPSTR)pInfo->pszSmtpPassword);
+    {
+        LPCTSTR ptszAppName = strconv.a2t((LPSTR)pInfo->pszAppName);
+        LPCTSTR ptszAppVersion = strconv.a2t((LPSTR)pInfo->pszAppVersion);
+        LPCTSTR ptszCrashSenderPath = strconv.a2t((LPSTR)pInfo->pszCrashSenderPath);
+        LPCTSTR ptszEmailTo = strconv.a2t((LPSTR)pInfo->pszEmailTo);
+        LPCTSTR ptszEmailSubject = strconv.a2t((LPSTR)pInfo->pszEmailSubject);
+        LPCTSTR ptszUrl = strconv.a2t((LPSTR)pInfo->pszUrl);
+        LPCTSTR ptszPrivacyPolicyURL = strconv.a2t((LPSTR)pInfo->pszPrivacyPolicyURL);
+        LPCTSTR ptszDebugHelpDLL_file = strconv.a2t((LPSTR)pInfo->pszDebugHelpDLL);
+        MINIDUMP_TYPE miniDumpType = pInfo->uMiniDumpType;
+        LPCTSTR ptszErrorReportSaveDir = strconv.a2t((LPSTR)pInfo->pszErrorReportSaveDir);
+        LPCTSTR ptszRestartCmdLine = strconv.a2t((LPSTR)pInfo->pszRestartCmdLine);
+        LPCTSTR ptszLangFilePath = strconv.a2t((LPSTR)pInfo->pszLangFilePath);
+        LPCTSTR ptszEmailText = strconv.a2t((LPSTR)pInfo->pszEmailText);
+        LPCTSTR ptszSmtpProxy = strconv.a2t((LPSTR)pInfo->pszSmtpProxy);
+        LPCTSTR ptszCustomSenderIcon = strconv.a2t((LPSTR)pInfo->pszCustomSenderIcon);
+        LPCTSTR ptszSmtpLogin = strconv.a2t((LPSTR)pInfo->pszSmtpLogin);
+        LPCTSTR ptszSmtpPassword = strconv.a2t((LPSTR)pInfo->pszSmtpPassword);
 
-    int nInitResult = pCrashHandler->Init(
-		ptszAppName,
-        ptszAppVersion,
-        ptszCrashSenderPath,
-        pInfo->pfnCrashCallback,
-        ptszEmailTo,
-        ptszEmailSubject,
-        ptszUrl,
-        &pInfo->uPriorities,
-        pInfo->dwFlags,
-        ptszPrivacyPolicyURL,
-        ptszDebugHelpDLL_file,
-        miniDumpType,
-        ptszErrorReportSaveDir,
-        ptszRestartCmdLine,
-        ptszLangFilePath,
-        ptszEmailText,
-        ptszSmtpProxy,
-        ptszCustomSenderIcon,
-		ptszSmtpLogin,
-		ptszSmtpPassword,
-		pInfo->nRestartTimeout,
-		pInfo->nMaxReportsPerDay
+        int nInitResult = pCrashHandler->Init(
+            ptszAppName,
+            ptszAppVersion,
+            ptszCrashSenderPath,
+            pInfo->pfnCrashCallback,
+            ptszEmailTo,
+            ptszEmailSubject,
+            ptszUrl,
+            &pInfo->uPriorities,
+            pInfo->dwFlags,
+            ptszPrivacyPolicyURL,
+            ptszDebugHelpDLL_file,
+            miniDumpType,
+            ptszErrorReportSaveDir,
+            ptszRestartCmdLine,
+            ptszLangFilePath,
+            ptszEmailText,
+            ptszSmtpProxy,
+            ptszCustomSenderIcon,
+            ptszSmtpLogin,
+            ptszSmtpPassword,
+            pInfo->nRestartTimeout,
+            pInfo->nMaxReportsPerDay
         );
 
-    if(nInitResult!=0)
-    {
-        nStatus = 4;
-        goto cleanup;
+        if (nInitResult != 0)
+        {
+            nStatus = 4;
+            goto cleanup;
+        }
     }
 
     // OK.
@@ -689,7 +694,7 @@ crGetLastErrorMsgA(LPSTR pszBuffer, UINT uBuffSize)
     return res;
 }
 
-int crSetErrorMsg(PTSTR pszErrorMsg)
+int crSetErrorMsg(LPCTSTR pszErrorMsg)
 {
     g_cs.Lock();
     DWORD dwThreadId = GetCurrentThreadId();

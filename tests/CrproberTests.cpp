@@ -46,16 +46,17 @@ void CrproberTests::SetUp()
 {
     CString sAppDataFolder;
 
-    // Create a temporary folder
-    Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
-    m_sTmpFolder = sAppDataFolder+_T("\\CrashRpt 应用程序名称");
-    BOOL bCreate = Utility::CreateFolder(m_sTmpFolder);
-    TEST_ASSERT(bCreate);
+    {
+        // Create a temporary folder
+        Utility::GetSpecialFolder(CSIDL_APPDATA, sAppDataFolder);
+        m_sTmpFolder = sAppDataFolder + _T("\\CrashRpt 应用程序名称");
+        BOOL bCreate = Utility::CreateFolder(m_sTmpFolder);
+        TEST_ASSERT(bCreate);
 
-    // Create error report ZIP
-    BOOL bCreateReport = TestUtils::CreateErrorReport(m_sTmpFolder, m_sErrorReportName, m_sMD5Hash);
-    TEST_ASSERT(bCreateReport);
-
+        // Create error report ZIP
+        BOOL bCreateReport = TestUtils::CreateErrorReport(m_sTmpFolder, m_sErrorReportName, m_sMD5Hash);
+        TEST_ASSERT(bCreateReport);
+    }
     __TEST_CLEANUP__;
 
 

@@ -220,8 +220,8 @@ LRESULT CResendDlg::OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
     {
         CPoint pt;
         GetCursorPos(&pt);
-        CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
-        CMenu submenu = menu.GetSubMenu(2);
+        CMenu menu(LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU)));
+        CMenu submenu(menu.GetSubMenu(2));
 
         strconv_t strconv;
 		CString sShow = pSender->GetLangStr(_T("ResendDlg"), _T("PopupShow"));
@@ -334,8 +334,8 @@ LRESULT CResendDlg::OnListRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 	CPoint pt;
     GetCursorPos(&pt);
-    CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
-    CMenu submenu = menu.GetSubMenu(5);
+    CMenu menu(LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU)));
+    CMenu submenu(menu.GetSubMenu(5));
 
     strconv_t strconv;
 	CString sSelectAll = pSender->GetLangStr(_T("ResendDlg"), _T("SelectAll"));
@@ -575,8 +575,8 @@ LRESULT CResendDlg::OnOtherActions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
     CPoint pt;
     GetCursorPos(&pt);
-    CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
-    CMenu submenu = menu.GetSubMenu(3);
+    CMenu menu(LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU)));
+    CMenu submenu(menu.GetSubMenu(3));
 
     strconv_t strconv;
 	CString sRemindLater = pSender->GetLangStr(_T("ResendDlg"), _T("PopupRemindLater"));
