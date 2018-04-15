@@ -41,7 +41,7 @@ struct ThreadExceptionHandlers
 };
 
 // Sets the last error message (for the caller thread).
-int crSetErrorMsg(PTSTR pszErrorMsg);
+int crSetErrorMsg(LPCTSTR pszErrorMsg);
 
 // This structure describes a file item (a file included into crash report).
 struct FileItem

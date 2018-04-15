@@ -79,248 +79,249 @@ BOOL CHttpRequestSender::InternalSend()
     std::map<CString, std::string>::iterator it;
     std::map<CString, CHttpRequestFile>::iterator it2;
 
-    // Calculate size of data to send
-    bRet = CalcRequestSize(lPostSize);
-    if(!bRet)
     {
-        m_Assync->SetProgress(_T("Error calculating size of data to send!"), 0);
-        goto cleanup;
+        // Calculate size of data to send
+        bRet = CalcRequestSize(lPostSize);
+        if(!bRet)
+        {
+            m_Assync->SetProgress(_T("Error calculating size of data to send!"), 0);
+            goto cleanup;
+        }
+
+        // Create Internet session
+        m_Assync->SetProgress(_T("Opening Internet connection."), 0);
+        hSession = InternetOpen(_T("CrashRpt"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+        if(hSession==NULL)
+        {
+            m_Assync->SetProgress(_T("Error opening Internet session"), 0);
+            goto cleanup;
+        }
+
+        // Parse application-provided URL
+        ParseURL(m_Request.m_sUrl, szProtocol, 512, szServer, 512, dwPort, szURI, 1024);
+
+        // Connect to HTTP server
+        m_Assync->SetProgress(_T("Connecting to server"), 0, true);
+
+        hConnect = InternetConnect(
+            hSession,     // InternetOpen handle
+            szServer,     // Server  name
+            (WORD)dwPort, // Default HTTPS port - 443
+            NULL,         // User name
+            NULL,         //  User password
+            INTERNET_SERVICE_HTTP, // Service
+            0,            // Flags
+            0             // Context
+            );
+        if(hConnect==NULL)
+        {
+            m_Assync->SetProgress(_T("Error connecting to server"), 0);
+            goto cleanup;
+        }
+
+	    // Set large receive timeout to avoid problems in case of
+	    // slow upload => slow response from the server.
+	    DWORD dwReceiveTimeout = 0;
+	    InternetSetOption(hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT,
+		    &dwReceiveTimeout, sizeof(dwReceiveTimeout));
+
+        // Check if canceled
+        if(m_Assync->IsCancelled()){ goto cleanup; }
+
+        // Add a message to log
+        m_Assync->SetProgress(_T("Opening HTTP request..."), 0, true);
+
+        // Configure flags for HttpOpenRequest
+        DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_NO_AUTO_REDIRECT;
+        if(dwPort==INTERNET_DEFAULT_HTTPS_PORT)
+	        dwFlags |= INTERNET_FLAG_SECURE; // Use SSL
+
+        BOOL bRedirect = FALSE;
+        int nCount = 0;
+        while (nCount == 0 || bRedirect)
+        {
+            nCount++;
+
+            // Open HTTP request
+            hRequest = HttpOpenRequest(
+                hConnect,
+                _T("POST"),
+                szURI,
+                NULL,
+                NULL,
+                szAccept,
+                dwFlags,
+                0
+            );
+            if (!hRequest)
+            {
+                m_Assync->SetProgress(_T("HttpOpenRequest has failed."), 0, true);
+                goto cleanup;
+            }
+
+            // This code was copied from http://support.microsoft.com/kb/182888 to address the problem
+            // that MVS doesn't have a valid SSL certificate.
+            DWORD extraSSLDwFlags = 0;
+            DWORD dwBuffLen = sizeof(extraSSLDwFlags);
+            InternetQueryOption(hRequest, INTERNET_OPTION_SECURITY_FLAGS,
+                (LPVOID)&extraSSLDwFlags, &dwBuffLen);
+            // We have to specifically ignore these 2 errors for MVS
+            extraSSLDwFlags |= SECURITY_FLAG_IGNORE_REVOCATION |  // Ignores certificate revocation problems.
+                SECURITY_FLAG_IGNORE_WRONG_USAGE | // Ignores incorrect usage problems.
+                SECURITY_FLAG_IGNORE_CERT_CN_INVALID | // Ignores the ERROR_INTERNET_SEC_CERT_CN_INVALID error message.
+                SECURITY_FLAG_IGNORE_CERT_DATE_INVALID; // Ignores the ERROR_INTERNET_SEC_CERT_DATE_INVALID error message.
+            InternetSetOption(hRequest, INTERNET_OPTION_SECURITY_FLAGS,
+                &extraSSLDwFlags, sizeof(extraSSLDwFlags));
+
+            // Fill in buffer
+            BufferIn.dwStructSize = sizeof(INTERNET_BUFFERS); // Must be set or error will occur
+            BufferIn.Next = NULL;
+            BufferIn.lpcszHeader = sHeaders;
+            BufferIn.dwHeadersLength = sHeaders.GetLength();
+            BufferIn.dwHeadersTotal = 0;
+            BufferIn.lpvBuffer = NULL;
+            BufferIn.dwBufferLength = 0;
+            BufferIn.dwBufferTotal = (DWORD)lPostSize; // This is the only member used other than dwStructSize
+            BufferIn.dwOffsetLow = 0;
+            BufferIn.dwOffsetHigh = 0;
+
+            m_dwPostSize = (DWORD)lPostSize;
+            m_dwUploaded = 0;
+
+            // Add a message to log
+            m_Assync->SetProgress(_T("Sending HTTP request..."), 0);
+            // Send request
+            if (!HttpSendRequestEx(hRequest, &BufferIn, NULL, 0, 0))
+            {
+                m_Assync->SetProgress(_T("HttpSendRequestEx has failed."), 0);
+                goto cleanup;
+            }
+
+            // Write text fields
+            for (it = m_Request.m_aTextFields.begin(); it != m_Request.m_aTextFields.end(); it++)
+            {
+                bRet = WriteTextPart(hRequest, it->first);
+                if (!bRet)
+                    goto cleanup;
+            }
+
+            // Write attachments
+            for (it2 = m_Request.m_aIncludedFiles.begin(); it2 != m_Request.m_aIncludedFiles.end(); it2++)
+            {
+                bRet = WriteAttachmentPart(hRequest, it2->first);
+                if (!bRet)
+                    goto cleanup;
+            }
+
+            // Write boundary
+            bRet = WriteTrailingBoundary(hRequest);
+            if (!bRet)
+                goto cleanup;
+
+            // Add a message to log
+            m_Assync->SetProgress(_T("Ending HTTP request..."), 0);
+
+            // End request
+            if (!HttpEndRequest(hRequest, NULL, 0, 0))
+            {
+                m_Assync->SetProgress(_T("HttpEndRequest has failed."), 0);
+                goto cleanup;
+            }
+
+            // Add a message to log
+            m_Assync->SetProgress(_T("Reading server response..."), 0);
+
+            // Get HTTP response code from HTTP headers
+            DWORD lHttpStatus = 0;
+            DWORD lHttpStatusSize = sizeof(lHttpStatus);
+            BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER,
+                &lHttpStatus, &lHttpStatusSize, 0);
+
+            if (bQueryInfo)
+            {
+                sMsg.Format(_T("Server response code: %ld"), lHttpStatus);
+                m_Assync->SetProgress(sMsg, 0);
+            }
+
+            // Read HTTP response
+            InternetReadFile(hRequest, pBuffer, 4095, &dwBuffSize);
+            pBuffer[dwBuffSize] = 0;
+            sMsg = CString((LPCSTR)pBuffer, dwBuffSize);
+            sMsg = _T("Server response body:") + sMsg;
+            m_Assync->SetProgress(sMsg, 0);
+
+            // If the first byte of HTTP response is a digit, than assume a legacy way
+            // of determining delivery status - the HTTP response starts with a delivery status code
+            if (dwBuffSize > 0 && pBuffer[0] >= '0' && pBuffer[0] <= '9')
+            {
+                m_Assync->SetProgress(_T("Assuming legacy method of determining delivery status (from HTTP response body)."), 0);
+
+                // Get status code from HTTP response
+                if (atoi((LPCSTR)pBuffer) != 200)
+                {
+                    m_Assync->SetProgress(_T("Failed (HTTP response body doesn't start with code 200)."), 100, false);
+                    goto cleanup;
+                }
+
+                break;
+            }
+            else
+            {
+                // If the first byte of HTTP response is not a digit, assume that
+                // the delivery status should be read from HTTP header
+
+                // Check if we have a redirect (302 response code)
+                if (bQueryInfo && lHttpStatus == 302)
+                {
+                    // Check for multiple redirects
+                    if (bRedirect)
+                    {
+                        m_Assync->SetProgress(_T("Multiple redirects are not allowed."), 100, false);
+                        goto cleanup;
+                    }
+
+                    bRedirect = TRUE;
+
+                    TCHAR szBuffer[1024] = _T("");
+                    DWORD dwBuffSize = 1024 * sizeof(TCHAR);
+                    DWORD nIndex = 0;
+
+                    BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_LOCATION,
+                        szBuffer,
+                        &dwBuffSize,
+                        &nIndex);
+                    if (!bQueryInfo)
+                    {
+                        m_Assync->SetProgress(_T("Failed to redirect."), 100, false);
+                        goto cleanup;
+                    }
+                    else
+                    {
+                        // Parse the redirect URL
+                        ParseURL(szBuffer, szProtocol, 512, szServer, 512, dwPort, szURI, 1024);
+
+                        CString sMsg;
+                        sMsg.Format(_T("Redirecting to %s"), szBuffer);
+                        m_Assync->SetProgress(sMsg, 0, true);
+                        continue;
+                    }
+                }
+
+                // Check for server response code - expected code 200
+                if (!bQueryInfo || lHttpStatus != 200)
+                {
+                    m_Assync->SetProgress(_T("Failed (HTTP response code is not equal to 200)."), 100, false);
+                    goto cleanup;
+                }
+
+                break;
+            }
+        }
+
+        // Add a message to log
+        m_Assync->SetProgress(_T("Error report has been sent OK!"), 100, false);
+        bStatus = TRUE;
     }
-
-    // Create Internet session
-    m_Assync->SetProgress(_T("Opening Internet connection."), 0);
-    hSession = InternetOpen(_T("CrashRpt"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-    if(hSession==NULL)
-    {
-        m_Assync->SetProgress(_T("Error opening Internet session"), 0);
-        goto cleanup;
-    }
-
-    // Parse application-provided URL
-    ParseURL(m_Request.m_sUrl, szProtocol, 512, szServer, 512, dwPort, szURI, 1024);
-
-    // Connect to HTTP server
-    m_Assync->SetProgress(_T("Connecting to server"), 0, true);
-
-    hConnect = InternetConnect(
-        hSession,     // InternetOpen handle
-        szServer,     // Server  name
-        (WORD)dwPort, // Default HTTPS port - 443
-        NULL,         // User name
-        NULL,         //  User password
-        INTERNET_SERVICE_HTTP, // Service
-        0,            // Flags
-        0             // Context
-        );
-    if(hConnect==NULL)
-    {
-        m_Assync->SetProgress(_T("Error connecting to server"), 0);
-        goto cleanup;
-    }
-
-	// Set large receive timeout to avoid problems in case of
-	// slow upload => slow response from the server.
-	DWORD dwReceiveTimeout = 0;
-	InternetSetOption(hConnect, INTERNET_OPTION_RECEIVE_TIMEOUT,
-		&dwReceiveTimeout, sizeof(dwReceiveTimeout));
-
-    // Check if canceled
-    if(m_Assync->IsCancelled()){ goto cleanup; }
-
-    // Add a message to log
-    m_Assync->SetProgress(_T("Opening HTTP request..."), 0, true);
-
-    // Configure flags for HttpOpenRequest
-    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_NO_AUTO_REDIRECT;
-    if(dwPort==INTERNET_DEFAULT_HTTPS_PORT)
-	    dwFlags |= INTERNET_FLAG_SECURE; // Use SSL
-
-	BOOL bRedirect = FALSE;
-	int nCount = 0;
-	while(nCount==0 || bRedirect)
-	{
-		nCount++;
-
-		// Open HTTP request
-		hRequest = HttpOpenRequest(
-			hConnect,
-			_T("POST"),
-			szURI,
-			NULL,
-			NULL,
-			szAccept,
-			dwFlags,
-			0
-			);
-		if (!hRequest)
-		{
-			m_Assync->SetProgress(_T("HttpOpenRequest has failed."), 0, true);
-			goto cleanup;
-		}
-
-		// This code was copied from http://support.microsoft.com/kb/182888 to address the problem
-		// that MVS doesn't have a valid SSL certificate.
-		DWORD extraSSLDwFlags = 0;
-		DWORD dwBuffLen = sizeof(extraSSLDwFlags);
-		InternetQueryOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS,
-		(LPVOID)&extraSSLDwFlags, &dwBuffLen);
-		// We have to specifically ignore these 2 errors for MVS
-		extraSSLDwFlags |= SECURITY_FLAG_IGNORE_REVOCATION |  // Ignores certificate revocation problems.
-						   SECURITY_FLAG_IGNORE_WRONG_USAGE | // Ignores incorrect usage problems.
-						   SECURITY_FLAG_IGNORE_CERT_CN_INVALID | // Ignores the ERROR_INTERNET_SEC_CERT_CN_INVALID error message.
-						   SECURITY_FLAG_IGNORE_CERT_DATE_INVALID; // Ignores the ERROR_INTERNET_SEC_CERT_DATE_INVALID error message.
-		InternetSetOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS,
-							&extraSSLDwFlags, sizeof (extraSSLDwFlags) );
-
-		// Fill in buffer
-		BufferIn.dwStructSize = sizeof( INTERNET_BUFFERS ); // Must be set or error will occur
-		BufferIn.Next = NULL;
-		BufferIn.lpcszHeader = sHeaders;
-		BufferIn.dwHeadersLength = sHeaders.GetLength();
-		BufferIn.dwHeadersTotal = 0;
-		BufferIn.lpvBuffer = NULL;
-		BufferIn.dwBufferLength = 0;
-		BufferIn.dwBufferTotal = (DWORD)lPostSize; // This is the only member used other than dwStructSize
-		BufferIn.dwOffsetLow = 0;
-		BufferIn.dwOffsetHigh = 0;
-
-		m_dwPostSize = (DWORD)lPostSize;
-		m_dwUploaded = 0;
-
-		// Add a message to log
-		m_Assync->SetProgress(_T("Sending HTTP request..."), 0);
-		// Send request
-		if(!HttpSendRequestEx( hRequest, &BufferIn, NULL, 0, 0))
-		{
-			m_Assync->SetProgress(_T("HttpSendRequestEx has failed."), 0);
-			goto cleanup;
-		}
-
-		// Write text fields
-		for(it=m_Request.m_aTextFields.begin(); it!=m_Request.m_aTextFields.end(); it++)
-		{
-			bRet = WriteTextPart(hRequest, it->first);
-			if(!bRet)
-				goto cleanup;
-		}
-
-		// Write attachments
-		for(it2=m_Request.m_aIncludedFiles.begin(); it2!=m_Request.m_aIncludedFiles.end(); it2++)
-		{
-			bRet = WriteAttachmentPart(hRequest, it2->first);
-			if(!bRet)
-				goto cleanup;
-		}
-
-		// Write boundary
-		bRet = WriteTrailingBoundary(hRequest);
-		if(!bRet)
-			goto cleanup;
-
-		// Add a message to log
-		m_Assync->SetProgress(_T("Ending HTTP request..."), 0);
-
-		// End request
-		if(!HttpEndRequest(hRequest, NULL, 0, 0))
-		{
-			m_Assync->SetProgress(_T("HttpEndRequest has failed."), 0);
-			goto cleanup;
-		}
-
-		// Add a message to log
-		m_Assync->SetProgress(_T("Reading server response..."), 0);
-
-		// Get HTTP response code from HTTP headers
-		DWORD lHttpStatus = 0;
-		DWORD lHttpStatusSize = sizeof(lHttpStatus);
-		BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_STATUS_CODE|HTTP_QUERY_FLAG_NUMBER,
-										&lHttpStatus, &lHttpStatusSize, 0);
-
-		if(bQueryInfo)
-		{
-			sMsg.Format(_T("Server response code: %ld"), lHttpStatus);
-			m_Assync->SetProgress(sMsg, 0);
-		}
-
-		// Read HTTP response
-		InternetReadFile(hRequest, pBuffer, 4095, &dwBuffSize);
-		pBuffer[dwBuffSize] = 0;
-		sMsg = CString((LPCSTR)pBuffer, dwBuffSize);
-		sMsg = _T("Server response body:")  + sMsg;
-		m_Assync->SetProgress(sMsg, 0);
-
-		// If the first byte of HTTP response is a digit, than assume a legacy way
-		// of determining delivery status - the HTTP response starts with a delivery status code
-		if(dwBuffSize>0 && pBuffer[0]>='0' && pBuffer[0]<='9')
-		{
-			m_Assync->SetProgress(_T("Assuming legacy method of determining delivery status (from HTTP response body)."), 0);
-
-			// Get status code from HTTP response
-			if(atoi((LPCSTR)pBuffer)!=200)
-			{
-				m_Assync->SetProgress(_T("Failed (HTTP response body doesn't start with code 200)."), 100, false);
-				goto cleanup;
-			}
-
-			break;
-		}
-		else
-		{
-			// If the first byte of HTTP response is not a digit, assume that
-			// the delivery status should be read from HTTP header
-
-			// Check if we have a redirect (302 response code)
-			if(bQueryInfo && lHttpStatus==302)
-			{
-				// Check for multiple redirects
-				if(bRedirect)
-				{
-					m_Assync->SetProgress(_T("Multiple redirects are not allowed."), 100, false);
-					goto cleanup;
-				}
-
-				bRedirect = TRUE;
-
-				TCHAR szBuffer[1024]=_T("");
-				DWORD dwBuffSize = 1024*sizeof(TCHAR);
-				DWORD nIndex = 0;
-
-				BOOL bQueryInfo = HttpQueryInfo(hRequest, HTTP_QUERY_LOCATION,
-						szBuffer,
-						&dwBuffSize,
-						&nIndex);
-				if(!bQueryInfo)
-				{
-					m_Assync->SetProgress(_T("Failed to redirect."), 100, false);
-					goto cleanup;
-				}
-				else
-				{
-					// Parse the redirect URL
-					ParseURL(szBuffer, szProtocol, 512, szServer, 512, dwPort, szURI, 1024);
-
-					CString sMsg;
-					sMsg.Format(_T("Redirecting to %s"), szBuffer);
-					m_Assync->SetProgress(sMsg, 0, true);
-					continue;
-				}
-			}
-
-			// Check for server response code - expected code 200
-			if(!bQueryInfo || lHttpStatus!=200)
-			{
-				m_Assync->SetProgress(_T("Failed (HTTP response code is not equal to 200)."), 100, false);
-				goto cleanup;
-			}
-
-			break;
-		}
-	}
-
-	// Add a message to log
-    m_Assync->SetProgress(_T("Error report has been sent OK!"), 100, false);
-    bStatus = TRUE;
-
 cleanup:
 
     if(!bStatus)

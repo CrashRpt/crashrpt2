@@ -279,131 +279,132 @@ BOOL CVideoRecorder::EncodeVideo()
     td=th_encode_alloc(&ti);
     th_info_clear(&ti);
 
-	/*Allocate YV12 image */
-	int nDataSize = (nFrameWidth*nFrameHeight*3)/2;
-	unsigned char* pImageData = new unsigned char[nDataSize];
-	raw[0].data = pImageData;
-	raw[0].width = nFrameWidth;
-	raw[0].height = nFrameHeight;
-	raw[0].stride = nFrameWidth;
-	raw[1].data = pImageData+nFrameWidth*nFrameHeight;
-	raw[1].width = nFrameWidth/2;
-	raw[1].height = nFrameHeight/2;
-	raw[1].stride = nFrameWidth/2;
-	raw[2].data = pImageData+nFrameWidth*nFrameHeight*5/4;
-	raw[2].width = nFrameWidth/2;
-	raw[2].height = nFrameHeight/2;
-	raw[2].stride = nFrameWidth/2;
+    {
+        /*Allocate YV12 image */
+        int nDataSize = (nFrameWidth*nFrameHeight * 3) / 2;
+        unsigned char* pImageData = new unsigned char[nDataSize];
+        raw[0].data = pImageData;
+        raw[0].width = nFrameWidth;
+        raw[0].height = nFrameHeight;
+        raw[0].stride = nFrameWidth;
+        raw[1].data = pImageData + nFrameWidth * nFrameHeight;
+        raw[1].width = nFrameWidth / 2;
+        raw[1].height = nFrameHeight / 2;
+        raw[1].stride = nFrameWidth / 2;
+        raw[2].data = pImageData + nFrameWidth * nFrameHeight * 5 / 4;
+        raw[2].width = nFrameWidth / 2;
+        raw[2].height = nFrameHeight / 2;
+        raw[2].stride = nFrameWidth / 2;
 
-	/*Open output file */
-	CString sFileName = m_sSaveToDir + _T("\\video.ogg");
-	m_sOutFile = sFileName;
-	_tfopen_s(&fout, sFileName, _T("wb"));
-	if(fout==NULL)
-		goto cleanup;
+        /*Open output file */
+        CString sFileName = m_sSaveToDir + _T("\\video.ogg");
+        m_sOutFile = sFileName;
+        _tfopen_s(&fout, sFileName, _T("wb"));
+        if (fout == NULL)
+            goto cleanup;
 
-	/* write the bitstream header packets with proper page interleave */
-    th_comment_init(&tc);
-	// Repeatedly call th_encode_flushheader() to retrieve all the header packets.
-    // first packet will get its own page automatically
-    if(th_encode_flushheader(td,&tc,&op)<=0)
-	{
-      // Internal Theora library error.
-      goto cleanup;
+        /* write the bitstream header packets with proper page interleave */
+        th_comment_init(&tc);
+        // Repeatedly call th_encode_flushheader() to retrieve all the header packets.
+        // first packet will get its own page automatically
+        if (th_encode_flushheader(td, &tc, &op) <= 0)
+        {
+            // Internal Theora library error.
+            goto cleanup;
+        }
+
+        /* Write OGG page */
+        ogg_stream_packetin(&to, &op);
+        if (ogg_stream_pageout(&to, &og) != 1)
+        {
+            goto cleanup;
+        }
+        fwrite(og.header, 1, og.header_len, fout);
+        fwrite(og.body, 1, og.body_len, fout);
+
+        /* create the remaining theora headers */
+        for (;;)
+        {
+            ret = th_encode_flushheader(td, &tc, &op);
+            if (ret < 0)
+            {
+                // Internal Theora library error
+                goto cleanup;
+            }
+            else if (!ret)
+                break;
+            ogg_stream_packetin(&to, &op);
+        }
+
+        /* Write OGG page */
+        for (;;)
+        {
+            int ret = ogg_stream_flush(&to, &og);
+            if (ret == 0)
+                break;
+            if (ret < 0)
+                goto cleanup;
+            fwrite(og.header, 1, og.header_len, fout);
+            fwrite(og.body, 1, og.body_len, fout);
+        }
+
+        /* Encode frames. */
+        int nFrame = m_nFrameId; // Start with the oldest frame
+        if (nFrame == (int)m_aVideoFrames.size())
+            nFrame = 0; // Start from the zeroth frame
+        for (; ; )
+        {
+            /* Compose frame */
+            frame_avail = ComposeFrame(nFrame, &raw);
+
+            // Encode frame
+            if (th_encode_ycbcr_in(td, raw))
+            {
+                goto cleanup;
+            }
+
+            // Read packets
+            while ((ret = th_encode_packetout(td, !frame_avail, &op)) != 0)
+            {
+                /* Write OGG page */
+                ogg_stream_packetin(&to, &op);
+                int ret = ogg_stream_pageout(&to, &og);
+                if (ret < 0)
+                    goto cleanup;
+                if (ret != 0)
+                {
+                    fwrite(og.header, 1, og.header_len, fout);
+                    fwrite(og.body, 1, og.body_len, fout);
+                }
+            }
+
+            // Increment total encoded frame count
+            if (frame_avail)
+                frame_cnt++;
+            else
+                break;
+
+            // Increment frame index
+            nFrame++;
+            if (nFrame == (int)m_aVideoFrames.size())
+                nFrame = 0; // Start from the zeroth frame
+
+            if (nFrame == m_nFrameId || frame_cnt >= (int)m_aVideoFrames.size())
+                break; // All frames have been encoded
+        }
+
+        /* Write OGG page */
+        for (;;)
+        {
+            int ret = ogg_stream_flush(&to, &og);
+            if (ret == 0)
+                break;
+            if (ret < 0)
+                goto cleanup;
+            fwrite(og.header, 1, og.header_len, fout);
+            fwrite(og.body, 1, og.body_len, fout);
+        }
     }
-
-	/* Write OGG page */
-	ogg_stream_packetin(&to,&op);
-    if(ogg_stream_pageout(&to,&og)!=1)
-	{
-		goto cleanup;
-	}
-	fwrite(og.header,1,og.header_len,fout);
-    fwrite(og.body,1,og.body_len,fout);
-
-	/* create the remaining theora headers */
-    for(;;)
-	{
-      ret=th_encode_flushheader(td,&tc,&op);
-      if(ret<0)
-	  {
-        // Internal Theora library error
-        goto cleanup;
-      }
-      else if(!ret)
-		  break;
-	  ogg_stream_packetin(&to,&op);
-    }
-
-	/* Write OGG page */
-	for(;;)
-	{
-		int ret = ogg_stream_flush(&to,&og);
-		if(ret==0)
-			break;
-		if(ret<0)
-			goto cleanup;
-		fwrite(og.header,1,og.header_len,fout);
-		fwrite(og.body,1,og.body_len,fout);
-	}
-
-	/* Encode frames. */
-	int nFrame = m_nFrameId; // Start with the oldest frame
-	if(nFrame==(int)m_aVideoFrames.size())
-		nFrame=0; // Start from the zeroth frame
-	for( ; ; )
-	{
-		/* Compose frame */
-		frame_avail = ComposeFrame(nFrame, &raw);
-
-		// Encode frame
-		if(th_encode_ycbcr_in(td, raw))
-		{
-			goto cleanup;
-		}
-
-		// Read packets
-		while((ret = th_encode_packetout(td, !frame_avail, &op))!=0)
-		{
-			/* Write OGG page */
-			ogg_stream_packetin(&to,&op);
-			int ret = ogg_stream_pageout(&to,&og);
-			if(ret<0)
-				goto cleanup;
-			if(ret!=0)
-			{
-				fwrite(og.header,1,og.header_len,fout);
-				fwrite(og.body,1,og.body_len,fout);
-			}
-		}
-
-		// Increment total encoded frame count
-		if(frame_avail)
-			frame_cnt++;
-		else
-			break;
-
-		// Increment frame index
-		nFrame++;
-		if(nFrame==(int)m_aVideoFrames.size())
-			nFrame=0; // Start from the zeroth frame
-
-		if(nFrame==m_nFrameId || frame_cnt>=(int)m_aVideoFrames.size())
-			break; // All frames have been encoded
-	}
-
-	/* Write OGG page */
-	for(;;)
-	{
-		int ret = ogg_stream_flush(&to,&og);
-		if(ret==0)
-			break;
-		if(ret<0)
-			goto cleanup;
-		fwrite(og.header,1,og.header_len,fout);
-		fwrite(og.body,1,og.body_len,fout);
-	}
-
 cleanup:
 
 	/* Free codec resources */
