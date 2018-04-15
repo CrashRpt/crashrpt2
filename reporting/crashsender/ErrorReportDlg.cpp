@@ -237,7 +237,7 @@ LRESULT CErrorReportDlg::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPa
     GetClientRect(&rcClient);
 
     RECT rc;
-    CStatic statUpperHorzLine = GetDlgItem(IDC_UPPERHORZ);
+    CStatic statUpperHorzLine(GetDlgItem(IDC_UPPERHORZ));
     statUpperHorzLine.GetWindowRect(&rc);
     ScreenToClient(&rc);
 
@@ -312,8 +312,8 @@ LRESULT CErrorReportDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		// Show popup menu on "Other actions..." button click.
         CPoint pt;
         GetCursorPos(&pt);
-        CMenu menu = LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU));
-        CMenu submenu = menu.GetSubMenu(4);
+        CMenu menu(LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_POPUPMENU)));
+        CMenu submenu(menu.GetSubMenu(4));
 
         strconv_t strconv;
         CString sSendLater = pSender->GetLangStr(_T("MainDlg"), _T("SendReportLater"));

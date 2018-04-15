@@ -28,9 +28,9 @@ CComAutoCriticalSection g_crp_cs; // Critical section for thread-safe accessing 
 std::map<DWORD, CString> g_crp_sErrorMsg; // Last error messages for each calling thread.
 
 // Funtion prototype
-int crpSetErrorMsg(PTSTR pszErrorMsg);
+int crpSetErrorMsg(LPCTSTR pszErrorMsg);
 
-TCHAR* exctypes[13] =
+const TCHAR* exctypes[13] =
 {
     _T("SEH exception"),
     _T("terminate call"),
@@ -880,7 +880,7 @@ crpGetPropertyW(
             _ULTOT_S(pDmpReader->m_DumpData.m_uProcessorArchitecture, szBuff, BUFF_SIZE, 10);
             _TCSCAT_S(szBuff, BUFF_SIZE, _T(" "));
 
-            TCHAR* szDescription = _T("unknown processor type");
+            const TCHAR* szDescription = _T("unknown processor type");
             if(pDmpReader->m_DumpData.m_uProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64)
                 szDescription = _T("x64 (AMD or Intel)");
             if(pDmpReader->m_DumpData.m_uProcessorArchitecture==PROCESSOR_ARCHITECTURE_IA32_ON_WIN64)
@@ -904,7 +904,7 @@ crpGetPropertyW(
             _ULTOT_S(pDmpReader->m_DumpData.m_uchProductType, szBuff, BUFF_SIZE, 10);
             _TCSCAT_S(szBuff, BUFF_SIZE, _T(" "));
 
-            TCHAR* szDescription = _T("unknown product type");
+            const TCHAR* szDescription = _T("unknown product type");
             if(pDmpReader->m_DumpData.m_uchProductType==VER_NT_DOMAIN_CONTROLLER)
                 szDescription = _T("domain controller");
             if(pDmpReader->m_DumpData.m_uchProductType==VER_NT_SERVER)
@@ -1374,7 +1374,7 @@ crpGetLastErrorMsgA(
     return res;
 }
 
-int crpSetErrorMsg(PTSTR pszErrorMsg)
+int crpSetErrorMsg(LPCTSTR pszErrorMsg)
 {
     g_crp_cs.Lock();
     DWORD dwThreadId = GetCurrentThreadId();

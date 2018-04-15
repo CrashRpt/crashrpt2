@@ -15,8 +15,15 @@ option(CRASHRPT_BUILD_SHARED_LIBS "If set (default), CrashRpt modules are built 
 option(CRASHRPT_LINK_CRT_AS_DLL "If set (default), CrashRpt modules link C run-time (CRT) as multi-threaded dynamic libraries, otherwise as multi-threaded static libs." ON)
 option(CRASHRPT_BUILD_DEMOS "If set (default), CrashRpt builds the demo projects." ON)
 option(CRASHRPT_BUILD_TESTS "If set (default), CrashRpt builds the test projects." ON)
+IF(MSVC AND ${MSVC_VERSION} GREATER 1910)
+  option(CRASHRPT_BUILD_CPP17 "If set (default), CrashRpt builds using /std:c++17 mode." ON)
+ENDIF()
 
 ADD_DEFINITIONS("/W4 /wd4456 /wd4458 /MP /Oy- /EHsc")
+IF(MSVC AND ${MSVC_VERSION} GREATER 1910 AND CRASHRPT_BUILD_CPP17)
+  MESSAGE("Using /std:c++17 mode and /permissive-")
+  ADD_DEFINITIONS("/std:c++17 /permissive-")
+ENDIF()
 
 if(MSVC_VERSION LESS 1910 )
   set( DBGHELP_USE_INSTALLED_SDK True )

@@ -202,7 +202,7 @@ BOOL CMailMsg::Send()
     pRecipients[0].ulReserved = 0;
     pRecipients[0].ulRecipClass = MAPI_ORIG;
     pRecipients[0].lpszAddress = (LPSTR)m_from.c_str();
-    pRecipients[0].lpszName = "";
+    pRecipients[0].lpszName = NULL;
     pRecipients[0].ulEIDSize = 0;
     pRecipients[0].lpEntryID = NULL;
 

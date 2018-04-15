@@ -363,337 +363,338 @@ int CSmtpClient::SendEmailToRecipient(CString sSmtpServer, CEmailMessage* msg)
         }
     }
 
-	// Add a message to log
-    sStatusMsg.Format(_T("Getting address info of %s port %s"), (LPCTSTR) sSmtpServer, (LPCTSTR) CString(sServiceName));
-    m_scn->SetProgress(sStatusMsg, 1);
-
-	// Prepare to open socket
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-
-    LPCSTR lpszSmtpServer = strconv.t2a(sSmtpServer);
-    LPCSTR lpszServiceName = strconv.t2a(sServiceName);
-    iResult = getaddrinfo(lpszSmtpServer, lpszServiceName, &hints, &result);
-    if(iResult!=0)
-        goto exit;
-
-	// For each interface do
-    for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
     {
-		// Check if cancelled
-        if(m_scn->IsCancelled()) {status = 2; goto exit;}
-
-		// Add a message to log
-        sStatusMsg.Format(_T("Creating socket"));
+        // Add a message to log
+        sStatusMsg.Format(_T("Getting address info of %s port %s"), (LPCTSTR)sSmtpServer, (LPCTSTR)CString(sServiceName));
         m_scn->SetProgress(sStatusMsg, 1);
 
-		// Open socket
-        sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-        if(sock==INVALID_SOCKET)
+        // Prepare to open socket
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+
+        LPCSTR lpszSmtpServer = strconv.t2a(sSmtpServer);
+        LPCSTR lpszServiceName = strconv.t2a(sServiceName);
+        iResult = getaddrinfo(lpszSmtpServer, lpszServiceName, &hints, &result);
+        if (iResult != 0)
+            goto exit;
+
+        // For each interface do
+        for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
         {
-            m_scn->SetProgress(_T("Socket creation failed."), 1);
+            // Check if cancelled
+            if (m_scn->IsCancelled()) { status = 2; goto exit; }
+
+            // Add a message to log
+            sStatusMsg.Format(_T("Creating socket"));
+            m_scn->SetProgress(sStatusMsg, 1);
+
+            // Open socket
+            sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+            if (sock == INVALID_SOCKET)
+            {
+                m_scn->SetProgress(_T("Socket creation failed."), 1);
+                goto exit;
+            }
+
+            // Add a message to log
+            sStatusMsg.Format(_T("Connecting to SMTP server %s port %s"), (LPCTSTR)sSmtpServer, (LPCTSTR)CString(sServiceName));
+            m_scn->SetProgress(sStatusMsg, 1);
+
+            // Connect socket
+            res = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
+            if (res != SOCKET_ERROR)
+                break; // If successfull, break the loop
+
+            // Close socket
+            closesocket(sock);
+        }
+
+        // Check if socket open
+        if (res == SOCKET_ERROR)
+        {
+            sStatusMsg.Format(_T("Socket connection error."));
+            m_scn->SetProgress(sStatusMsg, 5);
             goto exit;
         }
 
-		// Add a message to log
-        sStatusMsg.Format(_T("Connecting to SMTP server %s port %s"), (LPCTSTR) sSmtpServer, (LPCTSTR) CString(sServiceName));
-        m_scn->SetProgress(sStatusMsg, 1);
+        // Add a message to log
+        sStatusMsg.Format(_T("Connected OK."));
+        m_scn->SetProgress(sStatusMsg, 5);
 
-		// Connect socket
-        res = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
-        if(res!=SOCKET_ERROR)
-            break; // If successfull, break the loop
+        // Check cancel status
+        if (m_scn->IsCancelled()) { status = 2; goto exit; }
 
-		// Close socket
-        closesocket(sock);
-    }
+        m_scn->SetProgress(_T("Waiting for greeting message from SMTP server..."), 1);
 
-	// Check if socket open
-    if(res==SOCKET_ERROR)
-	{
-		sStatusMsg.Format(_T("Socket connection error."));
-		m_scn->SetProgress(sStatusMsg, 5);
-        goto exit;
-	}
-
-	// Add a message to log
-    sStatusMsg.Format(_T("Connected OK."));
-    m_scn->SetProgress(sStatusMsg, 5);
-
-	// Check cancel status
-    if(m_scn->IsCancelled()) {status = 2; goto exit;}
-
-	m_scn->SetProgress(_T("Waiting for greeting message from SMTP server..."), 1);
-
-	// Wait until server send us greeting message, for example:
-	// 220 mail.company.tld ESMTP CommuniGate Pro 5.1.4i is glad to see you!
-	res=SendMsg(sock, NULL, response, RESPONSE_BUFF_SIZE);
-    if(res==SOCKET_ERROR)
-    {
-		// Error - server did not send us greeting message
-        sStatusMsg.Format(_T("Failed to receive greeting message from SMTP server (recv code %d)."), res);
-        m_scn->SetProgress(sStatusMsg, 1);
-        goto exit;
-    }
-
-	// Check the code server returned (expect code 220).
-    if(220!=GetMessageCode(response))
-    {
-		// Invalid greeting
-		m_scn->SetProgress(_T("Invalid greeting message."), 1);
-        goto exit;
-    }
-
-	// Add a message to log
-    sStatusMsg.Format(_T("Sending EHLO"));
-    m_scn->SetProgress(sStatusMsg, 1);
-
-    res=SendMsg(sock, _T("EHLO CrashSender\r\n"), response, RESPONSE_BUFF_SIZE);
-	// Check return code (expect code 250)
-    if(res==250)
-    {
-		sStatusMsg = CString(_T("EHLO command not supported"));
-		bESMTP = true;
-	}
-
-	if(!bESMTP)
-	{
-		// Server may not understand EHLO, try HELO
-		sStatusMsg.Format(_T("Sending HELO"));
-		m_scn->SetProgress(sStatusMsg, 1);
-
-		res=SendMsg(sock, _T("HELO CrashSender\r\n"), response, RESPONSE_BUFF_SIZE);
-		// Expect code 250
-		if(res!=250)
-		{
-			// Add a message to log
-			sStatusMsg = CString(_T("HELO command not supported"));
-			m_scn->SetProgress(sStatusMsg, 0);
-			goto exit;
-		}
-    }
-
-	// Check whether to perform authorization procedure
-	if(!m_sLogin.IsEmpty())
-	{
-		if(!bESMTP)
-		{
-			sStatusMsg.Format(_T("SMTP server does not support authorization."));
-			m_scn->SetProgress(sStatusMsg, 1);
-		}
-
-		sStatusMsg.Format(_T("Sending AUTH LOGIN."));
-		m_scn->SetProgress(sStatusMsg, 1);
-
-		// SMTP authorization
-		// AUTH <SP> LOGIN <CRLF>
-		res=SendMsg(sock, _T("AUTH LOGIN\r\n"), response, RESPONSE_BUFF_SIZE);
-
-    	if(res!=334)
-		{
-			m_scn->SetProgress(_T("Unexpected server response"), 0);
-			goto exit;
-		}
-
-		// Send login
-		sStatusMsg.Format(_T("Sending login"));
-		m_scn->SetProgress(sStatusMsg, 1);
-		// Convert login to ASCII
-		LPCSTR lpszLogin = strconv.t2a(m_sLogin);
-		// And encode it in BASE-64
-		sEncodedLogin = base64_encode(reinterpret_cast<const unsigned char*>(lpszLogin),(int)strlen(lpszLogin));
-		sEncodedLogin+="\r\n";
-		LPCTSTR lpwszLogin = strconv.a2t((LPCSTR)(sEncodedLogin.c_str()));
-		memset(response,0,1024);
-		// Send it
-		res=SendMsg(sock, lpwszLogin, response, 1024);
-		// Check return code - expect 334
-		if (res!=334)
-		{
-			sStatusMsg = _T("Login not accepted");
-			m_scn->SetProgress(sStatusMsg, 0);
-			goto exit;
-		}
-
-		// Send password
-		sStatusMsg.Format(_T("Sending password"));
-		m_scn->SetProgress(sStatusMsg, 1);
-		// Convert to ASCII
-		LPCSTR lpszPassword = strconv.t2a(m_sPassword);
-		// BASE-64 encode
-		sEncodedPassword = base64_encode(reinterpret_cast<const unsigned char*>(lpszPassword),(int)strlen(lpszPassword));
-		sEncodedPassword+="\r\n";
-		LPCTSTR lpwszPassword = strconv.a2t((LPCSTR)(sEncodedPassword.c_str()));
-		memset(response,0,1024);
-		// Send it
-		res=SendMsg(sock, lpwszPassword, response, 1024);
-		if(res!=235)
-		{
-			sStatusMsg = _T("Authorization failed");
-			m_scn->SetProgress(sStatusMsg, 0);
-		}
-    }
-
-	// Next send sender and recipient info
-    sStatusMsg.Format(_T("Sending sender and recipient information"));
-    m_scn->SetProgress(sStatusMsg, 1);
-
-	// Send MAIL FROM
-	sMsg.Format(_T("MAIL FROM:<%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());
-    res=SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
-	if (res!=250)
-	{
-        sStatusMsg = _T("Unexpected status code");
-        m_scn->SetProgress(sStatusMsg, 0);
-        goto exit;
-    }
-
-	// Process multiple e-mail recipients.
-	for(i=0; i<msg->GetRecipientCount(); i++)
-	{
-		sMsg.Format(i==0 ? _T("To: <%s>\r\n") : _T("Cc: <%s>\r\n"), (LPCTSTR) msg->GetRecipientAddress(i));
-		sBodyTo += sMsg;
-		sMsg.Format(_T("RCPT TO:<%s>\r\n"), (LPCTSTR) msg->GetRecipientAddress(i));
-		res=SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
-		if(res!=250)
-		{
-			sStatusMsg = _T("Unexpected status code");
-			m_scn->SetProgress(sStatusMsg, 0);
-			goto exit;
-		}
-	}
-
-    sStatusMsg.Format(_T("Start sending email data"));
-    m_scn->SetProgress(sStatusMsg, 1);
-
-    // Send DATA
-    res=SendMsg(sock, _T("DATA\r\n"), response, RESPONSE_BUFF_SIZE);
-	if (res!=354)
-	{
-        sStatusMsg = _T("Unexpected status code");
-        m_scn->SetProgress(sStatusMsg, 0);
-        goto exit;
-    }
-
-    // Get current time
-    time_t cur_time;
-    time(&cur_time);
-    char szDateTime[64] = "";
-
-#if _MSC_VER >= 1400
-	struct tm ltimeinfo;
-    localtime_s(&ltimeinfo, &cur_time );
-	strftime(szDateTime, 64,  "%a, %d %b %Y %H:%M:%S", &ltimeinfo);
-#else
-	struct tm* ltimeinfo = localtime(&cur_time );
-	strftime(szDateTime, 64,  "%a, %d %b %Y %H:%M:%S", ltimeinfo);
-#endif
-
-    TIME_ZONE_INFORMATION tzi;
-    GetTimeZoneInformation(&tzi);
-
-    int diff_hours = -tzi.Bias/60;
-    int diff_mins = abs(tzi.Bias%60);
-	// Send date header
-    str.Format(_T("Date: %s %c%02d%02d\r\n"), strconv.a2t(szDateTime), diff_hours>=0?'+':'-', diff_hours, diff_mins);
-    sMsg = str;
-	// Send From header
-	str.Format(_T("From: <%s>\r\n"), (LPCTSTR) msg->GetSenderAddress());
-    sMsg  += str;
-    sMsg += sBodyTo;
-	// Send subject
-	str.Format(_T("Subject: %s\r\n"), (LPCTSTR) msg->GetSubject());
-    sMsg += str;
-	// Send MIME-Version header
-    sMsg += "MIME-Version: 1.0\r\n";
-	// Send Content-Type
-    sMsg += "Content-Type: multipart/mixed; boundary=KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
-    sMsg += "\r\n\r\n";
-    res = SendMsg(sock, sMsg);
-    if(res!=sMsg.GetLength())
-        goto exit;
-
-    /* Message text */
-
-    sStatusMsg.Format(_T("Sending message text"));
-    m_scn->SetProgress(sStatusMsg, 15);
-
-    sMsg =  "--KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
-    sMsg += "Content-Type: text/plain; charset=UTF-8\r\n";
-    sMsg += "\r\n";
-    sMsg += sUTF8Text.c_str();
-    sMsg += "\r\n";
-    res = SendMsg(sock, sMsg);
-    if(res!=sMsg.GetLength())
-        goto exit;
-
-    sStatusMsg.Format(_T("Sending attachments"));
-    m_scn->SetProgress(sStatusMsg, 1);
-
-    /* Attachments. */
-	for(i=0; i<msg->GetAttachmentCount(); i++)
-    {
-		CString sFileName = msg->GetAttachment(i);
-        sFileName.Replace('/', '\\');
-        CString sDisplayName = sFileName.Mid(sFileName.ReverseFind('\\')+1);
-
-        // Header
-        sMsg =  "\r\n--KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
-        sMsg += "Content-Type: application/octet-stream\r\n";
-        sMsg += "Content-Transfer-Encoding: base64\r\n";
-        sMsg += "Content-Disposition: attachment; filename=\"";
-        sMsg += sDisplayName;
-        sMsg += "\"\r\n";
-        sMsg += "\r\n";
-        res = SendMsg(sock, sMsg);
-        if(res!=sMsg.GetLength())
-            goto exit;
-
-        // Encode data
-        LPBYTE buf = NULL;
-        //int buf_len = 0;
-        int nEncode=Base64EncodeAttachment(sFileName, sEncodedFileData);
-        if(nEncode!=0)
+        // Wait until server send us greeting message, for example:
+        // 220 mail.company.tld ESMTP CommuniGate Pro 5.1.4i is glad to see you!
+        res = SendMsg(sock, NULL, response, RESPONSE_BUFF_SIZE);
+        if (res == SOCKET_ERROR)
         {
-            sStatusMsg.Format(_T("Error BASE64-encoding attachment %s"), (LPCTSTR) sFileName);
+            // Error - server did not send us greeting message
+            sStatusMsg.Format(_T("Failed to receive greeting message from SMTP server (recv code %d)."), res);
             m_scn->SetProgress(sStatusMsg, 1);
             goto exit;
         }
 
-        // Send encoded data
-        sMsg = sEncodedFileData.c_str();
+        // Check the code server returned (expect code 220).
+        if (220 != GetMessageCode(response))
+        {
+            // Invalid greeting
+            m_scn->SetProgress(_T("Invalid greeting message."), 1);
+            goto exit;
+        }
+
+        // Add a message to log
+        sStatusMsg.Format(_T("Sending EHLO"));
+        m_scn->SetProgress(sStatusMsg, 1);
+
+        res = SendMsg(sock, _T("EHLO CrashSender\r\n"), response, RESPONSE_BUFF_SIZE);
+        // Check return code (expect code 250)
+        if (res == 250)
+        {
+            sStatusMsg = CString(_T("EHLO command not supported"));
+            bESMTP = true;
+        }
+
+        if (!bESMTP)
+        {
+            // Server may not understand EHLO, try HELO
+            sStatusMsg.Format(_T("Sending HELO"));
+            m_scn->SetProgress(sStatusMsg, 1);
+
+            res = SendMsg(sock, _T("HELO CrashSender\r\n"), response, RESPONSE_BUFF_SIZE);
+            // Expect code 250
+            if (res != 250)
+            {
+                // Add a message to log
+                sStatusMsg = CString(_T("HELO command not supported"));
+                m_scn->SetProgress(sStatusMsg, 0);
+                goto exit;
+            }
+        }
+
+        // Check whether to perform authorization procedure
+        if (!m_sLogin.IsEmpty())
+        {
+            if (!bESMTP)
+            {
+                sStatusMsg.Format(_T("SMTP server does not support authorization."));
+                m_scn->SetProgress(sStatusMsg, 1);
+            }
+
+            sStatusMsg.Format(_T("Sending AUTH LOGIN."));
+            m_scn->SetProgress(sStatusMsg, 1);
+
+            // SMTP authorization
+            // AUTH <SP> LOGIN <CRLF>
+            res = SendMsg(sock, _T("AUTH LOGIN\r\n"), response, RESPONSE_BUFF_SIZE);
+
+            if (res != 334)
+            {
+                m_scn->SetProgress(_T("Unexpected server response"), 0);
+                goto exit;
+            }
+
+            // Send login
+            sStatusMsg.Format(_T("Sending login"));
+            m_scn->SetProgress(sStatusMsg, 1);
+            // Convert login to ASCII
+            LPCSTR lpszLogin = strconv.t2a(m_sLogin);
+            // And encode it in BASE-64
+            sEncodedLogin = base64_encode(reinterpret_cast<const unsigned char*>(lpszLogin), (int)strlen(lpszLogin));
+            sEncodedLogin += "\r\n";
+            LPCTSTR lpwszLogin = strconv.a2t((LPCSTR)(sEncodedLogin.c_str()));
+            memset(response, 0, 1024);
+            // Send it
+            res = SendMsg(sock, lpwszLogin, response, 1024);
+            // Check return code - expect 334
+            if (res != 334)
+            {
+                sStatusMsg = _T("Login not accepted");
+                m_scn->SetProgress(sStatusMsg, 0);
+                goto exit;
+            }
+
+            // Send password
+            sStatusMsg.Format(_T("Sending password"));
+            m_scn->SetProgress(sStatusMsg, 1);
+            // Convert to ASCII
+            LPCSTR lpszPassword = strconv.t2a(m_sPassword);
+            // BASE-64 encode
+            sEncodedPassword = base64_encode(reinterpret_cast<const unsigned char*>(lpszPassword), (int)strlen(lpszPassword));
+            sEncodedPassword += "\r\n";
+            LPCTSTR lpwszPassword = strconv.a2t((LPCSTR)(sEncodedPassword.c_str()));
+            memset(response, 0, 1024);
+            // Send it
+            res = SendMsg(sock, lpwszPassword, response, 1024);
+            if (res != 235)
+            {
+                sStatusMsg = _T("Authorization failed");
+                m_scn->SetProgress(sStatusMsg, 0);
+            }
+        }
+
+        // Next send sender and recipient info
+        sStatusMsg.Format(_T("Sending sender and recipient information"));
+        m_scn->SetProgress(sStatusMsg, 1);
+
+        // Send MAIL FROM
+        sMsg.Format(_T("MAIL FROM:<%s>\r\n"), (LPCTSTR)msg->GetSenderAddress());
+        res = SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
+        if (res != 250)
+        {
+            sStatusMsg = _T("Unexpected status code");
+            m_scn->SetProgress(sStatusMsg, 0);
+            goto exit;
+        }
+
+        // Process multiple e-mail recipients.
+        for (i = 0; i < msg->GetRecipientCount(); i++)
+        {
+            sMsg.Format(i == 0 ? _T("To: <%s>\r\n") : _T("Cc: <%s>\r\n"), (LPCTSTR)msg->GetRecipientAddress(i));
+            sBodyTo += sMsg;
+            sMsg.Format(_T("RCPT TO:<%s>\r\n"), (LPCTSTR)msg->GetRecipientAddress(i));
+            res = SendMsg(sock, sMsg, response, RESPONSE_BUFF_SIZE);
+            if (res != 250)
+            {
+                sStatusMsg = _T("Unexpected status code");
+                m_scn->SetProgress(sStatusMsg, 0);
+                goto exit;
+            }
+        }
+
+        sStatusMsg.Format(_T("Start sending email data"));
+        m_scn->SetProgress(sStatusMsg, 1);
+
+        // Send DATA
+        res = SendMsg(sock, _T("DATA\r\n"), response, RESPONSE_BUFF_SIZE);
+        if (res != 354)
+        {
+            sStatusMsg = _T("Unexpected status code");
+            m_scn->SetProgress(sStatusMsg, 0);
+            goto exit;
+        }
+
+        // Get current time
+        time_t cur_time;
+        time(&cur_time);
+        char szDateTime[64] = "";
+
+#if _MSC_VER >= 1400
+        struct tm ltimeinfo;
+        localtime_s(&ltimeinfo, &cur_time);
+        strftime(szDateTime, 64, "%a, %d %b %Y %H:%M:%S", &ltimeinfo);
+#else
+        struct tm* ltimeinfo = localtime(&cur_time);
+        strftime(szDateTime, 64, "%a, %d %b %Y %H:%M:%S", ltimeinfo);
+#endif
+
+        TIME_ZONE_INFORMATION tzi;
+        GetTimeZoneInformation(&tzi);
+
+        int diff_hours = -tzi.Bias / 60;
+        int diff_mins = abs(tzi.Bias % 60);
+        // Send date header
+        str.Format(_T("Date: %s %c%02d%02d\r\n"), strconv.a2t(szDateTime), diff_hours >= 0 ? '+' : '-', diff_hours, diff_mins);
+        sMsg = str;
+        // Send From header
+        str.Format(_T("From: <%s>\r\n"), (LPCTSTR)msg->GetSenderAddress());
+        sMsg += str;
+        sMsg += sBodyTo;
+        // Send subject
+        str.Format(_T("Subject: %s\r\n"), (LPCTSTR)msg->GetSubject());
+        sMsg += str;
+        // Send MIME-Version header
+        sMsg += "MIME-Version: 1.0\r\n";
+        // Send Content-Type
+        sMsg += "Content-Type: multipart/mixed; boundary=KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
+        sMsg += "\r\n\r\n";
         res = SendMsg(sock, sMsg);
-        if(res!=sMsg.GetLength())
+        if (res != sMsg.GetLength())
             goto exit;
 
-        delete [] buf;
+        /* Message text */
+
+        sStatusMsg.Format(_T("Sending message text"));
+        m_scn->SetProgress(sStatusMsg, 15);
+
+        sMsg = "--KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
+        sMsg += "Content-Type: text/plain; charset=UTF-8\r\n";
+        sMsg += "\r\n";
+        sMsg += sUTF8Text.c_str();
+        sMsg += "\r\n";
+        res = SendMsg(sock, sMsg);
+        if (res != sMsg.GetLength())
+            goto exit;
+
+        sStatusMsg.Format(_T("Sending attachments"));
+        m_scn->SetProgress(sStatusMsg, 1);
+
+        /* Attachments. */
+        for (i = 0; i < msg->GetAttachmentCount(); i++)
+        {
+            CString sFileName = msg->GetAttachment(i);
+            sFileName.Replace('/', '\\');
+            CString sDisplayName = sFileName.Mid(sFileName.ReverseFind('\\') + 1);
+
+            // Header
+            sMsg = "\r\n--KkK170891tpbkKk__FV_KKKkkkjjwq\r\n";
+            sMsg += "Content-Type: application/octet-stream\r\n";
+            sMsg += "Content-Transfer-Encoding: base64\r\n";
+            sMsg += "Content-Disposition: attachment; filename=\"";
+            sMsg += sDisplayName;
+            sMsg += "\"\r\n";
+            sMsg += "\r\n";
+            res = SendMsg(sock, sMsg);
+            if (res != sMsg.GetLength())
+                goto exit;
+
+            // Encode data
+            LPBYTE buf = NULL;
+            //int buf_len = 0;
+            int nEncode = Base64EncodeAttachment(sFileName, sEncodedFileData);
+            if (nEncode != 0)
+            {
+                sStatusMsg.Format(_T("Error BASE64-encoding attachment %s"), (LPCTSTR)sFileName);
+                m_scn->SetProgress(sStatusMsg, 1);
+                goto exit;
+            }
+
+            // Send encoded data
+            sMsg = sEncodedFileData.c_str();
+            res = SendMsg(sock, sMsg);
+            if (res != sMsg.GetLength())
+                goto exit;
+
+            delete[] buf;
+        }
+
+        sMsg = "\r\n--KkK170891tpbkKk__FV_KKKkkkjjwq--";
+        res = SendMsg(sock, sMsg);
+        if (res != sMsg.GetLength())
+            goto exit;
+
+        // End of message marker
+        res = SendMsg(sock, _T("\r\n.\r\n"), response, RESPONSE_BUFF_SIZE);
+        if (res != 250)
+        {
+            goto exit;
+        }
+
+        // Quit
+        res = SendMsg(sock, _T("QUIT\r\n"), response, RESPONSE_BUFF_SIZE);
+        // Expect code 221
+        if (res != 221)
+        {
+            goto exit;
+        }
+
+        // OK.
+        status = 0;
     }
-
-    sMsg =  "\r\n--KkK170891tpbkKk__FV_KKKkkkjjwq--";
-    res = SendMsg(sock, sMsg);
-    if(res!=sMsg.GetLength())
-        goto exit;
-
-    // End of message marker
-    res = SendMsg(sock, _T("\r\n.\r\n"), response, RESPONSE_BUFF_SIZE);
-	if (res!=250)
-	{
-        goto exit;
-    }
-
-    // Quit
-    res = SendMsg(sock, _T("QUIT\r\n"), response, RESPONSE_BUFF_SIZE);
-	// Expect code 221
-	if(res!=221)
-	{
-        goto exit;
-    }
-
-    // OK.
-    status = 0;
-
 exit:
 
     if(m_scn->IsCancelled())
