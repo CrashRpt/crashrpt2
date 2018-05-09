@@ -775,6 +775,9 @@ CBase::~CBase()
 }
 
 #include <float.h>
+
+#pragma optimize("g", off)
+
 void sigfpe_test()
 {
     // Code taken from http://www.devx.com/cplus/Article/34993/1954
@@ -816,8 +819,10 @@ void sigfpe_test()
     c;
 
 	//Restore the original value when done:
-	//_controlfp_s(cwOriginal, MCW_EM);
+	_controlfp_s(&cw, cwOriginal, MCW_EM);
 }
+
+// #pragma optimize("", on)
 
 #define BIG_NUMBER 0x1fffffff
 //#define BIG_NUMBER 0xf
