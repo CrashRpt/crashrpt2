@@ -1344,19 +1344,7 @@ int CCrashHandler::GenerateErrorReport(
         m_pCrashDesc->m_uInvParamLine = pExceptionInfo->line;
     }
 
-    // Let client know about the crash via the crash callback function.
-    int rv=1;
-    if (m_lpfnCallback!=NULL && (rv=m_lpfnCallback(NULL))==FALSE)
-    {
-		// User has canceled error report generation!
-		crSetErrorMsg(_T("The operation was cancelled by client."));
-        return 2;
-    }
-
-    if(rv==2)
-        m_sCrashGUID = _T("-1");
-    else if(rv==3)
-        m_sCrashGUID = _T("-2");
+    ATLASSERT(m_lpfnCallback == nullptr);
 
 	// New-style callback
 	if(CR_CB_CANCEL==CallBack(CR_CB_STAGE_PREPARE, pExceptionInfo))
@@ -1377,7 +1365,7 @@ int CCrashHandler::GenerateErrorReport(
 	if(!m_bAddVideo || (m_bAddVideo && !IsSenderProcessAlive()))
 	{
 		// Run new CrashSender.exe process
-		result = LaunchCrashSender(m_sCrashGUID, rv==1, &pExceptionInfo->hSenderProcess);
+		result = LaunchCrashSender(m_sCrashGUID, TRUE, &pExceptionInfo->hSenderProcess);
 	}
 	else // we are recording video
 	{
