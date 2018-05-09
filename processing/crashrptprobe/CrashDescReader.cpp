@@ -226,22 +226,18 @@ int CCrashDescReader::Load(CString sFileName)
         }
     }
 
-    // Get ExceptionCode (for SEH exceptions only)
-    if(m_dwExceptionType==CR_SEH_EXCEPTION)
+    TiXmlHandle hExceptionCode = hRoot.ToElement()->FirstChild("ExceptionCode");
+    if(hExceptionCode.ToElement())
     {
-        TiXmlHandle hExceptionCode = hRoot.ToElement()->FirstChild("ExceptionCode");
-        if(hExceptionCode.ToElement())
+        TiXmlText* pTextElem = hExceptionCode.FirstChild().Text();
+        if(pTextElem)
         {
-            TiXmlText* pTextElem = hExceptionCode.FirstChild().Text();
-            if(pTextElem)
-            {
-                const char* text = pTextElem->Value();
-                if(text)
-                    m_dwExceptionCode = atoi(text);
-            }
+            const char* text = pTextElem->Value();
+            if(text)
+                m_dwExceptionCode = atoi(text);
         }
     }
-
+    
     // Get FPESubcode (for FPE exceptions only)
     if(m_dwExceptionType==CR_CPP_SIGFPE)
     {

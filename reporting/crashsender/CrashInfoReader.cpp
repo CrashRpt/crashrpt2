@@ -515,11 +515,9 @@ int CCrashInfoReader::UnpackCrashDescription(CErrorReportInfo& eri)
     m_pExInfo = m_pCrashDesc->m_pExceptionPtrs;
     m_bSendRecentReports = m_pCrashDesc->m_bSendRecentReports;
     m_nExceptionType = m_pCrashDesc->m_nExceptionType;
-    if(m_nExceptionType==CR_SEH_EXCEPTION)
-    {
-        m_dwExceptionCode = m_pCrashDesc->m_dwExceptionCode;
-    }
-    else if(m_nExceptionType==CR_CPP_SIGFPE)
+    m_dwExceptionCode = m_pCrashDesc->m_dwExceptionCode;
+    
+    if(m_nExceptionType==CR_CPP_SIGFPE)
     {
         m_uFPESubcode = m_pCrashDesc->m_uFPESubcode;
     }

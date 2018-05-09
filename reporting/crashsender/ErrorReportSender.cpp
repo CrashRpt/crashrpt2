@@ -977,13 +977,12 @@ BOOL CErrorReportSender::CreateCrashDescriptionXML(CErrorReportInfo& eri)
 
     sExceptionType.Format(_T("%d"), m_CrashInfo.m_nExceptionType);
     AddElemToXML(_T("ExceptionType"), sExceptionType, root);
-    if(m_CrashInfo.m_nExceptionType==CR_SEH_EXCEPTION)
-    {
-        CString sExceptionCode;
-        sExceptionCode.Format(_T("%d"), m_CrashInfo.m_dwExceptionCode);
-        AddElemToXML(_T("ExceptionCode"), sExceptionCode, root);
-    }
-    else if(m_CrashInfo.m_nExceptionType==CR_CPP_SIGFPE)
+   
+	CString sExceptionCode;
+    sExceptionCode.Format(_T("%d"), m_CrashInfo.m_dwExceptionCode);
+	AddElemToXML(_T("ExceptionCode"), sExceptionCode, root);
+    
+	if(m_CrashInfo.m_nExceptionType==CR_CPP_SIGFPE)
     {
         CString sFPESubcode;
         sFPESubcode.Format(_T("%d"), m_CrashInfo.m_uFPESubcode);

@@ -1325,12 +1325,9 @@ int CCrashHandler::GenerateErrorReport(
         pExceptionInfo->code = pExceptionInfo->pexcptrs->ExceptionRecord->ExceptionCode;
     }
     
-    if(pExceptionInfo->exctype==CR_SEH_EXCEPTION)
-    {
-		// Set SEH exception code
-        m_pCrashDesc->m_dwExceptionCode = pExceptionInfo->code;
-    }
-    else if(pExceptionInfo->exctype==CR_CPP_SIGFPE)
+	m_pCrashDesc->m_dwExceptionCode = pExceptionInfo->code;
+    
+	if(pExceptionInfo->exctype==CR_CPP_SIGFPE)
     {
 		// Set FPE (floating point exception) subcode
         m_pCrashDesc->m_uFPESubcode = pExceptionInfo->fpe_subcode;
