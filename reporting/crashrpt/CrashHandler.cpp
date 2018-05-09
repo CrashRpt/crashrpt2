@@ -1320,6 +1320,11 @@ int CCrashHandler::GenerateErrorReport(
     m_pCrashDesc->m_bSendRecentReports = FALSE;
     m_pCrashDesc->m_nExceptionType = pExceptionInfo->exctype;
 
+    if (pExceptionInfo->code == 0)
+    {
+        pExceptionInfo->code = pExceptionInfo->pexcptrs->ExceptionRecord->ExceptionCode;
+    }
+    
     if(pExceptionInfo->exctype==CR_SEH_EXCEPTION)
     {
 		// Set SEH exception code
@@ -1795,6 +1800,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 		ei.cb = sizeof(CR_EXCEPTION_INFO);
 		ei.exctype = CR_SEH_EXCEPTION;
 		ei.pexcptrs = pExceptionPtrs;
+        ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
 		if(!pCrashHandler->m_bContinueExecution)
@@ -1805,7 +1811,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
     }
 
     // Unreacheable code
-    return EXCEPTION_EXECUTE_HANDLER;
+    return EXCEPTION_CONTINUE_EXECUTION;
 }
 
 //Vojtech: Based on martin.bis...@gmail.com comment in
@@ -1834,6 +1840,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 		ei.cb = sizeof(CR_EXCEPTION_INFO);
 		ei.exctype = CR_SEH_EXCEPTION;
 		ei.pexcptrs = pExceptionPtrs;
+        ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
 		if(!pCrashHandler->m_bContinueExecution)
