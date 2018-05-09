@@ -1660,10 +1660,8 @@ int CCrashHandler::PerCrashInit()
 
 	// Format error report dir name for the next crash report.
 	CString sErrorReportDirName;
-	sErrorReportDirName.Format(_T("%s\\%s_%s\\%s"),
+	sErrorReportDirName.Format(_T("%s\\%s"),
 		m_sUnsentCrashReportsFolder.GetBuffer(0),
-		m_sAppName.GetBuffer(0),
-		m_sAppVersion.GetBuffer(0),
 		m_sCrashGUID.GetBuffer(0)
 		);
 
