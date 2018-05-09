@@ -840,10 +840,17 @@ int RecurseAlloc()
 #pragma warning(disable : 4996)   // for strcpy use
 #pragma warning(disable : 6255)   // warning C6255: _alloca indicates failure by raising a stack overflow exception. Consider using _malloca instead
 #pragma warning(disable : 6204)   // warning C6204: Possible buffer overrun in call to 'strcpy': use of unchecked parameter 'str'
-void test_buffer_overrun(const char *str)
+void test_buffer_overrun()
 {
-    char* buffer = (char*)_alloca(10);
-    strcpy(buffer, str); // overrun buffer !!!
+	int a[12];
+	for (int i = 0; i < 16; i++)
+	{
+		a[i] = i;
+	}
+
+    // No longer crashes in VS2017
+    // char* buffer = (char*)_alloca(10);
+	// strcpy(buffer, str); // overrun buffer !!!
 
     // use a secure CRT function to help prevent buffer overruns
     // truncate string to fit a 10 byte buffer
@@ -909,8 +916,9 @@ crEmulateCrash(unsigned ExceptionType) noexcept(false)
             // Cause buffer overrun (/GS compiler option)
 
             // declare buffer that is bigger than expected
-            char large_buffer[] = "This string is longer than 10 characters!!";
-            test_buffer_overrun(large_buffer);
+            // char large_buffer[] = "This string is longer than 10 characters!!";
+            // test_buffer_overrun(large_buffer);
+			test_buffer_overrun();
         }
         break;
     case CR_CPP_INVALID_PARAMETER:
