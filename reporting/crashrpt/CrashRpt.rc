@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Inglese (Stati Uniti) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -25,18 +25,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#include ""atlres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST ""res\\\\CrashRpt.exe.manifest""\r\n"
     "\0"
@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 1,5,0,0
+ PRODUCTVERSION 1,5,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -68,12 +68,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "Crash Handling Module"
-            VALUE "FileVersion", "2.0.0.0"
+            VALUE "FileVersion", "1.5.0.0"
             VALUE "InternalName", "CrashRpt"
             VALUE "LegalCopyright", "Copyright 2003-2013 The CrashRpt Project Authors"
             VALUE "OriginalFilename", "CrashRpt.dll"
             VALUE "ProductName", "CrashRpt"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "1.5.0.0"
             VALUE "SpecialBuild", "0"
         END
     END
@@ -83,7 +83,7 @@ BEGIN
     END
 END
 
-#endif    // Inglese (Stati Uniti) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
