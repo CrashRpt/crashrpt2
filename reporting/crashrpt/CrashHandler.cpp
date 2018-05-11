@@ -1693,7 +1693,7 @@ void CCrashHandler::Repack()
 int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 {
 	// This method calls the new-style crash callback function.
-	// The client (calee) is able to either permit crash report generation (return CR_CB_DODEFAULT)
+	// The client (callee) is able to either permit crash report generation (return CR_CB_DODEFAULT)
 	// or prevent it (return CR_CB_CANCEL).
 
 	strconv_t strconv;
@@ -1745,7 +1745,6 @@ int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 	return m_nCallbackRetCode;
 }
 
-// Structured exception handler (SEH)
 LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 {
     CCrashHandler* pCrashHandler = CCrashHandler::GetCurrentProcessCrashHandler();
@@ -1793,8 +1792,8 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 		}
     }
 
-    // Unreacheable code
-    return EXCEPTION_CONTINUE_EXECUTION;
+    // NOTE: Not unreachable. Not clear what m_bContinueExecution should mean here, though
+    return EXCEPTION_EXECUTE_HANDLER;
 }
 
 //Vojtech: Based on martin.bis...@gmail.com comment in

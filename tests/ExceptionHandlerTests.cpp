@@ -23,9 +23,7 @@ be found in the Authors.txt file in the root of the source tree.
 class ExceptionHandlerTests : public CTestSuite
 {
     BEGIN_TEST_MAP(ExceptionHandlerTests, "Exception handler tests")
-        //REGISTER_TEST(Test_CatchException)
-
-
+        REGISTER_TEST(Test_CatchException)
     END_TEST_MAP()
 
     void SetUp();
@@ -142,9 +140,9 @@ void ExceptionHandlerTests::Test_CatchException()
 				if(!bFind)
 					continue;
 
-				// Try to open file
+                // Try to open file
 				FILE* f = NULL;
-				_TFOPEN_S(f, ff.GetFileName(), _T("rb"));
+                _TFOPEN_S(f, ff.GetFilePath(), _T("rb"));
 				if(f!=NULL)
 				{
 					fclose(f);

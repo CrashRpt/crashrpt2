@@ -18,6 +18,7 @@ BOOL g_bRunningFromUNICODEFolder = FALSE; // Are we running from a UNICODE-named
 BOOL g_bException = FALSE;
 int g_nExceptionType = 0;
 BOOL g_bExceptionInWorkerThread = FALSE;
+BOOL g_bRunAllTest = FALSE;
 
 DWORD WINAPI CrashThread(LPVOID /*lpParam*/)
 {
@@ -49,9 +50,21 @@ std::vector<std::string> explode(std::string str, std::string separators = " \t"
 void trim2(std::string& str, char* szTrim=" \t\n");
 int fork();
 
+int CALLBACK CrashCallback(CR_CRASH_CALLBACK_INFO * pInfo)
+{
+	static int counter = 0;
+	pInfo->bContinueExecution = FALSE;
+	
+	if (counter++ > 0)
+		return CR_CB_CANCEL;
+	else
+		return CR_CB_NOTIFY_NEXT_STAGE;
+}
+
 int _tmain(int argc, TCHAR** argv)
 {
-	//MessageBox(NULL, _T("abc"), _T("abc"), MB_OK);
+    SetErrorMode(SEM_NOGPFAULTERRORBOX);
+    //MessageBox(NULL, _T("abc"), _T("abc"), MB_OK);
     if(argc==1)
     {
         _tprintf(_T("\nDo you want to run tests from a folder containing Chinese characters to test UNICODE compatibility (y/n)?\n"));
@@ -122,10 +135,14 @@ int _tmain(int argc, TCHAR** argv)
 				g_bException = TRUE;
 				g_nExceptionType = -1;
 			}
+            else if (_tcscmp(szArg, _T("/all")) == 0)
+            {
+                g_bRunAllTest = TRUE;
+            }
         }
     }
 
-	if(g_bException)
+	if(g_bException && !g_bRunAllTest)
 	{
 		// Create a temporary folder for wide-char test
 		CString sAppDataFolder;
@@ -144,6 +161,7 @@ int _tmain(int argc, TCHAR** argv)
 
 		CrAutoInstallHelper cr_install_helper(&infoW);
 
+		crSetCrashCallback(&CrashCallback, 0);
 		if(!g_bExceptionInWorkerThread)
 		{
 			if(g_nExceptionType==-1)
@@ -173,44 +191,46 @@ int _tmain(int argc, TCHAR** argv)
 		return 1;
 	}
 
-    printf("\n=== Unit tests for CrashRpt v.%d.%d.%d ===\n\n",
-        CRASHRPT_VER/1000,
-        (CRASHRPT_VER%1000)/100,
-        (CRASHRPT_VER%1000)%100);
-
     CTestRegistry* pRegistry = CTestRegistry::GetRegistry();
     CTestSuite* pTopSuite = pRegistry->GetTopSuite();
+    char szSuiteList[1024] = "";
 
-    // Print the list of test suites
-
-    printf("The list of avaliable test suites:\n");
-
-    UINT nSuiteCount = pTopSuite->GetChildSuiteCount();
-    UINT i;
-    for(i=0; i<nSuiteCount; i++)
+    if (!g_bRunAllTest)
     {
-        CTestSuite* pSuite = pTopSuite->GetChildSuite(i);
-        std::string sSuiteName;
-        std::string sDescription;
-        pSuite->GetSuiteInfo(sSuiteName, sDescription);
+        printf("\n=== Unit tests for CrashRpt v.%d.%d.%d ===\n\n",
+            CRASHRPT_VER / 1000,
+            (CRASHRPT_VER % 1000) / 100,
+            (CRASHRPT_VER % 1000) % 100);
 
-        printf(" - %s : %s\n", sSuiteName.c_str(), sDescription.c_str());
-    }
+        // Print the list of test suites
 
-    printf("\nEnter which test suites to run (separate names by space) or enter empty line to run all test suites.\n");
-    printf("Your choice > ");
-    char szSuiteList[1024]="";
+        printf("The list of avaliable test suites:\n");
+
+        UINT nSuiteCount = pTopSuite->GetChildSuiteCount();
+        for (UINT i = 0; i < nSuiteCount; i++)
+        {
+            CTestSuite* pSuite = pTopSuite->GetChildSuite(i);
+            std::string sSuiteName;
+            std::string sDescription;
+            pSuite->GetSuiteInfo(sSuiteName, sDescription);
+
+            printf(" - %s : %s\n", sSuiteName.c_str(), sDescription.c_str());
+        }
+
+        printf("\nEnter which test suites to run (separate names by space) or enter empty line to run all test suites.\n");
+        printf("Your choice > ");
 #if _MSC_VER>=1400
-    gets_s(szSuiteList, 1024);
+        gets_s(szSuiteList, 1024);
 #else
-    gets(szSuiteList);
+        gets(szSuiteList);
 #endif
+    }
 
     // Create the list of test suites to run
     std::string sSuiteList = szSuiteList;
     std::vector<std::string> aTokens = explode(sSuiteList);
     std::set<std::string> aTestSuitesToRun;
-    for(i=0; i<aTokens.size(); i++)
+    for(UINT i=0; i<aTokens.size(); i++)
         aTestSuitesToRun.insert(aTokens[i]);
 
     // Determine how many tests to run
@@ -235,7 +255,7 @@ int _tmain(int argc, TCHAR** argv)
     {
         printf("Error list:\n");
 
-        for(i=0; i<error_list.size(); i++)
+        for(UINT i=0; i<error_list.size(); i++)
         {
             printf("%d: %s\n", i+1, error_list[i].c_str());
         }
@@ -248,7 +268,8 @@ int _tmain(int argc, TCHAR** argv)
     printf(" Tests failed: %d\n", int(nErrorCount));
 
     // Wait for key press
-    _getch();
+    if (!g_bRunAllTest)
+        _getch();
 
     // Return non-zero value if there were errors
     return nErrorCount==0?0:1;

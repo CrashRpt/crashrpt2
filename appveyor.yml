@@ -7,6 +7,8 @@ branches:
 clone_folder: c:\projects\crashrpt2
 image:
 - Visual Studio 2017
+- Visual Studio 2015
+- Visual Studio 2013
 configuration:
 - RelWithDebInfo
 platform:
@@ -44,3 +46,5 @@ build:
   project: c:\projects\crashrpt2\build\CrashRpt.sln
   verbosity: minimal
   parallel: true
+test_script:
+  - c:\projects\crashrpt2\build\bin\Tests.exe /all
