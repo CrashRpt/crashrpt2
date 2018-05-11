@@ -883,7 +883,11 @@ namespace
 }
 
 CRASHRPTAPI(int)
+#if _MSC_VER >= 1900
 crEmulateCrash(unsigned ExceptionType) noexcept(false)
+#else
+crEmulateCrash(unsigned ExceptionType) throw(...)
+#endif
 {
     crSetErrorMsg(_T("Unspecified error."));
 
