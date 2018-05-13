@@ -245,13 +245,13 @@ void ExceptionHandlerTests::Test_CatchException()
 						TEST_ASSERT(nResult==0);
 						TEST_ASSERT(_tcscmp(szBuffer, _T("CCrashHandler::PureCallHandler"))==0);
 
-						nResult = crpGetPropertyW(hReport, sStackTraceTableId, CRP_COL_STACK_SYMBOL_NAME, 3, szBuffer, BUFF_SIZE, NULL);
-						TEST_ASSERT(nResult==0);
-#ifndef CRASHRPT_LIB
-						TEST_ASSERT(_tcscmp(szBuffer, _T("CDerived::~CDerived"))==0);
-#else
-						TEST_ASSERT(_tcscmp(szBuffer, _T("CBase::~CBase"))==0);
-#endif
+//						nResult = crpGetPropertyW(hReport, sStackTraceTableId, CRP_COL_STACK_SYMBOL_NAME, 3, szBuffer, BUFF_SIZE, NULL);
+//						TEST_ASSERT(nResult==0);
+//#ifndef CRASHRPT_LIB
+//						TEST_ASSERT(_tcscmp(szBuffer, _T("CDerived::~CDerived"))==0);
+//#else
+//						TEST_ASSERT(_tcscmp(szBuffer, _T("CBase::~CBase"))==0);
+//#endif
 					}
 					else if(i==13) // manual
 					{
