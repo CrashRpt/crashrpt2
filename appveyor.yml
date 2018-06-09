@@ -3,6 +3,7 @@ version: '{build}'
 branches:
   only:
     - master
+    - /review\/.+/
 
 clone_folder: c:\projects\crashrpt2
 image:
