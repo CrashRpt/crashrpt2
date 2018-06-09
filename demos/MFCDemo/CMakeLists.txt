@@ -47,9 +47,16 @@ ENDIF()
 ADD_CUSTOM_COMMAND(
     TARGET MFCDemo
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
     COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/lang_files\\crashrpt_lang_EN.ini\" \"${CMAKE_BINARY_DIR}/bin/crashrpt_lang.ini\""
 )
+
+if( NOT DBGHELP_USE_INSTALLED_SDK )
+  ADD_CUSTOM_COMMAND(
+      TARGET MFCDemo
+      POST_BUILD
+      COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
+  )
+endif()
 
 INSTALL(TARGETS MFCDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
              ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}

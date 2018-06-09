@@ -1632,9 +1632,15 @@ crExceptionFilter(
 *
 */
 
+#if _MSC_VER >= 1900
 CRASHRPTAPI(int)
 crEmulateCrash(
-               unsigned ExceptionType) throw (...);
+    unsigned ExceptionType) noexcept(false);
+#else
+CRASHRPTAPI(int)
+crEmulateCrash(
+    unsigned ExceptionType) throw(...);
+#endif
 
 
 

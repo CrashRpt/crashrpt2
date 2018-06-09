@@ -29,7 +29,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/include
       ${CMAKE_SOURCE_DIR}/thirdparty/zlib
       ${CMAKE_SOURCE_DIR}/thirdparty/minizip
       ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml
-      ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/include)
+      ${DBGHELP_INCLUDE_DIR})
 
 # Add library build target
 if(CRASHRPT_BUILD_SHARED_LIBS)

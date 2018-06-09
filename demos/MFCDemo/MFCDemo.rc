@@ -64,7 +64,9 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\MFCDemo.ico"
+
 IDR_MFCDemoTYPE         ICON                    "res\\MFCDemoDoc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -72,6 +74,7 @@ IDR_MFCDemoTYPE         ICON                    "res\\MFCDemoDoc.ico"
 //
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -215,8 +218,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,4,0,3
- PRODUCTVERSION 1,4,0,3
+ FILEVERSION 1,5,0,0
+ PRODUCTVERSION 1,5,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -233,12 +236,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "TODO: <Company name>"
             VALUE "FileDescription", "TODO: <File description>"
-            VALUE "FileVersion", "1.4.0.3"
+            VALUE "FileVersion", "1.5.0.0"
             VALUE "InternalName", "MFCDemo.exe"
             VALUE "LegalCopyright", "Copyright 2003-2013 The CrashRpt project Authors"
             VALUE "OriginalFilename", "MFCDemo.exe"
             VALUE "ProductName", "CrashRpt"
-            VALUE "ProductVersion", "1.4.0.3"
+            VALUE "ProductVersion", "1.5.0.0"
         END
     END
     BLOCK "VarFileInfo"

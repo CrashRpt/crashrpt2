@@ -1320,12 +1320,14 @@ int CCrashHandler::GenerateErrorReport(
     m_pCrashDesc->m_bSendRecentReports = FALSE;
     m_pCrashDesc->m_nExceptionType = pExceptionInfo->exctype;
 
-    if(pExceptionInfo->exctype==CR_SEH_EXCEPTION)
+    if (pExceptionInfo->code == 0)
     {
-		// Set SEH exception code
-        m_pCrashDesc->m_dwExceptionCode = pExceptionInfo->code;
+        pExceptionInfo->code = pExceptionInfo->pexcptrs->ExceptionRecord->ExceptionCode;
     }
-    else if(pExceptionInfo->exctype==CR_CPP_SIGFPE)
+    
+	m_pCrashDesc->m_dwExceptionCode = pExceptionInfo->code;
+    
+	if(pExceptionInfo->exctype==CR_CPP_SIGFPE)
     {
 		// Set FPE (floating point exception) subcode
         m_pCrashDesc->m_uFPESubcode = pExceptionInfo->fpe_subcode;
@@ -1339,19 +1341,7 @@ int CCrashHandler::GenerateErrorReport(
         m_pCrashDesc->m_uInvParamLine = pExceptionInfo->line;
     }
 
-    // Let client know about the crash via the crash callback function.
-    int rv=1;
-    if (m_lpfnCallback!=NULL && (rv=m_lpfnCallback(NULL))==FALSE)
-    {
-		// User has canceled error report generation!
-		crSetErrorMsg(_T("The operation was cancelled by client."));
-        return 2;
-    }
-
-    if(rv==2)
-        m_sCrashGUID = _T("-1");
-    else if(rv==3)
-        m_sCrashGUID = _T("-2");
+    ATLASSERT(m_lpfnCallback == nullptr);
 
 	// New-style callback
 	if(CR_CB_CANCEL==CallBack(CR_CB_STAGE_PREPARE, pExceptionInfo))
@@ -1372,7 +1362,7 @@ int CCrashHandler::GenerateErrorReport(
 	if(!m_bAddVideo || (m_bAddVideo && !IsSenderProcessAlive()))
 	{
 		// Run new CrashSender.exe process
-		result = LaunchCrashSender(m_sCrashGUID, rv==1, &pExceptionInfo->hSenderProcess);
+		result = LaunchCrashSender(m_sCrashGUID, TRUE, &pExceptionInfo->hSenderProcess);
 	}
 	else // we are recording video
 	{
@@ -1670,10 +1660,8 @@ int CCrashHandler::PerCrashInit()
 
 	// Format error report dir name for the next crash report.
 	CString sErrorReportDirName;
-	sErrorReportDirName.Format(_T("%s\\%s_%s\\%s"),
+	sErrorReportDirName.Format(_T("%s\\%s"),
 		m_sUnsentCrashReportsFolder.GetBuffer(0),
-		m_sAppName.GetBuffer(0),
-		m_sAppVersion.GetBuffer(0),
 		m_sCrashGUID.GetBuffer(0)
 		);
 
@@ -1705,7 +1693,7 @@ void CCrashHandler::Repack()
 int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 {
 	// This method calls the new-style crash callback function.
-	// The client (calee) is able to either permit crash report generation (return CR_CB_DODEFAULT)
+	// The client (callee) is able to either permit crash report generation (return CR_CB_DODEFAULT)
 	// or prevent it (return CR_CB_CANCEL).
 
 	strconv_t strconv;
@@ -1757,7 +1745,6 @@ int CCrashHandler::CallBack(int nStage, CR_EXCEPTION_INFO* pExInfo)
 	return m_nCallbackRetCode;
 }
 
-// Structured exception handler (SEH)
 LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 {
     CCrashHandler* pCrashHandler = CCrashHandler::GetCurrentProcessCrashHandler();
@@ -1795,6 +1782,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 		ei.cb = sizeof(CR_EXCEPTION_INFO);
 		ei.exctype = CR_SEH_EXCEPTION;
 		ei.pexcptrs = pExceptionPtrs;
+        ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
 		if(!pCrashHandler->m_bContinueExecution)
@@ -1804,7 +1792,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
 		}
     }
 
-    // Unreacheable code
+    // NOTE: Not unreachable. Not clear what m_bContinueExecution should mean here, though
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -1834,6 +1822,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
 		ei.cb = sizeof(CR_EXCEPTION_INFO);
 		ei.exctype = CR_SEH_EXCEPTION;
 		ei.pexcptrs = pExceptionPtrs;
+        ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
 		if(!pCrashHandler->m_bContinueExecution)

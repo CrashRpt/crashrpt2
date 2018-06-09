@@ -16,10 +16,10 @@ be found in the Authors.txt file in the root of the source tree.
 class DeliveryTests : public CTestSuite
 {
     BEGIN_TEST_MAP(DeliveryTests, "Error report delivery tests")
-        REGISTER_TEST(Test_HttpDelivery)
-        REGISTER_TEST(Test_SmtpDelivery)
-        REGISTER_TEST(Test_SmtpDelivery_proxy);
-        REGISTER_TEST(Test_SMAPI_Delivery)
+        //REGISTER_TEST(Test_HttpDelivery)
+        //REGISTER_TEST(Test_SmtpDelivery)
+        //REGISTER_TEST(Test_SmtpDelivery_proxy);
+        //REGISTER_TEST(Test_SMAPI_Delivery)
     END_TEST_MAP()
 
 public:

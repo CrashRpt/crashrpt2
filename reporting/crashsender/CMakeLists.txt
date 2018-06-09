@@ -30,7 +30,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/thirdparty/jpeg
   ${CMAKE_SOURCE_DIR}/thirdparty/libpng
   ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml
-  ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/include
+  ${DBGHELP_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/thirdparty/libogg/include
   ${CMAKE_SOURCE_DIR}/thirdparty/libtheora/include
 )

@@ -40,7 +40,7 @@ class CrashRptAPITests : public CTestSuite
         REGISTER_TEST(Test_crAddRegKeyW)
 		REGISTER_TEST(Test_crAddVideo)
 		REGISTER_TEST(Test_crAddVideo_defaults)
-		REGISTER_TEST(Test_crAddVideo_crash)
+		// REGISTER_TEST(Test_crAddVideo_crash)
 		REGISTER_TEST(Test_crSetCrashCallbackA)
 		REGISTER_TEST(Test_crSetCrashCallbackW)
 		REGISTER_TEST(Test_crSetCrashCallbackW_stage)
