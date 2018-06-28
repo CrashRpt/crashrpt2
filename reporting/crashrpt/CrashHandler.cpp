@@ -1639,6 +1639,7 @@ int CCrashHandler::PerCrashInit()
 	// configuration info into shared memory each time.
 
 	// Consider the next crash as non-critical.
+    m_bContinueExecutionNow = m_bContinueExecution;
 	m_bContinueExecution = TRUE;
 
 	// Set default ret code for callback func.
@@ -1785,7 +1786,7 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs)
         ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
-		if(!pCrashHandler->m_bContinueExecution)
+		if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -1825,7 +1826,7 @@ DWORD WINAPI CCrashHandler::StackOverflowThreadFunction(LPVOID lpParameter)
         ei.code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
 		pCrashHandler->GenerateErrorReport(&ei);
 
-		if(!pCrashHandler->m_bContinueExecution)
+		if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -1861,7 +1862,7 @@ void __cdecl CCrashHandler::TerminateHandler()
 		// Generate crash report
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -1895,7 +1896,7 @@ void __cdecl CCrashHandler::UnexpectedHandler()
 		// Generate crash report
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -1930,7 +1931,7 @@ void __cdecl CCrashHandler::PureCallHandler()
 		// Generate error report.
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -1968,7 +1969,7 @@ void __cdecl CCrashHandler::SecurityHandler(int code, void *x)
 
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2015,7 +2016,7 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 		// Generate error report.
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2052,7 +2053,7 @@ int __cdecl CCrashHandler::NewHandler(size_t)
 		// Generate error report.
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2089,7 +2090,7 @@ void CCrashHandler::SigabrtHandler(int)
 
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2125,7 +2126,7 @@ void CCrashHandler::SigfpeHandler(int /*code*/, int subcode)
 		//Generate crash report.
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2159,7 +2160,7 @@ void CCrashHandler::SigillHandler(int)
 		// Generate crash report
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2193,7 +2194,7 @@ void CCrashHandler::SigintHandler(int)
 		// Generate crash report.
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2227,7 +2228,7 @@ void CCrashHandler::SigsegvHandler(int)
 		// Generate crash report
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);
@@ -2261,7 +2262,7 @@ void CCrashHandler::SigtermHandler(int)
 		// Generate crash report
         pCrashHandler->GenerateErrorReport(&ei);
 
-        if(!pCrashHandler->m_bContinueExecution)
+        if(!pCrashHandler->m_bContinueExecutionNow)
 		{
 			// Terminate process
 			TerminateProcess(GetCurrentProcess(), 1);

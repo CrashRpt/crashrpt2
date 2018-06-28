@@ -342,6 +342,7 @@ public:
 	std::wstring m_sErrorReportDirW; // Error report directory name (wide-char).
 	int m_nCallbackRetCode;         // Return code of the callback function.
 	BOOL m_bContinueExecution;      // Whether to terminate process (the default) or to continue execution after crash.
+    BOOL m_bContinueExecutionNow;   // After GenerateErrorReport() m_bContinueExecution is reset to FALSE. This is the current value
 };
 
 
