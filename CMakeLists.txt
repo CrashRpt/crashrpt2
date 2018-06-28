@@ -22,7 +22,7 @@ ENDIF()
 ADD_DEFINITIONS("/W4 /wd4456 /wd4458 /MP /Oy- /EHsc")
 IF(MSVC AND ${MSVC_VERSION} GREATER 1910 AND CRASHRPT_BUILD_CPP17)
   MESSAGE("Using /std:c++17 mode and /permissive-")
-  ADD_DEFINITIONS("/std:c++17 /permissive-")
+  ADD_DEFINITIONS("/std:c++17 /permissive- /Zc:strictStrings-")
 ENDIF()
 
 if(MSVC_VERSION LESS 1910 )
