@@ -1,0 +1,56 @@
+configurations {
+    Toolset { 
+        key : "PlatformToolset";
+        choices: { v120, v140, v141 };
+    };
+	
+    Platform {
+        key : "Platform";
+        choices: { Win32, x64 };
+    };
+}
+
+nuget {
+    nuspec {
+        id = CrashRpt2.CPP;
+        version : appveyor_build_version; // replaced by appveyor deploy script
+        title: CrashRpt2.CPP;
+        authors: {Oleg Krivtsov, QbProg};
+        requireLicenseAcceptance:false;
+        summary: @"CrashRpt is a free open-source library designed for intercepting exceptions in your C++ program";
+        description: @"This package corresponds to the github repo with fixes and new features collected from various places. It is not bound to any third-party online service and can be freely configured, including the email address to receive crash reports.";
+        projectUrl: "https://github.com/QbProg/crashrpt2";
+        licenseUrl: "https://github.com/QbProg/crashrpt2/blob/master/License.txt";
+        iconUrl: "http://crashrpt.sourceforge.net/images/logo.png";
+        releaseNotes: @"Nuget package may be incomplete, e.g. does not contain language files yet";
+        copyright: Copyright 2019;
+        tags: { CrashRpt2, CrashRpt };
+    };
+	
+    files {
+
+        #defines {
+			CRASHRPT_VER = 1500;
+        };
+		
+		include: {
+			include/CrashRpt.h
+		};
+				
+		("Win32,x64", "v120,v140,v141") => { 
+            [${0},${1}] { 
+				lib: { ${0}\${1}\lib\CrashRpt${CRASHRPT_VER}.lib };
+				symbols: {${0}\${1}\bin\CrashRpt${CRASHRPT_VER}.pdb};
+				bin: {  ${0}\${1}\bin\CrashRpt${CRASHRPT_VER}.dll,
+						${0}\${1}\bin\CrashSender${CRASHRPT_VER}.exe,
+						${0}\${1}\bin\crashrpt_lang.ini
+					};
+            }
+        }
+    };
+
+	  targets {
+		Defines += "_LATER";
+    } 
+
+}

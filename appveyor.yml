@@ -1,4 +1,4 @@
-version: '{build}'
+version: '1.5.{build}'
 
 branches:
   only:
@@ -7,9 +7,9 @@ branches:
 
 clone_folder: c:\projects\crashrpt2
 image:
-- Visual Studio 2017
-- Visual Studio 2015
 - Visual Studio 2013
+- Visual Studio 2015
+- Visual Studio 2017
 configuration:
 - RelWithDebInfo
 platform:
@@ -20,24 +20,59 @@ matrix:
   fast_finish: false
 
 init:
-- echo %APPVEYOR_BUILD_WORKER_IMAGE%
-- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( set vs=Visual Studio 15 2017)
-- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" ( set vs=Visual Studio 14 2015)
-- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2013" ( set vs=Visual Studio 12 2013)
-- if "%PLATFORM%"=="x64" ( set generator="%vs% Win64" )
-- if "%PLATFORM%"=="Win32" ( set generator="%vs%" )
-- echo %PLATFORM%
-- echo %generator%
-
+  - ps: |
+      $ms = @{ "2013"=("12","v120"); "2015"=("14","v140"); "2017"=("15","v141") }
+      $key = $env:APPVEYOR_BUILD_WORKER_IMAGE -replace "Visual Studio "
+      $env:generator = "Visual Studio $($ms[$key][0]) $key"
+      if ($env:PLATFORM -Match "64") { $env:generator += " Win64" }
+      $env:outputpath = "$env:PLATFORM/$($($ms[$key][1]))"
+      echo $key $env:generator $env:outputpath
+      $env:api = "https://ci.appveyor.com/api"
+      $env:apiproj = "$env:api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
+      # deploy only for last job of the build
+      if (((Irm $env:apiproj).build.jobs | Select-Object -Last 1).jobId -eq $env:APPVEYOR_JOB_ID) { $env:dodeploy = "true" }
 before_build:
-- cmd: |-
-    mkdir build
-    cd build
-    cmake --version
-    cmake .. -G %generator%
+  - ps: cd (mkdir build\$env:outputpath)
+  - 'cmake --version'
+  - 'cmake ..\..\.. -G "%generator%"'
 build:
-  project: c:\projects\crashrpt2\build\CrashRpt.sln
+  project: $(APPVEYOR_BUILD_FOLDER)\build\$(outputpath)\CrashRpt.sln
   verbosity: minimal
   parallel: true
+after_build:
+  - 'cd %APPVEYOR_BUILD_FOLDER%\build'
+  - '7z a package.zip %outputpath%\lib\CrashRpt*.lib %outputpath%\bin\CrashRpt*.pdb %outputpath%\bin\CrashRpt*.dll %outputpath%\bin\CrashSender*.exe %outputpath%\bin\crashrpt_lang.ini'
 test_script:
-  - c:\projects\crashrpt2\build\bin\Tests.exe /all
+  - '%APPVEYOR_BUILD_FOLDER%\build\%outputpath%\bin\Tests.exe /all'
+artifacts:
+  - path: 'build/package.zip'
+before_deploy:
+  - ps: |
+      cd $env:APPVEYOR_BUILD_FOLDER
+      # TODO: wait for other jobs to finish, needed only on parallel build:
+      # while ((Irm $env:apiproj).build.jobs | Where-Object {$_.jobId -ne $env:APPVEYOR_JOB_ID -and $_.status -ne "success"}) { Start-sleep 15 }
+      # download all artifacts and extract, including this job's one
+      foreach ($job in (Irm $env:apiproj).build.jobs) {
+        Start-FileDownload "$env:api/buildjobs/$($job.jobId)/artifacts/build/package.zip"
+        7z x package.zip
+      }
+      # Download the CoApp tools.
+      $msiPath = "$($env:USERPROFILE)\CoApp.Tools.Powershell.msi"
+      (New-Object Net.WebClient).DownloadFile('http://coapp.org/files/CoApp.Tools.Powershell.msi', $msiPath)
+      # Install the CoApp tools from the downloaded .msi.
+      Start-Process -FilePath msiexec -ArgumentList /i, $msiPath, /quiet -Wait
+      # Make the tools available for later PS scripts to use.
+      $env:PSModulePath = $env:PSModulePath + ';C:\Program Files (x86)\Outercurve Foundation\Modules'
+      Import-Module CoApp
+      # Write version to autopkg
+      $autopkg = "CrashRpt2.autopkg"
+      (Gc $autopkg).replace('appveyor_build_version', $env:APPVEYOR_BUILD_VERSION) | Sc $autopkg
+      # Write Nuget and create artifact
+      Write-NuGetPackage $autopkg
+      Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+deploy:
+  - provider: NuGet
+    on:
+      dodeploy: true
+    api_key:
+      secure: 1mWOwXfu1vQrBoct+pfNXDybBT9jwrTEzPqHlITiAoTljQPedQ/njJeB6hbShXB3
