@@ -7,13 +7,13 @@ file( GLOB header_files *.h )
 list(APPEND source_files 
   ./CrashRptProbe.rc
   ./CrashRptProbe.def
-  ${CMAKE_SOURCE_DIR}/reporting/crashrpt/Utility.cpp
-  ${CMAKE_SOURCE_DIR}/reporting/crashsender/md5.cpp
+  ${CRASHRPT_SRC}/reporting/crashrpt/Utility.cpp
+  ${CRASHRPT_SRC}/reporting/crashsender/md5.cpp
 )
 
 # Enable usage of precompiled header
 set(srcs_using_precomp ${source_files})
-list(REMOVE_ITEM srcs_using_precomp  ./CrashRptProbe.rc ./CrashRptProbe.def ./stdafx.cpp ${CMAKE_SOURCE_DIR}/reporting/crashsender/md5.cpp)
+list(REMOVE_ITEM srcs_using_precomp  ./CrashRptProbe.rc ./CrashRptProbe.def ./stdafx.cpp ${CRASHRPT_SRC}/reporting/crashsender/md5.cpp)
 add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp)
 
 # Define _UNICODE (use wide-char encoding)
@@ -22,13 +22,13 @@ add_definitions(-D_UNICODE)
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include
-      ${CMAKE_SOURCE_DIR}/reporting/crashrpt
-      ${CMAKE_SOURCE_DIR}/reporting/crashsender
-      ${CMAKE_SOURCE_DIR}/thirdparty/wtl
-      ${CMAKE_SOURCE_DIR}/thirdparty/zlib
-      ${CMAKE_SOURCE_DIR}/thirdparty/minizip
-      ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml
+include_directories( ${CRASHRPT_SRC}/include
+      ${CRASHRPT_SRC}/reporting/crashrpt
+      ${CRASHRPT_SRC}/reporting/crashsender
+      ${CRASHRPT_SRC}/thirdparty/wtl
+      ${CRASHRPT_SRC}/thirdparty/zlib
+      ${CRASHRPT_SRC}/thirdparty/minizip
+      ${CRASHRPT_SRC}/thirdparty/tinyxml
       ${DBGHELP_INCLUDE_DIR})
 
 # Add library build target
@@ -39,11 +39,11 @@ else(CRASHRPT_BUILD_SHARED_LIBS)
 endif(CRASHRPT_BUILD_SHARED_LIBS)
 
 if(CMAKE_CL_64)
-  link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64 )
-  target_link_libraries(CrashRptProbe ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64/dbghelp.lib)
+  link_directories( ${CRASHRPT_SRC}/thirdparty/dbghelp/lib/amd64 )
+  target_link_libraries(CrashRptProbe ${CRASHRPT_SRC}/thirdparty/dbghelp/lib/amd64/dbghelp.lib)
 else(CMAKE_CL_64)
-  link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib )
-  target_link_libraries(CrashRptProbe ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/dbghelp.lib)
+  link_directories( ${CRASHRPT_SRC}/thirdparty/dbghelp/lib )
+  target_link_libraries(CrashRptProbe ${CRASHRPT_SRC}/thirdparty/dbghelp/lib/dbghelp.lib)
 endif(CMAKE_CL_64)
 
 target_link_libraries(CrashRptProbe zlib minizip tinyxml Rpcrt4.lib shell32.lib gdi32.lib version.lib psapi.lib)

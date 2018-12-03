@@ -8,8 +8,8 @@ aux_source_directory( ./lib/x86_vc x86_source_files )
 add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE /wd4244 /wd4700 /wd4214 /wd4554 /wd4018 /wd4100 /wd4132 /wd4389 /wd4127 /wd4701 /wd4245 /wd4267 /wd4334)
 
 # Add include dir
-include_directories(        ${CMAKE_SOURCE_DIR}/thirdparty/libogg/include
-							${CMAKE_SOURCE_DIR}/thirdparty/libtheora/include)
+include_directories(        ${CRASHRPT_SRC}/thirdparty/libogg/include
+							${CRASHRPT_SRC}/thirdparty/libtheora/include)
 
 fix_default_compiler_settings_()
 

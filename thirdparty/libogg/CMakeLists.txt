@@ -7,7 +7,7 @@ aux_source_directory( ./src source_files )
 add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE /wd4244)
 
 # Add include dir
-include_directories(        ${CMAKE_SOURCE_DIR}/thirdparty/libogg/include)
+include_directories(        ${CRASHRPT_SRC}/thirdparty/libogg/include)
 
 fix_default_compiler_settings_()
 

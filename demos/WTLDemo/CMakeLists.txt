@@ -18,8 +18,8 @@ add_definitions(-D_UNICODE )
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories(${CMAKE_SOURCE_DIR}/include
-          ${CMAKE_SOURCE_DIR}/thirdparty/wtl)
+include_directories(${CRASHRPT_SRC}/include
+          ${CRASHRPT_SRC}/thirdparty/wtl)
 
 # Add executable build target
 add_executable(WTLDemo WIN32 ${source_files} ${header_files})
@@ -39,16 +39,16 @@ ENDIF()
 ADD_CUSTOM_COMMAND(
     TARGET WTLDemo
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.ini\" \"${CMAKE_BINARY_DIR}/bin/\""
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.log\" \"${CMAKE_BINARY_DIR}/bin/\""
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/lang_files\\crashrpt_lang_EN.ini\" \"${CMAKE_BINARY_DIR}/bin/crashrpt_lang.ini\""
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/demos/WTLDemo/dummy.ini\" \"${CMAKE_BINARY_DIR}/bin/\""
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/demos/WTLDemo/dummy.log\" \"${CMAKE_BINARY_DIR}/bin/\""
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/lang_files\\crashrpt_lang_EN.ini\" \"${CMAKE_BINARY_DIR}/bin/crashrpt_lang.ini\""
 )
 
 if( NOT DBGHELP_USE_INSTALLED_SDK )
   ADD_CUSTOM_COMMAND(
       TARGET WTLDemo
       POST_BUILD
-      COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
+      COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
   )
 endif()
 
@@ -56,6 +56,6 @@ INSTALL(TARGETS WTLDemo LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
              ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
              RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.ini DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/demos/WTLDemo/dummy.log DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
-INSTALL(FILES "${CMAKE_SOURCE_DIR}/lang_files/crashrpt_lang_EN.ini" DESTINATION ${CRASHRPT_INSTALLDIR_BIN} RENAME crashrpt_lang.ini)
+INSTALL(FILES ${CRASHRPT_SRC}/demos/WTLDemo/dummy.ini DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+INSTALL(FILES ${CRASHRPT_SRC}/demos/WTLDemo/dummy.log DESTINATION ${CRASHRPT_INSTALLDIR_BIN})
+INSTALL(FILES "${CRASHRPT_SRC}/lang_files/crashrpt_lang_EN.ini" DESTINATION ${CRASHRPT_INSTALLDIR_BIN} RENAME crashrpt_lang.ini)

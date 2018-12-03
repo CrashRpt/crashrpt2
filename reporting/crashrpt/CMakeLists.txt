@@ -18,7 +18,7 @@ add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE)
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/wtl)
+include_directories( ${CRASHRPT_SRC}/include ${CRASHRPT_SRC}/thirdparty/wtl)
 
 # Add library build target
 if(CRASHRPT_BUILD_SHARED_LIBS)

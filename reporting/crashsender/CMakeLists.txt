@@ -11,8 +11,8 @@ add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp)
 
 list(APPEND source_files
   ./CrashSender.rc
-  ${CMAKE_SOURCE_DIR}/reporting/CrashRpt/Utility.cpp
-  ${CMAKE_SOURCE_DIR}/reporting/CrashRpt/SharedMem.cpp
+  ${CRASHRPT_SRC}/reporting/CrashRpt/Utility.cpp
+  ${CRASHRPT_SRC}/reporting/CrashRpt/SharedMem.cpp
 )
 
 # Define _UNICODE (use wide-char encoding)
@@ -22,23 +22,23 @@ fix_default_compiler_settings_()
 
 # Add include dir
 include_directories(
-  ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
-  ${CMAKE_SOURCE_DIR}/thirdparty/wtl
-  ${CMAKE_SOURCE_DIR}/thirdparty/zlib
-  ${CMAKE_SOURCE_DIR}/thirdparty/minizip
-  ${CMAKE_SOURCE_DIR}/thirdparty/jpeg
-  ${CMAKE_SOURCE_DIR}/thirdparty/libpng
-  ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml
+  ${CRASHRPT_SRC}/include
+  ${CRASHRPT_SRC}/reporting/CrashRpt
+  ${CRASHRPT_SRC}/thirdparty/wtl
+  ${CRASHRPT_SRC}/thirdparty/zlib
+  ${CRASHRPT_SRC}/thirdparty/minizip
+  ${CRASHRPT_SRC}/thirdparty/jpeg
+  ${CRASHRPT_SRC}/thirdparty/libpng
+  ${CRASHRPT_SRC}/thirdparty/tinyxml
   ${DBGHELP_INCLUDE_DIR}
-  ${CMAKE_SOURCE_DIR}/thirdparty/libogg/include
-  ${CMAKE_SOURCE_DIR}/thirdparty/libtheora/include
+  ${CRASHRPT_SRC}/thirdparty/libogg/include
+  ${CRASHRPT_SRC}/thirdparty/libtheora/include
 )
 
 if(NOT CMAKE_CL_64)
-  link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib )
+  link_directories( ${CRASHRPT_SRC}/thirdparty/dbghelp/lib )
 else(NOT CMAKE_CL_64)
-  link_directories( ${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/lib/amd64 )
+  link_directories( ${CRASHRPT_SRC}/thirdparty/dbghelp/lib/amd64 )
 endif(NOT CMAKE_CL_64)
 
 # Add executable build target

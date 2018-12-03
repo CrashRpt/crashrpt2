@@ -7,7 +7,7 @@ aux_source_directory( . source_files )
 add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE /wd4244 /wd4267)
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/thirdparty/zlib )
+include_directories( ${CRASHRPT_SRC}/thirdparty/zlib )
 
 fix_default_compiler_settings_()
 

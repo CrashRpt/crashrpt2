@@ -28,7 +28,7 @@ add_definitions(-D_UNICODE )
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CRASHRPT_SRC}/include)
 
 # Add executable build target
 add_executable(MFCDemo WIN32 ${source_files} ${header_files})
@@ -47,14 +47,14 @@ ENDIF()
 ADD_CUSTOM_COMMAND(
     TARGET MFCDemo
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/lang_files\\crashrpt_lang_EN.ini\" \"${CMAKE_BINARY_DIR}/bin/crashrpt_lang.ini\""
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/lang_files\\crashrpt_lang_EN.ini\" \"${CMAKE_BINARY_DIR}/bin/crashrpt_lang.ini\""
 )
 
 if( NOT DBGHELP_USE_INSTALLED_SDK )
   ADD_CUSTOM_COMMAND(
       TARGET MFCDemo
       POST_BUILD
-      COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CMAKE_SOURCE_DIR}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
+      COMMAND ${CMAKE_COMMAND} ARGS -E copy "\"${CRASHRPT_SRC}/thirdparty/dbghelp/bin/${AMD_SUFFIX}/dbghelp.dll\" \"${CMAKE_BINARY_DIR}/bin/\""
   )
 endif()
 

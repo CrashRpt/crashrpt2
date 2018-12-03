@@ -4,7 +4,7 @@ project(Tests)
 aux_source_directory( . source_files )
 file( GLOB header_files *.h )
 
-list(APPEND source_files ${CMAKE_SOURCE_DIR}/reporting/CrashRpt/Utility.cpp)
+list(APPEND source_files ${CRASHRPT_SRC}/reporting/CrashRpt/Utility.cpp)
 
 # Enable usage of precompiled header
 set(srcs_using_precomp ${source_files})
@@ -24,9 +24,9 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG")
 
 # Add include dir
 include_directories(
-  ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
-  ${CMAKE_SOURCE_DIR}/thirdparty/wtl
+  ${CRASHRPT_SRC}/include
+  ${CRASHRPT_SRC}/reporting/CrashRpt
+  ${CRASHRPT_SRC}/thirdparty/wtl
 )
 
 # Add executable build target
