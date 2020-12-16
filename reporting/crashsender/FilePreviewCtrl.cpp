@@ -11,6 +11,8 @@ be found in the Authors.txt file in the root of the source tree.
 #include "stdafx.h"
 #include "FilePreviewCtrl.h"
 #include "png.h"
+#include "pngstruct.h"
+#include "pnginfo.h"
 #include "jpeglib.h"
 #include "strconv.h"
 
@@ -365,7 +367,7 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
     if (!png_ptr)
         goto cleanup;
 
-    if (setjmp(png_ptr->jmpbuf))
+    if (setjmp(png_jmpbuf(png_ptr)))
         goto cleanup;
 
     info_ptr = png_create_info_struct(png_ptr);
@@ -431,7 +433,7 @@ BOOL CImage::LoadBitmapFromPNGFile(LPTSTR szFileName)
 
     for(y=height-1; y>=0; y--)
     {
-        png_read_rows(png_ptr, &row, png_bytepp_NULL, 1);
+        png_read_rows(png_ptr, &row, NULL, 1);
 
         {
             CAutoLock lock(&m_csLock);
@@ -572,11 +574,11 @@ cleanup:
         Destroy();
     }
 
-	if(fp!=NULL)
-	{
-		fclose(fp);
-		fp = NULL;
-	}
+    if(fp!=NULL)
+    {
+        fclose(fp);
+        fp = NULL;
+    }
 
     return bStatus;
 }
@@ -632,34 +634,34 @@ void CImage::Draw(HDC hDC, LPRECT prcDraw)
 
 CVideo::CVideo()
 {
-	m_pf = NULL;
-	m_hbmpFrame = NULL;
-	m_pFrameBits = NULL;
-	m_pDIB = NULL;
-	m_hDC = NULL;
-	m_hOldBitmap = NULL;
-	m_buf = NULL;
-	m_psetup = NULL;
-	m_pctx = NULL;
-	m_pos = 0;
-	m_nFrameWidth = 0;
-	m_nFrameHeight = 0;
-	m_nFrameInterval = 0;
-	ogg_sync_init(&m_state);
-	ogg_stream_init(&m_stream, 0);
-	memset(&m_packet, 0, sizeof(m_packet));
-	th_info_init(&m_info);
-	th_comment_init(&m_comment);
+    m_pf = NULL;
+    m_hbmpFrame = NULL;
+    m_pFrameBits = NULL;
+    m_pDIB = NULL;
+    m_hDC = NULL;
+    m_hOldBitmap = NULL;
+    m_buf = NULL;
+    m_psetup = NULL;
+    m_pctx = NULL;
+    m_pos = 0;
+    m_nFrameWidth = 0;
+    m_nFrameHeight = 0;
+    m_nFrameInterval = 0;
+    ogg_sync_init(&m_state);
+    ogg_stream_init(&m_stream, 0);
+    memset(&m_packet, 0, sizeof(m_packet));
+    th_info_init(&m_info);
+    th_comment_init(&m_comment);
 }
 
 CVideo::~CVideo()
 {
-	Destroy();
+    Destroy();
 }
 
 BOOL CVideo::IsVideoFile(LPCTSTR szFileName)
 {
-	FILE* f = NULL;
+    FILE* f = NULL;
     _TFOPEN_S(f, szFileName, _T("rb"));
     if(f==NULL)
         return FALSE;
@@ -676,7 +678,7 @@ BOOL CVideo::IsVideoFile(LPCTSTR szFileName)
 
 BOOL CVideo::IsOGG(FILE* f)
 {
-	rewind(f);
+    rewind(f);
 
     // Read first three bytes (Ogg).
 
@@ -694,283 +696,283 @@ BOOL CVideo::IsOGG(FILE* f)
 // Loads video from file.
 BOOL CVideo::Load(LPCTSTR szFileName)
 {
-	// Destroy if previously loaded
-	if(!m_sFileName.IsEmpty())
-		Destroy();
+    // Destroy if previously loaded
+    if(!m_sFileName.IsEmpty())
+        Destroy();
 
-	// Open file
+    // Open file
     FILE* f = NULL;
     _TFOPEN_S(f, szFileName, _T("rb"));
     if(f==NULL)
         return FALSE;
 
-	// Check OGG signature
+    // Check OGG signature
     if(IsOGG(f))
     {
         fclose(f);
-		// Load OGG video
+        // Load OGG video
         return LoadOggFile(szFileName);
     }
 
-	// Close file
+    // Close file
     fclose(f);
     return FALSE;
 }
 
 void CVideo::Destroy()
 {
-	m_sFileName.Empty();
+    m_sFileName.Empty();
 
-	if(m_pf)
-	{
-		fclose(m_pf);
-		m_pf = NULL;
-	}
+    if(m_pf)
+    {
+        fclose(m_pf);
+        m_pf = NULL;
+    }
 
-	//ogg_packet_clear(&m_packet);
+    //ogg_packet_clear(&m_packet);
 
-	ogg_stream_clear(&m_stream);
+    ogg_stream_clear(&m_stream);
 
-	// Call th_decode_free() to release all decoder memory.
-	if(m_pctx)
-	{
-		th_decode_free(m_pctx);
-		m_pctx = NULL;
-	}
+    // Call th_decode_free() to release all decoder memory.
+    if(m_pctx)
+    {
+        th_decode_free(m_pctx);
+        m_pctx = NULL;
+    }
 
-	ogg_sync_clear(&m_state);
-	th_info_clear(&m_info);
-	th_comment_clear(&m_comment);
+    ogg_sync_clear(&m_state);
+    th_info_clear(&m_info);
+    th_comment_clear(&m_comment);
 
-	if(m_hbmpFrame!=NULL)
-	{
-		DeleteObject(m_hbmpFrame);
-		m_hbmpFrame = NULL;
-	}
+    if(m_hbmpFrame!=NULL)
+    {
+        DeleteObject(m_hbmpFrame);
+        m_hbmpFrame = NULL;
+    }
 
-	if(m_pDIB)
-	{
-		delete [] m_pDIB;
-		m_pDIB = NULL;
-	}
+    if(m_pDIB)
+    {
+        delete [] m_pDIB;
+        m_pDIB = NULL;
+    }
 
-	m_pFrameBits = NULL;
+    m_pFrameBits = NULL;
 
-	if(m_hDC!=NULL)
-	{
-		DeleteDC(m_hDC);
-		m_hDC = NULL;
-	}
+    if(m_hDC!=NULL)
+    {
+        DeleteDC(m_hDC);
+        m_hDC = NULL;
+    }
 
-	m_hOldBitmap = NULL;
+    m_hOldBitmap = NULL;
 }
 
 BOOL CVideo::LoadOggFile(LPCTSTR szFileName)
 {
-	bool bStatus = false;
-	int ret = -1;
+    bool bStatus = false;
+    int ret = -1;
 
-	// Open OGG file
-	_TFOPEN_S(m_pf, szFileName, _T("rb"));
+    // Open OGG file
+    _TFOPEN_S(m_pf, szFileName, _T("rb"));
     if(m_pf==NULL)
         goto cleanup; // Error opening file
 
-	// Init theora decoder structures
-	th_info_init(&m_info);
+    // Init theora decoder structures
+    th_info_init(&m_info);
     th_comment_init(&m_comment);
 
-	// The first thing we need to do when reading an Ogg file is find
-	// the first page of data. We use a ogg_sync_state structure to keep
-	// track of search for the page data. This needs to be initialized
-	// with ogg_sync_init and later cleaned up with ogg_sync_clear:
-	if(0!=ogg_sync_init(&m_state))
-		goto cleanup; // Error initializing sync state
+    // The first thing we need to do when reading an Ogg file is find
+    // the first page of data. We use a ogg_sync_state structure to keep
+    // track of search for the page data. This needs to be initialized
+    // with ogg_sync_init and later cleaned up with ogg_sync_clear:
+    if(0!=ogg_sync_init(&m_state))
+        goto cleanup; // Error initializing sync state
 
-	// Parse the header packets by repeatedly calling th_decode_headerin()
-	while(ReadOGGPacket())
-	{
-		ret = th_decode_headerin(&m_info, &m_comment, &m_psetup, &m_packet);
-		if(ret==0)
-		{
-			// Video data encountered
-			break;
-		}
-		else if(ret==TH_EFAULT)
-		{
-			// Some parameters are incorrect
-			goto cleanup;
-		}
-		else if(ret==TH_EBADHEADER)
-		{
-			//goto cleanup;
-		}
-		else if(ret==TH_EVERSION)
-		{
-			//goto cleanup;
-		}
-		else if(ret==TH_ENOTFORMAT )
-		{
-			//goto cleanup;
-		}
-	}
+    // Parse the header packets by repeatedly calling th_decode_headerin()
+    while(ReadOGGPacket())
+    {
+        ret = th_decode_headerin(&m_info, &m_comment, &m_psetup, &m_packet);
+        if(ret==0)
+        {
+            // Video data encountered
+            break;
+        }
+        else if(ret==TH_EFAULT)
+        {
+            // Some parameters are incorrect
+            goto cleanup;
+        }
+        else if(ret==TH_EBADHEADER)
+        {
+            //goto cleanup;
+        }
+        else if(ret==TH_EVERSION)
+        {
+            //goto cleanup;
+        }
+        else if(ret==TH_ENOTFORMAT )
+        {
+            //goto cleanup;
+        }
+    }
 
-	/*Allocate YV12 image */
-	m_nFrameWidth = m_info.frame_width;
-	m_nFrameHeight = m_info.frame_height;
-	m_nFrameInterval = (int)((float)m_info.fps_denominator/(float)m_info.fps_numerator*1000);
+    /*Allocate YV12 image */
+    m_nFrameWidth = m_info.frame_width;
+    m_nFrameHeight = m_info.frame_height;
+    m_nFrameInterval = (int)((float)m_info.fps_denominator/(float)m_info.fps_numerator*1000);
 
-	if(m_hbmpFrame==NULL)
-	{
-		// Calculate frame size
+    if(m_hbmpFrame==NULL)
+    {
+        // Calculate frame size
 
-		CreateFrameDIB(m_nFrameWidth, m_nFrameHeight, 24);
-	}
+        CreateFrameDIB(m_nFrameWidth, m_nFrameHeight, 24);
+    }
 
-	// Allocate a th_dec_ctx handle with th_decode_alloc().
-	m_pctx = th_decode_alloc(&m_info, m_psetup);
+    // Allocate a th_dec_ctx handle with th_decode_alloc().
+    m_pctx = th_decode_alloc(&m_info, m_psetup);
 
-	// Call th_setup_free() to free any memory used for codec setup information.
-	th_setup_free(m_psetup);
-	m_psetup = NULL;
+    // Call th_setup_free() to free any memory used for codec setup information.
+    th_setup_free(m_psetup);
+    m_psetup = NULL;
 
-	// Perform any additional decoder configuration with th_decode_ctl().
+    // Perform any additional decoder configuration with th_decode_ctl().
 
-	m_sFileName = szFileName;
+    m_sFileName = szFileName;
 
-	// Done
-	bStatus = true;
+    // Done
+    bStatus = true;
 
 cleanup:
 
-	return bStatus;
+    return bStatus;
 }
 
 BOOL CVideo::ReadOGGPage()
 {
-	BOOL bStatus = FALSE;
-	size_t nBytes = 0;
+    BOOL bStatus = FALSE;
+    size_t nBytes = 0;
 
-	// Read an entire page from OGG file
+    // Read an entire page from OGG file
 
-	while(ogg_sync_pageout(&m_state, &m_page) != 1)
-	{
-		// Allocate buffer
-		m_buf = ogg_sync_buffer(&m_state, 4096);
-		if(m_buf==NULL)
-			goto cleanup;
+    while(ogg_sync_pageout(&m_state, &m_page) != 1)
+    {
+        // Allocate buffer
+        m_buf = ogg_sync_buffer(&m_state, 4096);
+        if(m_buf==NULL)
+            goto cleanup;
 
-		// Read a portion of data from file
-		nBytes = fread(m_buf, 1, 4096, m_pf);
-		if(nBytes==0)
-			goto cleanup; // End of file
+        // Read a portion of data from file
+        nBytes = fread(m_buf, 1, 4096, m_pf);
+        if(nBytes==0)
+            goto cleanup; // End of file
 
-		if(0!=ogg_sync_wrote(&m_state, (long)nBytes))
-			goto cleanup; // Failed
-	}
+        if(0!=ogg_sync_wrote(&m_state, (long)nBytes))
+            goto cleanup; // Failed
+    }
 
-	bStatus = true;
+    bStatus = true;
 
 cleanup:
 
-	return bStatus;
+    return bStatus;
 }
 
 BOOL CVideo::ReadOGGPacket()
 {
-	BOOL bStatus = FALSE;
-	int ret = -1;
+    BOOL bStatus = FALSE;
+    int ret = -1;
 
-	while(1)
-	{
-		// Call ogg_stream_packetout. This will return a value indicating if
-		// a packet of data is available in the stream. If it is not then we
-		// need to read another page (following the same steps previously) and
-		// add it to the stream, calling ogg_stream_packetout again until it
-		// tells us a packet is available. The packet’s data is stored in an
-		// ogg_packet object.
-		ret = ogg_stream_packetout(&m_stream, &m_packet);
-		if (ret == 0)
-		{
-			// Need more data to be able to complete the packet
+    while(1)
+    {
+        // Call ogg_stream_packetout. This will return a value indicating if
+        // a packet of data is available in the stream. If it is not then we
+        // need to read another page (following the same steps previously) and
+        // add it to the stream, calling ogg_stream_packetout again until it
+        // tells us a packet is available. The packet’s data is stored in an
+        // ogg_packet object.
+        ret = ogg_stream_packetout(&m_stream, &m_packet);
+        if (ret == 0)
+        {
+            // Need more data to be able to complete the packet
 
-			// New page
-			if(!ReadOGGPage())
-				goto cleanup;
+            // New page
+            if(!ReadOGGPage())
+                goto cleanup;
 
-			// If this page is the beginning of the logical stream...
-			if (ogg_page_bos(&m_page))
-			{
-				// Get page's serial number
-				int serial = ogg_page_serialno(&m_page);
+            // If this page is the beginning of the logical stream...
+            if (ogg_page_bos(&m_page))
+            {
+                // Get page's serial number
+                int serial = ogg_page_serialno(&m_page);
 
-				// Init OGG stream
-				ret = ogg_stream_init(&m_stream, serial);
-				if(ret != 0)
-					goto cleanup;  // Failed to init stream
-			}
+                // Init OGG stream
+                ret = ogg_stream_init(&m_stream, serial);
+                if(ret != 0)
+                    goto cleanup;  // Failed to init stream
+            }
 
-			// Pass the page data to stream
-			ret = ogg_stream_pagein(&m_stream, &m_page);
-			if(ret!=0)
-				goto cleanup;
+            // Pass the page data to stream
+            ret = ogg_stream_pagein(&m_stream, &m_page);
+            if(ret!=0)
+                goto cleanup;
 
-			continue;
-		}
-		else if (ret == -1)
-		{
-			// We are out of sync and there is a gap in the data.
-			// We lost a page somewhere.
-			break;
-		}
+            continue;
+        }
+        else if (ret == -1)
+        {
+            // We are out of sync and there is a gap in the data.
+            // We lost a page somewhere.
+            break;
+        }
 
-		// A packet is available, this is what we pass to the
-		// theora library to decode.
-		bStatus = true;
-		break;
-	}
+        // A packet is available, this is what we pass to the
+        // theora library to decode.
+        bStatus = true;
+        break;
+    }
 
 cleanup:
 
-	return bStatus;
+    return bStatus;
 }
 
 // Decodes next video frame and returns pointer to bitmap.
 HBITMAP CVideo::DecodeFrame(BOOL bFirstFrame, CSize& FrameSize, int& nDuration)
 {
-	FrameSize.cx = m_nFrameWidth;
-	FrameSize.cy = m_nFrameHeight;
-	nDuration = m_nFrameInterval;
+    FrameSize.cx = m_nFrameWidth;
+    FrameSize.cy = m_nFrameHeight;
+    nDuration = m_nFrameInterval;
 
-	// For the first frame, we use the packet that was read previously
-	// For next frames, we need to read new packets
-	if(!bFirstFrame)
-	{
-		// Read packet
-		if(!ReadOGGPacket())
-			return NULL; // No more packets
-	}
+    // For the first frame, we use the packet that was read previously
+    // For next frames, we need to read new packets
+    if(!bFirstFrame)
+    {
+        // Read packet
+        if(!ReadOGGPacket())
+            return NULL; // No more packets
+    }
 
-	// Feed the packet to decoder
-	int ret = th_decode_packetin(m_pctx, &m_packet, &m_pos);
-	if(ret!=0 && ret!=TH_DUPFRAME)
-		return NULL; // Decoding error
+    // Feed the packet to decoder
+    int ret = th_decode_packetin(m_pctx, &m_packet, &m_pos);
+    if(ret!=0 && ret!=TH_DUPFRAME)
+        return NULL; // Decoding error
 
-	if(ret!=TH_DUPFRAME)
-	{
-		// Retrieve the uncompressed video data via th_decode_ycbcr_out().
-		th_decode_ycbcr_out(m_pctx, &m_raw[0]);
+    if(ret!=TH_DUPFRAME)
+    {
+        // Retrieve the uncompressed video data via th_decode_ycbcr_out().
+        th_decode_ycbcr_out(m_pctx, &m_raw[0]);
 
-		CAutoLock lock(&m_csLock);
+        CAutoLock lock(&m_csLock);
 
-		// Convert YV12 to RGB
-		YV12_To_RGB((unsigned char*)m_pFrameBits,
-			m_nFrameWidth, m_nFrameHeight,
-			m_nFrameWidth*3+(m_nFrameWidth*3)%4,
-			&m_raw[0]);
-	}
+        // Convert YV12 to RGB
+        YV12_To_RGB((unsigned char*)m_pFrameBits,
+            m_nFrameWidth, m_nFrameHeight,
+            m_nFrameWidth*3+(m_nFrameWidth*3)%4,
+            &m_raw[0]);
+    }
 
-	// Return bitmap
-	return m_hbmpFrame;
+    // Return bitmap
+    return m_hbmpFrame;
 }
 
 void CVideo::DrawFrame(HDC hDC, LPRECT prcDraw)
@@ -1012,79 +1014,79 @@ void CVideo::Reset()
 // Returns TRUE if video is valid, otherwise returns FALSE
 BOOL CVideo::IsValid()
 {
-	return m_sFileName.IsEmpty()?FALSE:TRUE;
+    return m_sFileName.IsEmpty()?FALSE:TRUE;
 }
 
 // Converts an YV12 image to RGB24 image.
 void CVideo::YV12_To_RGB(unsigned char *pRGBData, int nFrameWidth,
-			int nFrameHeight, int nRGBStride, th_ycbcr_buffer raw)
+            int nFrameHeight, int nRGBStride, th_ycbcr_buffer raw)
 {
 
-	int x, y;
-	for(y=0; y<nFrameHeight;y++)
-	{
-		for (x=0; x < nFrameWidth; x ++)
-		{
-			int nRGBOffs = y*nRGBStride+x*3;
+    int x, y;
+    for(y=0; y<nFrameHeight;y++)
+    {
+        for (x=0; x < nFrameWidth; x ++)
+        {
+            int nRGBOffs = y*nRGBStride+x*3;
 
-			float Y = raw[0].data[y*raw[0].stride+x];
-			float U = raw[1].data[y/2*raw[1].stride+x/2];
-			float V = raw[2].data[y/2*raw[2].stride+x/2];
+            float Y = raw[0].data[y*raw[0].stride+x];
+            float U = raw[1].data[y/2*raw[1].stride+x/2];
+            float V = raw[2].data[y/2*raw[2].stride+x/2];
 
-			pRGBData[nRGBOffs+0] = CLAMP((int)(1.164*(Y - 16) + 2.018*(U - 128)));
-			pRGBData[nRGBOffs+1] = CLAMP((int)(1.164*(Y - 16) - 0.813*(V - 128) - 0.391*(U - 128)));
-			pRGBData[nRGBOffs+2] = CLAMP((int)(1.164*(Y - 16) + 1.596*(V - 128)));
-		}
-	}
+            pRGBData[nRGBOffs+0] = CLAMP((int)(1.164*(Y - 16) + 2.018*(U - 128)));
+            pRGBData[nRGBOffs+1] = CLAMP((int)(1.164*(Y - 16) - 0.813*(V - 128) - 0.391*(U - 128)));
+            pRGBData[nRGBOffs+2] = CLAMP((int)(1.164*(Y - 16) + 1.596*(V - 128)));
+        }
+    }
 }
 
 BOOL CVideo::CreateFrameDIB(DWORD dwWidth, DWORD dwHeight, int nBits)
 {
-	if (m_pDIB)
-		return FALSE;
+    if (m_pDIB)
+        return FALSE;
 
-	const DWORD dwcBihSize = sizeof(BITMAPINFOHEADER);
+    const DWORD dwcBihSize = sizeof(BITMAPINFOHEADER);
 
-	// Calculate the memory required for the DIB
-	DWORD dwSize = dwcBihSize +
-		(2>>nBits) * sizeof(RGBQUAD) +
-		((nBits * dwWidth) * dwHeight);
+    // Calculate the memory required for the DIB
+    DWORD dwSize = dwcBihSize +
+        (2>>nBits) * sizeof(RGBQUAD) +
+        ((nBits * dwWidth) * dwHeight);
 
-	m_pDIB = (LPBITMAPINFO)new BYTE[dwSize];
-	if (!m_pDIB)
-		return FALSE;
+    m_pDIB = (LPBITMAPINFO)new BYTE[dwSize];
+    if (!m_pDIB)
+        return FALSE;
 
 
-	m_pDIB->bmiHeader.biSize = dwcBihSize;
-	m_pDIB->bmiHeader.biWidth = dwWidth;
-	m_pDIB->bmiHeader.biHeight = -(LONG)dwHeight;
-	m_pDIB->bmiHeader.biBitCount = (WORD)nBits;
-	m_pDIB->bmiHeader.biPlanes = 1;
-	m_pDIB->bmiHeader.biCompression = BI_RGB;
-	m_pDIB->bmiHeader.biXPelsPerMeter = 1000;
-	m_pDIB->bmiHeader.biYPelsPerMeter = 1000;
-	m_pDIB->bmiHeader.biClrUsed = 0;
-	m_pDIB->bmiHeader.biClrImportant = 0;
+    m_pDIB->bmiHeader.biSize = dwcBihSize;
+    m_pDIB->bmiHeader.biWidth = dwWidth;
+    m_pDIB->bmiHeader.biHeight = -(LONG)dwHeight;
+    m_pDIB->bmiHeader.biBitCount = (WORD)nBits;
+    m_pDIB->bmiHeader.biPlanes = 1;
+    m_pDIB->bmiHeader.biCompression = BI_RGB;
+    m_pDIB->bmiHeader.biXPelsPerMeter = 1000;
+    m_pDIB->bmiHeader.biYPelsPerMeter = 1000;
+    m_pDIB->bmiHeader.biClrUsed = 0;
+    m_pDIB->bmiHeader.biClrImportant = 0;
 
-	LPRGBQUAD lpColors =
-		(LPRGBQUAD)(m_pDIB+m_pDIB->bmiHeader.biSize);
-	int nColors=2>>m_pDIB->bmiHeader.biBitCount;
-	for(int i=0;i<nColors;i++)
-	{
-		lpColors[i].rgbRed=0;
-		lpColors[i].rgbBlue=0;
-		lpColors[i].rgbGreen=0;
-		lpColors[i].rgbReserved=0;
-	}
+    LPRGBQUAD lpColors =
+        (LPRGBQUAD)(m_pDIB+m_pDIB->bmiHeader.biSize);
+    int nColors=2>>m_pDIB->bmiHeader.biBitCount;
+    for(int i=0;i<nColors;i++)
+    {
+        lpColors[i].rgbRed=0;
+        lpColors[i].rgbBlue=0;
+        lpColors[i].rgbGreen=0;
+        lpColors[i].rgbReserved=0;
+    }
 
-	m_hDC = CreateCompatibleDC(GetDC(NULL));
+    m_hDC = CreateCompatibleDC(GetDC(NULL));
 
-	m_hbmpFrame = CreateDIBSection(m_hDC, m_pDIB, DIB_RGB_COLORS, &m_pFrameBits,
-		NULL, 0);
+    m_hbmpFrame = CreateDIBSection(m_hDC, m_pDIB, DIB_RGB_COLORS, &m_pFrameBits,
+        NULL, 0);
 
-	m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, m_hbmpFrame);
+    m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, m_hbmpFrame);
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -1119,8 +1121,8 @@ CFilePreviewCtrl::CFilePreviewCtrl()
 
 CFilePreviewCtrl::~CFilePreviewCtrl()
 {
-	m_bmp.Destroy();
-	m_fm.Destroy();
+    m_bmp.Destroy();
+    m_fm.Destroy();
 
     DeleteObject(m_hFont);
 }
@@ -1188,7 +1190,7 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
     m_uNumLines = 0;
     m_nMaxDisplayWidth = 0;
     m_bmp.Destroy();
-	m_video.Destroy();
+    m_video.Destroy();
 
     if(m_PreviewMode==PREVIEW_HEX)
     {
@@ -1231,7 +1233,7 @@ BOOL CFilePreviewCtrl::SetFile(LPCTSTR szFileName, PreviewMode mode, TextEncodin
         m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);
         ::SetTimer(m_hWnd, 0, 250, NULL);
     }
-	else if(m_PreviewMode==PREVIEW_VIDEO)
+    else if(m_PreviewMode==PREVIEW_VIDEO)
     {
         m_bCancelled = FALSE;
         m_hWorkerThread = CreateThread(NULL, 0, WorkerThread, this, 0, NULL);
@@ -1280,7 +1282,7 @@ PreviewMode CFilePreviewCtrl::DetectPreviewMode(LPCTSTR szFileName)
         mode = PREVIEW_IMAGE;
         goto cleanup;
     }
-	else if(CVideo::IsVideoFile(sFileName))
+    else if(CVideo::IsVideoFile(sFileName))
     {
         mode = PREVIEW_VIDEO;
         goto cleanup;
@@ -1396,7 +1398,7 @@ void CFilePreviewCtrl::DoInWorkerThread()
         ParseText();
     else if(m_PreviewMode==PREVIEW_IMAGE)
         LoadBitmap();
-	if(m_PreviewMode==PREVIEW_VIDEO)
+    if(m_PreviewMode==PREVIEW_VIDEO)
         LoadVideo();
 }
 
@@ -1520,23 +1522,23 @@ void CFilePreviewCtrl::LoadBitmap()
 
 void CFilePreviewCtrl::LoadVideo()
 {
-	int nFrame = 0;
-	CSize FrameSize;
-	int nFrameInterval;
+    int nFrame = 0;
+    CSize FrameSize;
+    int nFrameInterval;
     if(m_video.Load(m_sFileName))
-	{
-		while(m_video.DecodeFrame(nFrame==0?TRUE:FALSE, FrameSize, nFrameInterval))
-		{
-			if(m_bCancelled)
-				break;
+    {
+        while(m_video.DecodeFrame(nFrame==0?TRUE:FALSE, FrameSize, nFrameInterval))
+        {
+            if(m_bCancelled)
+                break;
 
-			nFrame++;
-			InvalidateRect(NULL);
+            nFrame++;
+            InvalidateRect(NULL);
 
-			Sleep(nFrameInterval);
-		}
+            Sleep(nFrameInterval);
+        }
 
-	}
+    }
 
     PostMessage(WM_FPC_COMPLETE);
 }
@@ -1826,10 +1828,10 @@ void CFilePreviewCtrl::DoPaint(HDC hDC)
     {
         DoPaintBitmap(hDC);
     }
-	else if(m_PreviewMode==PREVIEW_VIDEO)
-	{
-		DoPaintVideo(hDC);
-	}
+    else if(m_PreviewMode==PREVIEW_VIDEO)
+    {
+        DoPaintVideo(hDC);
+    }
 }
 
 LRESULT CFilePreviewCtrl::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
