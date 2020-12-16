@@ -4,10 +4,10 @@ project(libogg)
 aux_source_directory( ./src source_files )
 
 # Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE /wd4244)
+add_compile_definitions( _UNICODE )
 
 # Add include dir
-include_directories(        ${CMAKE_SOURCE_DIR}/thirdparty/libogg/include)
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/libogg/include)
 
 fix_default_compiler_settings_()
 
