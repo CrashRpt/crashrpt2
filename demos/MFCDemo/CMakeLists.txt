@@ -10,20 +10,20 @@ list(REMOVE_ITEM srcs_using_precomp ./stdafx.cpp)
 add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp)
 
 # Use MFC
-ADD_DEFINITIONS(-D_AFXDLL)
-if (CRASHRPT_LINK_CRT_AS_DLL)               
+add_compile_definitions( _AFXDLL )
+if (CRASHRPT_LINK_CRT_AS_DLL)
   # Use MFC as a shared lib
-  SET(CMAKE_MFC_FLAG 2) 
-else(CRASHRPT_LINK_CRT_AS_DLL)   
+  SET(CMAKE_MFC_FLAG 2)
+else(CRASHRPT_LINK_CRT_AS_DLL)
   # Use MFC as a static lib
-  SET(CMAKE_MFC_FLAG 1) 
-endif(CRASHRPT_LINK_CRT_AS_DLL)   
+  SET(CMAKE_MFC_FLAG 1)
+endif(CRASHRPT_LINK_CRT_AS_DLL)
 
 # Include resource file
 list(APPEND source_files ./MFCDemo.rc )
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE )
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 fix_default_compiler_settings_()
 
@@ -32,6 +32,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Add executable build target
 add_executable(MFCDemo WIN32 ${source_files} ${header_files})
+
+# Workaround for WinMain linker error during Unicode build
+# https://gitlab.kitware.com/cmake/cmake/-/issues/21202
+target_link_options(MFCDemo PRIVATE "/entry:wWinMainCRTStartup")
 
 # Add input link libraries
 target_link_libraries(MFCDemo CrashRpt)

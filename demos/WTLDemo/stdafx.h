@@ -1,4 +1,4 @@
-/************************************************************************************* 
+/*************************************************************************************
 This file is a part of CrashRpt library.
 Copyright (c) 2003-2013 The CrashRpt project authors. All Rights Reserved.
 
@@ -16,10 +16,10 @@ be found in the Authors.txt file in the root of the source tree.
 #pragma once
 
 // Change these values to use different versions
-#define WINVER		0x0500
+#define WINVER		0x0501
 #define _WIN32_WINNT	0x0501
-#define _WIN32_IE	0x0501
-#define _RICHEDIT_VER	0x0200
+#define _WIN32_IE	0x0600
+#define _RICHEDIT_VER	0x0300
 
 #include <atldef.h>
 #if ( _ATL_VER < 0x0800 )
@@ -75,6 +75,6 @@ extern CAppModule _Module;
 #else
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
-#endif 
+#endif
 
 

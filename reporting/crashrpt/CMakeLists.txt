@@ -11,14 +11,14 @@ set(srcs_using_precomp ${source_files})
 list(REMOVE_ITEM srcs_using_precomp ./CrashRpt.rc ./StdAfx.cpp ./CrashRpt.def)
 add_msvc_precompiled_header(stdafx.h ./StdAfx.cpp srcs_using_precomp)
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE)
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 # Modify default compiler settings
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories( ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/wtl)
+include_directories( ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/wtl )
 
 # Add library build target
 if(CRASHRPT_BUILD_SHARED_LIBS)
@@ -46,7 +46,7 @@ else(CRASHRPT_BUILD_SHARED_LIBS)
   )
 endif(CRASHRPT_BUILD_SHARED_LIBS)
 
-INSTALL(TARGETS CrashRpt 
+INSTALL(TARGETS CrashRpt
   LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
   ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
   RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
