@@ -26,8 +26,8 @@ Revision History:
 
 #include <winapifamily.h>
 
-#pragma region Desktop Family
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#pragma region Desktop Family or WER Package
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_PKG_WER)
 
 
 // As a general principal always call the 64 bit version
@@ -1100,6 +1100,16 @@ enum SymTagEnum
     SymTagManagedType,
     SymTagDimension,
     SymTagCallSite,
+    SymTagInlineSite,
+    SymTagBaseInterface,
+    SymTagVectorType,
+    SymTagMatrixType,
+    SymTagHLSLType,
+    SymTagCaller,
+    SymTagCallee,
+    SymTagExport,
+    SymTagHeapAllocationSite,
+    SymTagCoffGroup,
     SymTagMax
 };
 
@@ -1598,6 +1608,11 @@ SymGetOmaps(
 #define SYMOPT_DISABLE_SRVSTAR_ON_STARTUP 0x40000000
 #define SYMOPT_DEBUG                     0x80000000
 
+typedef enum {
+    SYMOPT_EX_DISABLEACCESSTIMEUPDATE, // Disable File Last Access Time on Symbols
+    SYMOPT_EX_MAX                      // Unused
+} IMAGEHLP_EXTENDED_OPTIONS;
+
 DWORD
 IMAGEAPI
 SymSetOptions(
@@ -1615,6 +1630,16 @@ IMAGEAPI
 SymCleanup(
     _In_ HANDLE hProcess
     );
+
+// Returns the value of the extended option
+BOOL
+IMAGEAPI
+SymGetExtendedOption(_In_ IMAGEHLP_EXTENDED_OPTIONS option);
+
+// Returns the previous value of the option
+BOOL
+IMAGEAPI
+SymSetExtendedOption(_In_ IMAGEHLP_EXTENDED_OPTIONS option, _In_ BOOL value);
 
 BOOL
 IMAGEAPI
@@ -2188,6 +2213,30 @@ SymGetSourceFileToken(
     _In_ PCSTR FileSpec,
     _Outptr_ PVOID *Token,
     _Out_ DWORD *Size
+    );
+
+BOOL
+IMAGEAPI
+SymGetSourceFileChecksumW(
+    _In_ HANDLE hProcess,
+    _In_ ULONG64 Base,
+    _In_ PCWSTR FileSpec,
+    _Out_ DWORD *pCheckSumType,
+    _Out_writes_(checksumSize) BYTE *pChecksum,
+    _In_ DWORD checksumSize,
+    _Out_ DWORD *pActualBytesWritten
+    );
+
+BOOL
+IMAGEAPI
+SymGetSourceFileChecksum(
+    _In_ HANDLE hProcess,
+    _In_ ULONG64 Base,
+    _In_ PCSTR FileSpec,
+    _Out_ DWORD *pCheckSumType,
+    _Out_writes_(checksumSize) BYTE *pChecksum,
+    _In_ DWORD checksumSize,
+    _Out_ DWORD *pActualBytesWritten
     );
 
 BOOL
@@ -3344,6 +3393,8 @@ typedef DWORD (WINAPI *PSYMBOLSERVERVERSION)();
 typedef BOOL (CALLBACK WINAPI *PSYMBOLSERVERMESSAGEPROC)(UINT_PTR action, ULONG64 data, ULONG64 context);
 typedef BOOL (WINAPI *PSYMBOLSERVERWEXPROC)(PCWSTR, PCWSTR, PVOID, DWORD, DWORD, PWSTR, PSYMSRV_EXTENDED_OUTPUT_DATA);
 typedef BOOL (WINAPI *PSYMBOLSERVERPINGPROCWEX)(PCWSTR);
+typedef BOOL (WINAPI *PSYMBOLSERVERGETOPTIONDATAPROC)(UINT_PTR, PULONG64);
+typedef BOOL (WINAPI *PSYMBOLSERVERSETHTTPAUTHHEADER)(_In_ PCWSTR pszAuthHeader);
 
 #define SYMSRV_VERSION              2
 
@@ -3377,19 +3428,39 @@ typedef BOOL (WINAPI *PSYMBOLSERVERPINGPROCWEX)(PCWSTR);
 #define SSRVOPT_DISABLE_PING_HOST   0x04000000
 #define SSRVOPT_DISABLE_TIMEOUT     0x08000000
 #define SSRVOPT_ENABLE_COMM_MSG     0x10000000
+#define SSRVOPT_URI_FILTER          0x20000000
+#define SSRVOPT_URI_TIERS           0x40000000
+#define SSRVOPT_RETRY_APP_HANG      0x80000000
 
-#define SSRVOPT_MAX                 0x10000000
+#define SSRVOPT_MAX                 0x80000000
 
 #define SSRVOPT_RESET               ((ULONG_PTR)-1)
 
+#define NUM_SSRVOPTS                32
 
-#define NUM_SSRVOPTS                30
+#define SSRVURI_HTTP_NORMAL         0x01
+#define SSRVURI_HTTP_COMPRESSED     0x02
+#define SSRVURI_HTTP_FILEPTR        0x04
+
+#define SSRVURI_UNC_NORMAL          0x10
+#define SSRVURI_UNC_COMPRESSED      0x20
+#define SSRVURI_UNC_FILEPTR         0x40
+
+#define SSRVURI_HTTP_MASK           0x0F
+#define SSRVURI_UNC_MASK            0xF0
+#define SSRVURI_ALL                 0xFF
+
+// Legacy Names
+#define SSRVURI_NORMAL              SSRVURI_HTTP_NORMAL
+#define SSRVURI_COMPRESSED          SSRVURI_HTTP_COMPRESSED
+#define SSRVURI_FILEPTR             SSRVURI_HTTP_FILEPTR
 
 #define SSRVACTION_TRACE        1
 #define SSRVACTION_QUERYCANCEL  2
 #define SSRVACTION_EVENT        3
 #define SSRVACTION_EVENTW       4
 #define SSRVACTION_SIZE         5
+#define SSRVACTION_HTTPSTATUS   6
 
 #define SYMSTOREOPT_COMPRESS        0x01
 #define SYMSTOREOPT_OVERWRITE       0x02
@@ -3837,7 +3908,7 @@ RangeMapWrite(
 #include <minidumpapiset.h>
 
 
-#endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
+#endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_PKG_WER) */
 #pragma endregion
 
 #endif // _DBGHELP_
