@@ -4,7 +4,7 @@ project(CrashRptProbe)
 aux_source_directory( . source_files )
 file( GLOB header_files *.h )
 
-list(APPEND source_files 
+list(APPEND source_files
   ./CrashRptProbe.rc
   ./CrashRptProbe.def
   ${CMAKE_SOURCE_DIR}/reporting/crashrpt/Utility.cpp
@@ -16,8 +16,8 @@ set(srcs_using_precomp ${source_files})
 list(REMOVE_ITEM srcs_using_precomp  ./CrashRptProbe.rc ./CrashRptProbe.def ./stdafx.cpp ${CMAKE_SOURCE_DIR}/reporting/crashsender/md5.cpp)
 add_msvc_precompiled_header(stdafx.h ./stdafx.cpp srcs_using_precomp)
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE)
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 fix_default_compiler_settings_()
 
@@ -62,7 +62,7 @@ else(CRASHRPT_BUILD_SHARED_LIBS)
                   MINSIZEREL_POSTFIX LIB)
 endif(CRASHRPT_BUILD_SHARED_LIBS)
 
-INSTALL(TARGETS CrashRptProbe 
+INSTALL(TARGETS CrashRptProbe
              LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
              ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
              RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN})

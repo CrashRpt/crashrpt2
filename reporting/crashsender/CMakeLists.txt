@@ -15,8 +15,8 @@ list(APPEND source_files
   ${CMAKE_SOURCE_DIR}/reporting/CrashRpt/SharedMem.cpp
 )
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE )
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 fix_default_compiler_settings_()
 
@@ -45,7 +45,7 @@ endif(NOT CMAKE_CL_64)
 add_executable(CrashSender WIN32 ${source_files} ${header_files})
 
 # Add input link libraries
-target_link_libraries(CrashSender 
+target_link_libraries(CrashSender
   zlib
   minizip
   libjpeg
@@ -71,7 +71,7 @@ set_target_properties(CrashSender PROPERTIES
   MINSIZEREL_POSTFIX ${CRASHRPT_VER}
 )
 
-INSTALL(TARGETS CrashSender 
+INSTALL(TARGETS CrashSender
   LIBRARY DESTINATION ${CRASHRPT_INSTALLDIR_BIN}
   ARCHIVE DESTINATION ${CRASHRPT_INSTALLDIR_LIB}
   RUNTIME DESTINATION ${CRASHRPT_INSTALLDIR_BIN}

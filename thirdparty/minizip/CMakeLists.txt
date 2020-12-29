@@ -4,7 +4,9 @@ project(minizip)
 aux_source_directory( . source_files )
 
 # Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE -D_CRT_SECURE_NO_DEPRECATE /wd4127 /wd4131 /wd4100 /wd4189 /wd4244)
+add_compile_definitions( _UNICODE _CRT_SECURE_NO_WARNINGS )
+
+add_compile_options( /wd4100 /wd4131 /wd4189 /wd4244 )
 
 # Add include dir
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty/zlib )

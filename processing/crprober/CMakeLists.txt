@@ -4,8 +4,8 @@ project(crprober)
 aux_source_directory( . source_files )
 file( GLOB header_files *.h )
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE )
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 fix_default_compiler_settings_()
 

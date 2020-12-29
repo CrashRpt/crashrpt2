@@ -1,5 +1,5 @@
 # Preserve backwards compatibility
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.15)
 project (CrashRpt)
 
 # CrashRpt version number
@@ -17,7 +17,7 @@ option(CRASHRPT_BUILD_DEMOS "If set (default), CrashRpt builds the demo projects
 option(CRASHRPT_BUILD_TESTS "If set (default), CrashRpt builds the test projects." ON)
 option(CRASHRPT_INSTALL_PDB "If set (default), CrashRpt also installs PDB files." ON)
 
-ADD_DEFINITIONS("/W4 /wd4456 /wd4458 /MP /Oy- /EHsc")
+add_compile_options( /W4 /wd4456 /wd4458 /MP /Oy- /EHsc )
 
 if(MSVC_VERSION LESS 1910 )
   set( DBGHELP_USE_INSTALLED_SDK True )
@@ -86,16 +86,15 @@ macro(fix_default_compiler_settings_)
   if (MSVC)
     # For MSVC, CMake sets certain flags to defaults we want to override.
     # This replacement code is taken from sample in the CMake Wiki at
-    # http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
-    foreach (flag_var
-        CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE )
-      if (NOT CRASHRPT_LINK_CRT_AS_DLL)
-        string(REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-      endif(NOT CRASHRPT_LINK_CRT_AS_DLL)
-
+    # https://gitlab.kitware.com/cmake/community/-/wikis/FAQ#dynamic-replace.
+    foreach(flag_var
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+      if(${flag_var} MATCHES "/MD" AND NOT CRASHRPT_LINK_CRT_AS_DLL)
+        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+      endif()
     endforeach()
-   endif(MSVC)
+  endif(MSVC)
 endmacro()
 
 fix_default_compiler_settings_()

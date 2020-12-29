@@ -4,19 +4,19 @@ project(ConsoleDemo)
 aux_source_directory( . source_files )
 file( GLOB header_files *.h )
 
-# Define _UNICODE (use wide-char encoding)
-add_definitions(-D_UNICODE )
+# Define _UNICODE and UNICODE (use wide-char encoding)
+add_compile_definitions( _UNICODE UNICODE )
 
 fix_default_compiler_settings_()
 
 # Add include dir
-include_directories(${CMAKE_SOURCE_DIR}/include 
+include_directories(${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/reporting/CrashRpt
-          ${CMAKE_SOURCE_DIR}/thirdparty/wtl 
+          ${CMAKE_SOURCE_DIR}/thirdparty/wtl
           ${CMAKE_SOURCE_DIR}/thirdparty/zlib
-          ${CMAKE_SOURCE_DIR}/thirdparty/minizip  
-          ${CMAKE_SOURCE_DIR}/thirdparty/jpeg 
-          ${CMAKE_SOURCE_DIR}/thirdparty/libpng 
+          ${CMAKE_SOURCE_DIR}/thirdparty/minizip
+          ${CMAKE_SOURCE_DIR}/thirdparty/jpeg
+          ${CMAKE_SOURCE_DIR}/thirdparty/libpng
           ${CMAKE_SOURCE_DIR}/thirdparty/tinyxml )
 
 # Add executable build target
