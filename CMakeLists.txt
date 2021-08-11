@@ -16,6 +16,7 @@ option(CRASHRPT_BUILD_SHARED_LIBS "If set (default), CrashRpt modules are built 
 option(CRASHRPT_LINK_CRT_AS_DLL "If set (default), CrashRpt modules link C run-time (CRT) as multi-threaded dynamic libraries, otherwise as multi-threaded static libs." ON)
 option(CRASHRPT_BUILD_DEMOS "If set (default), CrashRpt builds the demo projects." ON)
 option(CRASHRPT_BUILD_TESTS "If set (default), CrashRpt builds the test projects." ON)
+option(CRASHRPT_INSTALL_PDB "If set (default), CrashRpt also installs PDB files." ON)
 
 ADD_DEFINITIONS("/W4 /wd4456 /wd4458 /MP /Oy- /EHsc")
 
